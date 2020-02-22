@@ -3,14 +3,14 @@
 #include <QFileInfo>
 #include <QString>
 
-static const char* userdir;
+static QString userdir;
 
-QString find_xglobefile(const char* name)
+QString find_xglobefile(const QString& name)
 {
     if (QFile::exists(name))
         return QString(name);
 
-    if (userdir != NULL) {
+    if (userdir.isEmpty()) {
         QString result = userdir;
         result += "/";
         result += name;
@@ -21,13 +21,13 @@ QString find_xglobefile(const char* name)
     result += "/";
     result += name;
     if (!QFile::exists(result)) {
-        fprintf(stderr, "File \"%s\" not found!\n", name);
+        //fprintf(stderr, "File \"%s\" not found!\n", name);
         ::exit(1);
     }
     return result;
 }
 
-void set_userdir(const char* d)
+void set_userdir(const QString& d)
 {
     userdir = d;
 }

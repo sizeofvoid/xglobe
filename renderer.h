@@ -108,7 +108,7 @@ public:
     double getTransition();
 
 protected:
-    QImage* loadImage(const char* name);
+    QImage* loadImage(const QString& name);
 
 private:
     void getMapColorLinear(QImage* m, double longitude, double latitude,

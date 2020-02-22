@@ -76,7 +76,8 @@
 
 #include "sunpos.h"
 #include "compute.h"
-#include <math.h>
+#include <cmath>
+#include <cassert>
 
 /*
  * the epoch upon which these astronomical calculations are based is
@@ -94,10 +95,10 @@
 /*
  * assuming the apparent orbit of the sun about the earth is circular,
  * the rate at which the orbit progresses is given by RadsPerDay --
- * TWOPI radians per orbit divided by 365.242191 days per year:
+ * (2 * M_PI) radians per orbit divided by 365.242191 days per year:
  */
 
-#define RadsPerDay (TWOPI / 365.242191)
+#define RadsPerDay ((2 * M_PI) / 365.242191)
 
 /*
  * details of sun's apparent orbit at epoch 1990.0 (after
@@ -108,8 +109,8 @@
  * Eccentricity (eccentricity of orbit)                0.016713
  */
 
-#define Epsilon_g (279.403303 * (TWOPI / 360))
-#define OmegaBar_g (282.768422 * (TWOPI / 360))
+#define Epsilon_g (279.403303 * ((2 * M_PI) / 360))
+#define OmegaBar_g (282.768422 * ((2 * M_PI) / 360))
 #define Eccentricity (0.016713)
 
 /*
@@ -117,7 +118,7 @@
  * 1990.0 (computed as 23.440592 degrees according to the method given
  * in duffett-smith, section 27)
  */
-#define MeanObliquity (23.440592 * (TWOPI / 360))
+#define MeanObliquity (23.440592 * ((2 * M_PI) / 360))
 
 /*
  * solve Kepler's equation via Newton's method
@@ -153,13 +154,13 @@ double SunPos::sun_ecliptic_longitude(time_t ssue)
     D = DaysSinceEpoch(ssue);
 
     N = RadsPerDay * D;
-    N = fmod(N, TWOPI);
+    N = fmod(N, (2 * M_PI));
     if (N < 0)
-        N += TWOPI;
+        N += (2 * M_PI);
 
     M_sun = N + Epsilon_g - OmegaBar_g;
     if (M_sun < 0)
-        M_sun += TWOPI;
+        M_sun += (2 * M_PI);
 
     E = solve_keplers_equation(M_sun);
     v = 2 * atan(sqrt((1 + Eccentricity) / (1 - Eccentricity)) * tan(E / 2));
@@ -201,7 +202,7 @@ double SunPos::julian_date(int y, int m, int d)
     double JD;
 
     /* lazy test to ensure gregorian calendar */
-    ASSERT(y >= 1583);
+    assert(y >= 1583);
 
     if ((m == 1) || (m == 2)) {
         y -= 1;
@@ -269,16 +270,16 @@ void SunPos::GetSunPos(time_t ssue, double* lat, double* lon)
     lambda = sun_ecliptic_longitude(ssue);
     ecliptic_to_equatorial(lambda, 0.0, &alpha, &delta);
 
-    tmp = alpha - (TWOPI / 24) * GST(ssue);
-    if (tmp < -PI) {
+    tmp = alpha - ((2 * M_PI) / 24) * GST(ssue);
+    if (tmp < -M_PI) {
         do
-            tmp += TWOPI;
-        while (tmp < -PI);
+            tmp += (2 * M_PI);
+        while (tmp < -M_PI);
     }
-    else if (tmp > PI) {
+    else if (tmp > M_PI) {
         do
-            tmp -= TWOPI;
-        while (tmp < -PI);
+            tmp -= (2 * M_PI);
+        while (tmp < -M_PI);
     }
 
     *lon = tmp;

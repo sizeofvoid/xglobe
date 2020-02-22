@@ -3,8 +3,8 @@
 #include <QDateTime>
 #include <QString>
 
-QString find_xglobefile(const char*);
-void set_userdir(const char*);
+QString find_xglobefile(const QString&);
+void set_userdir(const QString&);
 
 class FileChange {
 public:

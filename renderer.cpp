@@ -17,7 +17,7 @@
  * Let city lights show through cloud cover.
  *
  * Revision 1.4  2000/06/17 13:03:45  espie
- * Move MIN/MAX to compute.h
+ * Move std::min/std::max to compute.h
  * Move solve_conflicts to its own function
  * Compute interpolated pixel more efficiently.
  *
@@ -88,9 +88,9 @@ Renderer::Renderer(const QSize& size, const char* mapfile)
     mapcloud = nullptr;
     track_clouds = nullptr;
 
-    renderedImage = new QImage(size, 32);
+    renderedImage = new QImage(size, QImage::Format_RGB32);
     if (!renderedImage) {
-        fprintf(stderr, "Not enough memory for offscreen image buffer!\n");
+        //fprintf(stderr, "Not enough memory for offscreen image buffer!\n");
         ::exit(1);
     }
 
@@ -121,21 +121,21 @@ Renderer::Renderer(const QSize& size, const char* mapfile)
 
 /* ------------------------------------------------------------------------*/
 
-QImage* Renderer::loadImage(const char* name)
+QImage* Renderer::loadImage(const QString& name)
 {
     QImage* m = new QImage();
     if (!m) {
-        fprintf(stderr, "Not enough memory for map!\n");
+        //fprintf(stderr, "Not enough memory for map!\n");
         ::exit(1);
     }
 
     if (!m->load(find_xglobefile(name))) {
-        fprintf(stderr, "Error while opening map \"%s\"!\n", name);
+        //fprintf(stderr, "Error while opening map \"%s\"!\n", name);
         ::exit(1);
     }
 
     if (m->depth() < 8)
-        *m = m->convertDepth(8);
+        *m = m->convertToFormat(QImage::Format_Indexed8);
 
     return m;
 }
@@ -156,7 +156,7 @@ int Renderer::loadNightMap(const char* nmapfile)
 
 static inline bool bad_color(int r, int g, int b)
 {
-    return r == 255 && b == 255 || r == 2 && g == 2 && b == 2;
+    return (r == 255 && b == 255) || (r == 2 && g == 2 && b == 2);
 }
 
 int Renderer::loadCloudMap(const char* cmapfile, int cf)
@@ -181,14 +181,14 @@ int Renderer::loadCloudMap(const char* cmapfile, int cf)
         delete mapcloud;
     mapcloud = loadImage(track_clouds->name());
     if (!mapcloud) {
-        fprintf(stderr, "Error loading cloud mapfile \"%s\"\n", cmapfile);
+        //fprintf(stderr, "Error loading cloud mapfile \"%s\"\n", cmapfile);
         ::exit(1);
     }
     int endy = mapcloud->height();
     int endx = mapcloud->width();
 
     if (mapcloud->depth() == 8)
-        *mapcloud = mapcloud->convertDepth(32);
+        *mapcloud = mapcloud->convertToFormat(QImage::Format_RGB32);
 
     int sb, sg, sr;
     QRgb* p1;
@@ -265,7 +265,8 @@ int Renderer::loadBackImage(const char* imagefile, bool tld)
     backImage = loadImage(imagefile ? imagefile : "back.bmp");
 
     if (!tiled) {
-        QImage bi = backImage->smoothScale(renderedImage->width(), renderedImage->height());
+        QSize smallSize (renderedImage->width(), renderedImage->height());
+        QImage bi = backImage->scaled(smallSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
         delete backImage;
         backImage = new QImage(bi);
     }
@@ -550,9 +551,9 @@ void Renderer::calcDistance()
     double tan_a;
 
     // distance of camera to projection plane
-    proj_dist = MIN(renderedImage->width(), renderedImage->height()) / tan(fov);
+    proj_dist = std::min(renderedImage->width(), renderedImage->height()) / tan(fov);
 
-    x = zoom * MIN(renderedImage->width(), renderedImage->height()) / 2.;
+    x = zoom * std::min(renderedImage->width(), renderedImage->height()) / 2.;
     tan_a = x / proj_dist;
     // distance of camera camera to center of earth ( = coordinate origin)
     center_dist = radius / sin(atan(tan_a));
@@ -1078,8 +1079,8 @@ void Renderer::drawLabel()
     QDateTime dt;
     QString labelstring;
     QPainter p;
-    QColor transparentcolor = QTBLACK;
-    QColor whitecolor = QTWHITE;
+    QColor transparentcolor = Qt::black;
+    QColor whitecolor = Qt::white;
     unsigned int pixel;
     int x, y;
     int wx, wy;
@@ -1096,6 +1097,7 @@ void Renderer::drawLabel()
     slon = sun_long * 180. / M_PI;
     slat = sun_lat * 180. / M_PI;
 
+    /*
     labelstring.sprintf("%s, %s %d. %d, %d:%02d %s\n"
                         "View pos %2.2f° %c %2.2f° %c\n"
                         "Sun pos %2.2f° %c %2.2f° %c",
@@ -1139,7 +1141,7 @@ void Renderer::drawLabel()
 
     QImage labelimage = pm.convertToImage();
     if (labelimage.depth() != 32)
-        labelimage = labelimage.convertDepth(32);
+        labelimage = labelimage.convertToFormat(QImage::Format_RGB32);
 
     if (label_x > 0)
         x = label_x;
@@ -1172,6 +1174,7 @@ void Renderer::drawLabel()
             }
         }
     }
+    */
 }
 
 /* ------------------------------------------------------------------------*/
