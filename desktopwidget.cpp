@@ -26,7 +26,7 @@
 
 
 
-DesktopWidget::DesktopWidget(QWidget* parent, const char* name)
+DesktopWidget::DesktopWidget(QWidget* parent, const QString& name)
     : QWidget(parent)
 {
     haveImage = false;

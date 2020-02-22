@@ -27,7 +27,7 @@
 
 class DesktopWidget : public QWidget {
 public:
-    DesktopWidget(QWidget* parent = 0, const char* name = 0);
+    DesktopWidget(QWidget* parent = nullptr, const QString& name = QString());
     ~DesktopWidget();
     void paintEvent(QPaintEvent* pe);
     void updateDisplay(QImage* image);
