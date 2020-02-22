@@ -1,0 +1,51 @@
+version 0.5:
+
+- added -outfile command line switch
+- added -rot command line switch
+by Andrew Sumner:
+- implemented cloud map rendering (-cloudmapfile and -cloudfilter switches)
+  (see README.maps for details)
+
+version 0.4:
+
+by Andrew Sumner:
+- moonpos bugfix
+- added -shade_area command line switch
+
+version 0.3.1:
+
+- Not using a background image could cause a segfault because of an
+  uninitialized variable. Fixed.
+- Command line parsing was broken in 0.3 for some switches. Fixed.
+
+version 0.3:
+
+- works with QT 2
+- day and night map do no longer need to have the same dimensions
+- added -stars and -starfreq switches
+- markers can now have a color associated with them (see xglobe-markers
+  for syntax)
+- using 256-color maps now actually saves memory over truecolor maps
+- added -term switch
+- nicer output when using night maps
+patches by Andrew Sumner <andrew_sumner@bigfoot.com>:
+- added -shift switch
+- added orbit position specifier
+- added moonpos position specifier (code from Hari Nair's XPlanet)
+- added -backg and -tiled switches
+- added -dumpcmd switch
+- added -ambientrgb switch
+
+version 0.2:
+
+- added -size switch
+- added -timewarp switch
+- added -once switch
+- improved xearth command line compatibility
+- this version includes a free map
+- more links to additional maps on the homepage
+- found a better way to use XGlobe with KDE, see README for details
+
+version 0.1:
+
+initial released version of XGlobe

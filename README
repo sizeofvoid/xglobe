@@ -1,0 +1,140 @@
+XGLOBE 0.5p1
+This is an interim release of xglobe, for OpenBSD, based on improvements
+I've made to the xglobe 0.5 release. Those improvements have been submitted
+back to Thorsten, and should be in the official xglobe 0.6, for the most
+part.
+
+XGLOBE 0.5
+Thorsten Scheuermann <tscheuermann@gmx.net>
+July 19th, 1999
+
+
+ABOUT XGLOBE:
+
+XGlobe displays the earth from your favourite point in space, similar to
+Xearth. The difference is that XGlobe uses a world map image which is mapped
+to the globe. This can look pretty good depending on the map.
+
+This version includes a free map.
+You can get other maps usable with XGlobe on the net. See README.maps
+for details.
+
+XGlobe should work correctly when using virtual screens especially with KDE
+(use -kde option).
+
+
+DERIVATIVE WORK:
+
+Jerome Dumonteil has taken some of the XGlobe code to write WMGlobe, an applet
+for the Windowmaker window manager which displays the earth in an icon.
+
+For links to similar software see the XGlobe homepage.
+
+INSTALLATION:
+
+You need the Qt library (available at http://www.troll.no) version 1.4 or
+later in order to build XGlobe.
+
+- Edit the directory definitions in "Makefile"
+- type "make" to build xglobe
+- type "make install" to install the required files
+- if you have the files map.bmp and mapnight.bmp type "make install-maps"
+
+XGlobe is being developed on Linux. People have managed to build it on the
+following additional platforms:
+
+Solaris 2.5.1 (g++ 2.8.1)
+Solaris 2.7 SPARC (poth, egcs 1.1.2 & Sunsoft 5.0 compilers)
+NetBSD
+
+If you are successful getting it to work on other platforms, please tell me so.
+
+
+CONFIGURATION AND USE:
+
+Configuration is done through command line options.
+Type 'xglobe -help' for an explanation of these options.
+
+
+USING CUSTOM MAPS:
+
+- For the image to the mapped correctly, position 0°N 0°W must be in the
+  center of the image and the latitude must be linear from 90°N to 90°S.
+
+XGLOBE AND KDE:
+
+Although the -kde switch works quite nice I have found out that killing the
+task "kbgndwm" before starting XGlobe (without -kde) has the same effect and
+saves some memory (because XGlobe needs an additional image buffer in KDE
+mode).
+
+
+LICENSE:
+
+Copyright (C) 1998 Thorsten Scheuermann
+
+This program is licensed under the terms of the GNU GPL, with the
+exception that it may be compiled and linked with the TrollTech QT
+library without implying that any of the rights or restrictions
+associated with the GPL are applied to the QT library.
+
+The code in 'sunpos.cpp' and the location-marker data is taken from Xearth
+by Kirk Lauritz Johnson.
+(Xearth Homepage: http://www.cs.colorado.edu/~tuna/xearth/index.html)
+
+His Copyright notice:
+
+<begin quote>
+
+    Copyright (C) 1989, 1990, 1993, 1994, 1995 Kirk Lauritz Johnson
+
+    Parts of the source code (as marked) are:
+      Copyright (C) 1989, 1990, 1991 by Jim Frost
+      Copyright (C) 1992 by Jamie Zawinski <jwz@lucid.com>
+
+    Permission to use, copy, modify and freely distribute xearth for
+    non-commercial and not-for-profit purposes is hereby granted
+    without fee, provided that both the above copyright notice and
+    this permission notice appear in all copies and in supporting
+    documentation.
+
+<end quote>
+
+The code in 'moonpos.cpp' is taken from XPlanet by Hari Nair
+(XPlanet homepage: http://www.alumni.caltech.edu/~hari/xplanet)
+
+The author makes no representations about the suitability of this software 
+for any purpose. It is provided "as is" without express or implied warranty.
+
+THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING
+ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL
+THE AUTHOR BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR
+ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER
+IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
+OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+
+CREDIT:
+
+Thanks go out to Raoul Alonso, author of Ssystem (a Solar System simulator)
+who created the map which is distributed with XGlobe. He used a material from
+C. Thomas' site. Links can be found on the XGlobe homepage.
+
+Jeff Jolley <jeff@radcyberzine.com> found quite a few maps on the net and
+created the excellent "XGlobe Maps" web page at 
+http://www.radcyberzine.com/xglobe/.
+
+Andrew Sumner <andrew_sumner@bigfoot.com> submitted quite a few patches to
+XGlobe.
+
+The moon position code is taken from Hari Nair's XPlanet.
+
+Without Kirk Lauritz Johnson's program "xearth" I probably wouldn't have
+ever considered writing XGlobe.
+
+
+CONTACT:
+
+Send questions, comments, patches and enhancements to tscheuermann@gmx.net.
+
+XGlobe Homepage: http://www.uni-karlsruhe.de/~uddn/xglobe

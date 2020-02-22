@@ -1,0 +1,36 @@
+
+
+WHERE TO GET MAPS:
+
+
+For additional maps to use with XGlobe check the link on the XGlobe homepage
+http://www.uni-karlsruhe.de/~uddn/xglobe or Jeff Jolley's excellent XGlobe Maps page
+at http://www.radcyberzine.com/xglobe/.
+
+
+HOW TO USE MAPS:
+
+XGlobe will look for map.bmp in its data directory when no -mapfile option
+is given. So convert your default map to Windows bitmap format and put it
+there. When using the -nightmap switch without the -nightmapfile switch
+XGlobe will look for mapnight.bmp.
+
+If you find any other good maps, please tell me!
+
+
+CLOUD MAPS:
+
+In version 0.5 Andrew Sumner added support for cloud maps. The only maps I
+know to work are the ones from the Earth & Moon Viewer page.
+(http://www.fourmilab.ch/cgi-bin/uncgi/Earth)
+
+To get a map from there, use the options:
+Display - Map
+Image - IR clouds
+No night
+
+The purple continent lines are removed by XGlobe.
+
+Included is a script called getcloudmap.sh by Andrew Sumner. I didn't test it,
+so don't ask me about it. If someone creates a nicer one (perhaps in Perl?)
+please tell me so.

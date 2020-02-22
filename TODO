@@ -1,0 +1,11 @@
+XGlobe currently has all the features I wanted. That doesn't mean 
+it couldn't be improved:
+
+- "don't show markers on dark side"-option
+- rewrite the ugly map-interpolation code
+- use autoconf and automake for an easier setup process
+  (does anyone have a configure script for detecting qimgio?)
+- read default options from .xgloberc
+
+- write a nicer script which periodically fetches cloud data from the Earth &
+  Moon Viewer page and invokes xglobe
