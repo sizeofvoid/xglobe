@@ -59,115 +59,117 @@
 #ifndef _EARTHAPP_H
 #define _EARTHAPP_H
 
-#include <qapplication.h>
-#include <qtimer.h>
-#include <qsize.h>
-#include <qstring.h>
-#include <time.h>
-#include "random.h"
-#include "renderer.h"
 #include "desktopwidget.h"
 #include "markerlist.h"
+#include "random.h"
+#include "renderer.h"
+#include <qapplication.h>
+#include <qsize.h>
+#include <qstring.h>
+#include <qtimer.h>
+#include <time.h>
 
-class EarthApplication : public QApplication
-{
-  Q_OBJECT
-    
+class EarthApplication : public QApplication {
+    Q_OBJECT
+
 public:
-  EarthApplication(int ac, char **av);
-  virtual ~EarthApplication();
-  
-  void init();
+    EarthApplication(int ac, char** av);
+    virtual ~EarthApplication();
+
+    void init();
 
 private:
-  void readPosition(int i);
-  void readDelay(int i);
-  void readZoom(int i);
-  void readBG(int i);
-  void readPriority(int i);
-  void readMarkerFile(int i);
-  void readMarkerFont(int i);
-  void readMarkerFontSize(int i);
-  void readShift(int i);
-  void readLabelPos(int i);
-  void readAmbientLight(int i);
-  void readAmbientRGB(int i);
-  void readMapFile(int i);
-  void readNightMapFile(int i);  
-  void readCloudMapFile(int i);  
-  void readCloudFilter(int i);
-  void readDumpCmd(int i);
-  void readFov(int i);
-  int  readGridVal(int i);
-  void readSize(int i);
-  void readOrbit(int i);
-  void readTimeWarp(int i);
-  void readStarFreq(int i);
-  void readTransition(int i);
-  void readShadeArea(int i);
-  void readOutFileName(int i);
-  void readRotation(int i);
-  void printUsage();
-  void printHelp();
-  void randomPosition();
-  void orbitPosition(time_t);
-  void setPriority(int pri);
-  
+    void readPosition(int i);
+    void readDelay(int i);
+    void readZoom(int i);
+    void readBG(int i);
+    void readPriority(int i);
+    void readMarkerFile(int i);
+    void readMarkerFont(int i);
+    void readMarkerFontSize(int i);
+    void readShift(int i);
+    void readLabelPos(int i);
+    void readAmbientLight(int i);
+    void readAmbientRGB(int i);
+    void readMapFile(int i);
+    void readNightMapFile(int i);
+    void readCloudMapFile(int i);
+    void readCloudFilter(int i);
+    void readDumpCmd(int i);
+    void readFov(int i);
+    int readGridVal(int i);
+    void readSize(int i);
+    void readOrbit(int i);
+    void readTimeWarp(int i);
+    void readStarFreq(int i);
+    void readTransition(int i);
+    void readShadeArea(int i);
+    void readOutFileName(int i);
+    void readRotation(int i);
+    void printUsage();
+    void printHelp();
+    void randomPosition();
+    void orbitPosition(time_t);
+    void setPriority(int pri);
+
 public slots:
-  void recalc();
+    void recalc();
 
 protected:
-  enum PosType { FIXED, SUNREL, MOONPOS, RANDOM, ORBIT }; 
- 
-  Renderer      *r;
-  DesktopWidget *dwidget;
-  QTimer        *timer;
-  double        view_lat, view_long;
-  double        orbit_period;
-  double	orbit_inclin;
-  double	orbit_shift;
-  double        zoom;
-  int           delay;
-  PosType       p_type;
-  bool          builtin_markers;
-  bool          show_markers;
-  bool          show_label;
-  int           label_x, label_y;
-  int           shift_x, shift_y;
-  double        ambient_red, ambient_blue, ambient_green;
-  double        fov;
-  bool          with_nightmap;
-  bool          with_cloudmap;
-  bool          with_bg;
-  bool          tiled;
-  bool          show_stars;
-  double        star_freq;
-  char *        dumpcmd;
-  char *        dumpfile;
-  int           argc_map, argc_nightmap, argc_cloudmap, argc_bg;
-  int           cloud_filter;
-  time_t        start_time;
-  time_t        current_time;
-  double        time_warp;
-  MarkerList    marker_list;
-  const char *	 markerfont;
-  int			    markerfontsize;
-  int           grid_type, grid1, grid2;
-  double        transition;
-  double        shade_area;
-  double        rotation;
-  QString       out_file_name;
-  
+    enum PosType { FIXED,
+        SUNREL,
+        MOONPOS,
+        RANDOM,
+        ORBIT };
+
+    Renderer* r;
+    DesktopWidget* dwidget;
+    QTimer* timer;
+    double view_lat, view_long;
+    double orbit_period;
+    double orbit_inclin;
+    double orbit_shift;
+    double zoom;
+    int delay;
+    PosType p_type;
+    bool builtin_markers;
+    bool show_markers;
+    bool show_label;
+    int label_x, label_y;
+    int shift_x, shift_y;
+    double ambient_red, ambient_blue, ambient_green;
+    double fov;
+    bool with_nightmap;
+    bool with_cloudmap;
+    bool with_bg;
+    bool tiled;
+    bool show_stars;
+    double star_freq;
+    char* dumpcmd;
+    char* dumpfile;
+    int argc_map, argc_nightmap, argc_cloudmap, argc_bg;
+    int cloud_filter;
+    time_t start_time;
+    time_t current_time;
+    double time_warp;
+    MarkerList marker_list;
+    const char* markerfont;
+    int markerfontsize;
+    int grid_type, grid1, grid2;
+    double transition;
+    double shade_area;
+    double rotation;
+    QString out_file_name;
+
 private:
-  bool firstTime;
-  bool do_the_dump;
-  bool do_dumpcmd;
-  bool use_kde;
-  bool once;
-  bool have_size;
-  QSize size;
-  Gen gen;
+    bool firstTime;
+    bool do_the_dump;
+    bool do_dumpcmd;
+    bool use_kde;
+    bool once;
+    bool have_size;
+    QSize size;
+    Gen gen;
 };
 
 #endif
-

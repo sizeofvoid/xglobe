@@ -65,845 +65,789 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include "renderer.h"
+#include "compute.h"
+#include "config.h"
+#include "defines.h"
+#include "file.h"
+#include "sunpos.h"
 #include <math.h>
 #include <qapplication.h>
+#include <qdatetime.h>
 #include <qpainter.h>
 #include <qpixmap.h>
-#include <qdatetime.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include "config.h"
-#include "renderer.h"
-#include "defines.h"
-#include "sunpos.h"
-#include "compute.h"
-#include "file.h"
 
 /* ------------------------------------------------------------------------*/
 
-Renderer::Renderer(const QSize &size, const char *mapfile)
+Renderer::Renderer(const QSize& size, const char* mapfile)
 {
-  markerlist = NULL;
-  map = NULL;
-  mapnight = NULL;
-  backImage = NULL;
-  mapcloud = NULL;
-  track_clouds = NULL;
-  
-  renderedImage = new QImage(size, 32);
-  if(!renderedImage)
-  {
-    fprintf(stderr, "Not enough memory for offscreen image buffer!\n");
-    ::exit(1);
-  }
+    markerlist = NULL;
+    map = NULL;
+    mapnight = NULL;
+    backImage = NULL;
+    mapcloud = NULL;
+    track_clouds = NULL;
 
-  map = loadImage(mapfile ? mapfile : "map.bmp");
-  
-  // fprintf(stderr, "Map size: %dx%d\n", map->width(), map->height());
- 
-  this->radius = 1000.;
-  this->view_long = 0.;
-  this->view_lat = 0.;
-  this->sun_long = 0.;
-  this->sun_lat = 0.;
-  this->fov = 0.5*PI/180.;
-  this->zoom = 0.9;
-  this->ambientRed = 0.15;
-  this->ambientGreen = 0.15;
-  this->ambientBlue = 0.15;
-  this->show_label = TRUE;
-  this->gridtype = NO_GRID;
-  this->d_gridline = 15.0*PI/180.;
-  this->d_griddot = PI/180.;
-  stars = NULL;
-  this->trans = 0.0;
-  this->rot = 0.0;
-  
-  calcDistance();
+    renderedImage = new QImage(size, 32);
+    if (!renderedImage) {
+        fprintf(stderr, "Not enough memory for offscreen image buffer!\n");
+        ::exit(1);
+    }
+
+    map = loadImage(mapfile ? mapfile : "map.bmp");
+
+    // fprintf(stderr, "Map size: %dx%d\n", map->width(), map->height());
+
+    this->radius = 1000.;
+    this->view_long = 0.;
+    this->view_lat = 0.;
+    this->sun_long = 0.;
+    this->sun_lat = 0.;
+    this->fov = 0.5 * PI / 180.;
+    this->zoom = 0.9;
+    this->ambientRed = 0.15;
+    this->ambientGreen = 0.15;
+    this->ambientBlue = 0.15;
+    this->show_label = TRUE;
+    this->gridtype = NO_GRID;
+    this->d_gridline = 15.0 * PI / 180.;
+    this->d_griddot = PI / 180.;
+    stars = NULL;
+    this->trans = 0.0;
+    this->rot = 0.0;
+
+    calcDistance();
 }
 
 /* ------------------------------------------------------------------------*/
 
-QImage *Renderer::loadImage(const char *name)
+QImage* Renderer::loadImage(const char* name)
 {
-  QImage *m = new QImage();
-  if(!m)
-  {
-    fprintf(stderr, "Not enough memory for map!\n");
-    ::exit(1);
-  }
+    QImage* m = new QImage();
+    if (!m) {
+        fprintf(stderr, "Not enough memory for map!\n");
+        ::exit(1);
+    }
 
-  if(!m->load(find_xglobefile(name)))
-  {
-    fprintf(stderr, "Error while opening map \"%s\"!\n", name);
-    ::exit(1);
-  }
+    if (!m->load(find_xglobefile(name))) {
+        fprintf(stderr, "Error while opening map \"%s\"!\n", name);
+        ::exit(1);
+    }
 
-  if(m->depth() < 8)
-    *m = m->convertDepth(8);
-  
-  return m;
+    if (m->depth() < 8)
+        *m = m->convertDepth(8);
+
+    return m;
 }
 
 /* ------------------------------------------------------------------------*/
 
-int Renderer::loadNightMap(const char *nmapfile)
+int Renderer::loadNightMap(const char* nmapfile)
 {
-  if (mapnight != NULL)		  // we already have a night map!
+    if (mapnight != NULL) // we already have a night map!
+        return 1;
+
+    mapnight = loadImage(nmapfile ? nmapfile : "mapnight.bmp");
+
     return 1;
-  
-  mapnight = loadImage(nmapfile ? nmapfile : "mapnight.bmp");
-
-  return 1;
 }
 
 /* ------------------------------------------------------------------------*/
-
 
 static inline bool bad_color(int r, int g, int b)
 {
-	return r == 255 && b == 255 || r == 2 && g == 2 && b == 2;
+    return r == 255 && b == 255 || r == 2 && g == 2 && b == 2;
 }
 
-int Renderer::loadCloudMap(const char *cmapfile, int cf)
+int Renderer::loadCloudMap(const char* cmapfile, int cf)
 {
-  if (track_clouds == NULL && cmapfile != NULL)
-  {
-    /* create scale array, atan looks fine to sharpen clouds */
-    for (int i = 0; i < 255; i++)
-    {
-      int j = atan((i-cf)/20.0)*290/PI+125;
-      if (j < 0)
-	v[i] = 0;
-      else if (j > 255)
-	v[i] = 255;
-      else
-	v[i] = j;
+    if (track_clouds == NULL && cmapfile != NULL) {
+        /* create scale array, atan looks fine to sharpen clouds */
+        for (int i = 0; i < 255; i++) {
+            int j = atan((i - cf) / 20.0) * 290 / PI + 125;
+            if (j < 0)
+                v[i] = 0;
+            else if (j > 255)
+                v[i] = 255;
+            else
+                v[i] = j;
+        }
+        track_clouds = new FileChange(find_xglobefile(cmapfile));
     }
-    track_clouds = new FileChange(find_xglobefile(cmapfile));
-  }
 
-  if (track_clouds == NULL || !track_clouds->reload())
+    if (track_clouds == NULL || !track_clouds->reload())
+        return 1;
+    if (mapcloud)
+        delete mapcloud;
+    mapcloud = loadImage(track_clouds->name());
+    if (!mapcloud) {
+        fprintf(stderr, "Error loading cloud mapfile \"%s\"\n", cmapfile);
+        ::exit(1);
+    }
+    int endy = mapcloud->height();
+    int endx = mapcloud->width();
+
+    if (mapcloud->depth() == 8)
+        *mapcloud = mapcloud->convertDepth(32);
+
+    int sb, sg, sr;
+    QRgb* p1;
+
+    /* filter out the pink continent outlines */
+    for (int py = 0; py < endy; py++) {
+        p1 = scan32(*mapcloud, 0, py);
+        for (int px = 0; px < endx; px++) {
+            sr = qRed(*p1);
+            sg = qGreen(*p1);
+            sb = qBlue(*p1);
+
+            if (bad_color(sr, sg, sb)) {
+                int x = px;
+                int y = py;
+                /* use a random walk to grab near data */
+                do {
+                    switch (gen(4)) {
+                    case 0:
+                        if (y < endy - 1) {
+                            y++;
+                            break;
+                        }
+                    case 1:
+                        if (y > 0) {
+                            y--;
+                            break;
+                        }
+                    case 2:
+                        x++;
+                        if (x == endx)
+                            x = 0;
+                        break;
+                    case 3:
+                        x--;
+                        if (x < 0)
+                            x += endx;
+                        break;
+                    }
+                    QRgb* q1 = scan32(*mapcloud, x, y);
+                    sr = qRed(*q1);
+                    sg = qGreen(*q1);
+                    sb = qBlue(*q1);
+                } while (bad_color(sr, sg, sb));
+                *p1 = qRgb(sr, sg, sb);
+            }
+
+            p1++;
+        }
+    }
+
+    for (int py = 0; py < endy; py++) {
+        p1 = scan32(*mapcloud, 0, py);
+        for (int px = 0; px < endx; px++) {
+            sb = qBlue(*p1);
+            sg = qGreen(*p1);
+            sr = qRed(*p1);
+            *p1 = qRgb(v[sr], v[sg], v[sb]);
+            p1++;
+        }
+    }
     return 1;
-  if (mapcloud)
-    delete mapcloud;
-  mapcloud = loadImage(track_clouds->name());
-  if (!mapcloud)
-  {
-    fprintf(stderr, "Error loading cloud mapfile \"%s\"\n", cmapfile);
-    ::exit(1);
-  }
-  int endy = mapcloud->height();
-  int endx = mapcloud->width();
-
-  if (mapcloud->depth() == 8)
-    *mapcloud = mapcloud->convertDepth(32);
-
-  int sb, sg, sr;
-  QRgb *p1;
-
-  /* filter out the pink continent outlines */
-  for(int py=0; py<endy; py++)
-  {
-    p1 = scan32(*mapcloud, 0, py);
-    for (int px=0; px<endx; px++)
-    {
-      sr = qRed(*p1);
-      sg = qGreen(*p1);
-      sb = qBlue(*p1);
-
-      if (bad_color(sr, sg, sb))
-      {
-        int x = px;
-	int y = py;
-        /* use a random walk to grab near data */
-	do 
-	{
-	  switch(gen(4))
-	  {
-	    case 0:
-	      if (y < endy-1)
-	      {
-	        y++;
-		break;
-	      }
-	    case 1:
-	      if (y > 0)
-	      {
-	        y--;
-		break;
-	      }
-	    case 2:
-	      x++;
-	      if (x == endx)
-	        x = 0;
-	      break;
-	    case 3:
-	      x--;
-	      if (x < 0)
-	      	x+= endx;
-	      break;
-	  }
-	  QRgb *q1 = scan32(*mapcloud, x, y);
-	  sr = qRed(*q1);
-	  sg = qGreen(*q1);
-	  sb = qBlue(*q1);
-      	} while (bad_color(sr, sg, sb));
-	*p1 = qRgb(sr, sg, sb);
-      }
-
-
-      p1++;
-    }
-  }
-
-  for(int py=0; py<endy; py++)
-  {
-    p1 = scan32(*mapcloud, 0, py);
-    for (int px=0; px<endx; px++)
-    {
-      sb = qBlue(*p1);
-      sg = qGreen(*p1);
-      sr = qRed(*p1);
-      *p1 = qRgb(v[sr],v[sg],v[sb]);
-      p1++;
-    }
-  }
-  return 1;
 }
 
 /* ------------------------------------------------------------------------*/
 
-int Renderer::loadBackImage(const char *imagefile, bool tld)
+int Renderer::loadBackImage(const char* imagefile, bool tld)
 {
-  if (backImage != NULL)
+    if (backImage != NULL)
+        return 1;
+
+    tiled = tld;
+
+    backImage = loadImage(imagefile ? imagefile : "back.bmp");
+
+    if (!tiled) {
+        QImage bi = backImage->smoothScale(renderedImage->width(), renderedImage->height());
+        delete backImage;
+        backImage = new QImage(bi);
+    }
+
     return 1;
-
-  tiled = tld;
-
-  backImage = loadImage(imagefile ? imagefile : "back.bmp");
-
-  if (!tiled)
-  {
-    QImage bi = backImage->smoothScale(renderedImage->width(), renderedImage->height());
-    delete backImage;
-    backImage = new QImage(bi);
-  }
-
-  
-  return 1;
 }
 
 /* ------------------------------------------------------------------------*/
 
 Renderer::~Renderer()
 {
-  delete renderedImage;
-  delete map;
-  delete mapnight;
-  delete mapcloud;
-  delete backImage;
-  delete track_clouds;
+    delete renderedImage;
+    delete map;
+    delete mapnight;
+    delete mapcloud;
+    delete backImage;
+    delete track_clouds;
 }
 
 /* ------------------------------------------------------------------------*/
 
 void Renderer::setViewPos(double lat, double lon)
 {
-  while(lat >= 360.)
-    lat -= 360.;
-  while(lat <= -360.)
-    lat += 360.;
-  if(lat > 90.)
-  {
-    lat = 90. - (lat - 90.);
-    lon += 180.;
-  }
-  if(lat < -90.)
-  {
-    lat = -90. + (-lat - 90.);
-    lon += 180.;
-  }
-  
-  while(lon >= 360.)
-    lon -= 360.;
-  while(lon <= -360.)
-    lon += 360.;
-  if(lon > 180.)
-    lon = -180. + (lon - 180.);
-  if(lon < -180.)
-    lon = 180. + (lon + 180.);
-  
-  view_lat = lat*PI/180.;
-  view_long = lon*PI/180.;
+    while (lat >= 360.)
+        lat -= 360.;
+    while (lat <= -360.)
+        lat += 360.;
+    if (lat > 90.) {
+        lat = 90. - (lat - 90.);
+        lon += 180.;
+    }
+    if (lat < -90.) {
+        lat = -90. + (-lat - 90.);
+        lon += 180.;
+    }
+
+    while (lon >= 360.)
+        lon -= 360.;
+    while (lon <= -360.)
+        lon += 360.;
+    if (lon > 180.)
+        lon = -180. + (lon - 180.);
+    if (lon < -180.)
+        lon = 180. + (lon + 180.);
+
+    view_lat = lat * PI / 180.;
+    view_long = lon * PI / 180.;
 }
 
 /* ------------------------------------------------------------------------*/
 
 double Renderer::getViewLat()
 {
-  return view_lat*180./PI;
+    return view_lat * 180. / PI;
 }
 
 /* ------------------------------------------------------------------------*/
 
 double Renderer::getViewLong()
 {
-  return view_long*180./PI;
+    return view_long * 180. / PI;
 }
 
 /* ------------------------------------------------------------------------*/
 
 void Renderer::setRotation(double r)
 {
-  rot = r*PI/180.;
+    rot = r * PI / 180.;
 }
 
 /* ------------------------------------------------------------------------*/
 
 double Renderer::getRotation()
 {
-  return rot*180./PI;
+    return rot * 180. / PI;
 }
 
 /* ------------------------------------------------------------------------*/
 
 double Renderer::getSunLat()
 {
-  return sun_lat*180./PI;
+    return sun_lat * 180. / PI;
 }
 
 /* ------------------------------------------------------------------------*/
 
 double Renderer::getSunLong()
 {
-  return sun_long*180./PI;
+    return sun_long * 180. / PI;
 }
 
 /* ------------------------------------------------------------------------*/
 
 void Renderer::setZoom(double z)
 {
-  zoom = z;
-  calcDistance();
+    zoom = z;
+    calcDistance();
 }
 
 /* ------------------------------------------------------------------------*/
 
 double Renderer::getZoom()
 {
-  return zoom;
+    return zoom;
 }
 
 /* ------------------------------------------------------------------------*/
 
-void Renderer::setMarkerList(MarkerList *l)
+void Renderer::setMarkerList(MarkerList* l)
 {
-  markerlist = l;
+    markerlist = l;
 }
 
 /* ------------------------------------------------------------------------*/
 
 void Renderer::showLabel(bool show)
 {
-  show_label = show;
+    show_label = show;
 }
 
 /* ------------------------------------------------------------------------*/
 
 void Renderer::setShift(int x, int y)
 {
-  shift_x = x;
-  shift_y = y;
+    shift_x = x;
+    shift_y = y;
 }
 
 /* ------------------------------------------------------------------------*/
 
 int Renderer::getShiftX()
 {
-  return shift_x;
+    return shift_x;
 }
 
 /* ------------------------------------------------------------------------*/
 
 int Renderer::getShiftY()
 {
-  return shift_y;
+    return shift_y;
 }
 
 /* ------------------------------------------------------------------------*/
 
 void Renderer::setLabelPos(int x, int y)
 {
-  label_x = x;
-  label_y = y;
+    label_x = x;
+    label_y = y;
 }
 
 /* ------------------------------------------------------------------------*/
 
 void Renderer::setShadeArea(double area)
 {
-  shade_area = area;
+    shade_area = area;
 }
 
 /* ------------------------------------------------------------------------*/
 
 void Renderer::setAmbientRGB(double ambient_red, double ambient_green,
-                             double ambient_blue)
+    double ambient_blue)
 {
-  const int samples = 100;
-  if (mapnight != NULL) 
-  {
-    // Auto-calibrate ambient rgb by random sampling.
-    int dr_tot = 0, dg_tot = 0, db_tot = 0;
-    int nr_tot = 0, ng_tot = 0, nb_tot = 0;
-    for (int i = 0; i < samples; i++)
-    {
-	  double longitude = gen(3600)*PI/1800.0;
-	  double latitude = gen(1800)*PI/1800.0 - PI/2.0;
-	  int r, g, b;
-	  getMapColorLinear(map, longitude, latitude, &r, &g, &b);
-	  dr_tot += r;
-	  dg_tot += g;
-	  db_tot += b;
-	  getMapColorLinear(mapnight, longitude, latitude, &r, &g, &b);
-	  nr_tot += r;
-	  ng_tot += g;
-	  nb_tot += b;
+    const int samples = 100;
+    if (mapnight != NULL) {
+        // Auto-calibrate ambient rgb by random sampling.
+        int dr_tot = 0, dg_tot = 0, db_tot = 0;
+        int nr_tot = 0, ng_tot = 0, nb_tot = 0;
+        for (int i = 0; i < samples; i++) {
+            double longitude = gen(3600) * PI / 1800.0;
+            double latitude = gen(1800) * PI / 1800.0 - PI / 2.0;
+            int r, g, b;
+            getMapColorLinear(map, longitude, latitude, &r, &g, &b);
+            dr_tot += r;
+            dg_tot += g;
+            db_tot += b;
+            getMapColorLinear(mapnight, longitude, latitude, &r, &g, &b);
+            nr_tot += r;
+            ng_tot += g;
+            nb_tot += b;
+        }
+        ambientRed = ((double)nr_tot) / dr_tot;
+        ambientGreen = ((double)ng_tot) / dg_tot;
+        ambientBlue = ((double)nb_tot) / db_tot;
     }
-    ambientRed = ((double)nr_tot)/dr_tot;
-    ambientGreen = ((double)ng_tot)/dg_tot;
-    ambientBlue = ((double)nb_tot)/db_tot;
-  }
-  else
-  {
-  ambientRed = ambient_red;
-  ambientGreen = ambient_green;
-  ambientBlue = ambient_blue;
-  }
+    else {
+        ambientRed = ambient_red;
+        ambientGreen = ambient_green;
+        ambientBlue = ambient_blue;
+    }
 }
 
 /* ------------------------------------------------------------------------*/
 
 void Renderer::setFov(double fov)
 {
-  this->fov = fov*PI/180.;
-  calcDistance();
+    this->fov = fov * PI / 180.;
+    calcDistance();
 }
 
 /* ------------------------------------------------------------------------*/
 
 void Renderer::setTime(time_t t)
 {
-  time_to_render = t;
-  calcLightVector();  // calc. current sun position
+    time_to_render = t;
+    calcLightVector(); // calc. current sun position
 }
 
 /* ------------------------------------------------------------------------*/
 
 time_t Renderer::getTime()
 {
-  return time_to_render;
+    return time_to_render;
 }
 
 /* ------------------------------------------------------------------------*/
 
 void Renderer::setNumGridLines(int num)
 {
-  d_gridline = PI/(2.0*num);
+    d_gridline = PI / (2.0 * num);
 }
 
 /* ------------------------------------------------------------------------*/
 
 int Renderer::getNumGridLines()
 {
-  return (int)(PI/2*d_gridline);
+    return (int)(PI / 2 * d_gridline);
 }
-  
+
 /* ------------------------------------------------------------------------*/
 
 void Renderer::setNumGridDots(int num)
 {
-  d_griddot = 2.0*PI/num;
+    d_griddot = 2.0 * PI / num;
 }
 
 /* ------------------------------------------------------------------------*/
 
 int Renderer::getNumGridDots()
 {
-  return (int)(2.0*PI/d_griddot);
+    return (int)(2.0 * PI / d_griddot);
 }
 
 /* ------------------------------------------------------------------------*/
 
 void Renderer::setGridType(int type)
 {
-  gridtype = type;
-  if((type < 0) || (type > NICE_GRID))
-    gridtype = NO_GRID;
+    gridtype = type;
+    if ((type < 0) || (type > NICE_GRID))
+        gridtype = NO_GRID;
 }
 
 /* ------------------------------------------------------------------------*/
 
 int Renderer::getGridType()
 {
-  return gridtype;
+    return gridtype;
 }
 
 /* ------------------------------------------------------------------------*/
 
 void Renderer::setTransition(double t)
 {
-  trans = t;
-  if(trans >= 1.0)
-    trans = 0.9999;
-  else if(trans < 0.0)
-    trans = 0.0;
+    trans = t;
+    if (trans >= 1.0)
+        trans = 0.9999;
+    else if (trans < 0.0)
+        trans = 0.0;
 }
 
 /* ------------------------------------------------------------------------*/
 
 double Renderer::getTransition()
 {
-  return trans;
+    return trans;
 }
 
 /* ------------------------------------------------------------------------*/
 
 void Renderer::calcDistance()
 {
-  double x;
-  double tan_a;
-  
-  // distance of camera to projection plane
-  proj_dist = MIN(renderedImage->width(), renderedImage->height())/tan(fov);
+    double x;
+    double tan_a;
 
-  x = zoom*MIN(renderedImage->width(), renderedImage->height())/2.;
-  tan_a = x/proj_dist;
-  // distance of camera camera to center of earth ( = coordinate origin)
-  center_dist = radius/sin(atan(tan_a));
+    // distance of camera to projection plane
+    proj_dist = MIN(renderedImage->width(), renderedImage->height()) / tan(fov);
+
+    x = zoom * MIN(renderedImage->width(), renderedImage->height()) / 2.;
+    tan_a = x / proj_dist;
+    // distance of camera camera to center of earth ( = coordinate origin)
+    center_dist = radius / sin(atan(tan_a));
 }
 
 /* ------------------------------------------------------------------------*/
 
 void Renderer::renderFrame()
 {
-  double dir_x, dir_y, dir_z;      // direction of cast ray
-  double hit_x, hit_y, hit_z;      // hit position on earth surface
-  double hit2_x, hit2_y, hit2_z;   // mirrored hit position on earth surface
-  double sp_x, sp_y, sp_z;         // intersection point of globe and ray
-  double a, b, c;                  // coeff. of quadratic equation
-  double radikand;
-  double wurzel;
-  double r;                        // r'
-  double radiusq = radius*radius;
-  double s1, s2, s;                // distance between intersections and
-                                   // camera position
-  double longitude, latitude;      // coordinates of hit position
-  double light_angle;              // cosine of angle between sunlight and
-                                   // surface normal
-  int startx, endx;                // the region to be painted
-  int starty, endy;
-  int real_startx, real_endx;
-  int temp;
+    double dir_x, dir_y, dir_z; // direction of cast ray
+    double hit_x, hit_y, hit_z; // hit position on earth surface
+    double hit2_x, hit2_y, hit2_z; // mirrored hit position on earth surface
+    double sp_x, sp_y, sp_z; // intersection point of globe and ray
+    double a, b, c; // coeff. of quadratic equation
+    double radikand;
+    double wurzel;
+    double r; // r'
+    double radiusq = radius * radius;
+    double s1, s2, s; // distance between intersections and
+        // camera position
+    double longitude, latitude; // coordinates of hit position
+    double light_angle; // cosine of angle between sunlight and
+        // surface normal
+    int startx, endx; // the region to be painted
+    int starty, endy;
+    int real_startx, real_endx;
+    int temp;
 
-  QRgb *p;                 // pointer to current pixel
-  QRgb *q;
+    QRgb* p; // pointer to current pixel
+    QRgb* q;
 
-  loadCloudMap();		   // reload cloudmap, if changed
-  int half_width = renderedImage->width()/2 + renderedImage->width()%2 -1;
-  
-  // clear image
-  for(int i=0; i < renderedImage->height(); i++)
-  {
-    p = scan32(*renderedImage, 0, i);
-    memset(p, 0, renderedImage->bytesPerLine());
-  }
+    loadCloudMap(); // reload cloudmap, if changed
+    int half_width = renderedImage->width() / 2 + renderedImage->width() % 2 - 1;
 
-  if (backImage != NULL)
-    copyBackImage();
+    // clear image
+    for (int i = 0; i < renderedImage->height(); i++) {
+        p = scan32(*renderedImage, 0, i);
+        memset(p, 0, renderedImage->bytesPerLine());
+    }
 
-  drawStars();
-  
-  // rotation matrix
-  RotMatrix mat(rot, view_long, view_lat);
-  
-  dir_z = -proj_dist;
+    if (backImage != NULL)
+        copyBackImage();
 
-  // indifferent coeff.
-  c = center_dist*center_dist - radiusq;
+    drawStars();
 
-  // calc. radius of projected sphere
-  b = 2*center_dist*dir_z;
-  radius_proj = (int)sqrt(b*b/(4*c) - dir_z*dir_z);
-  
-  startx = (renderedImage->width()/2 - radius_proj -1);
-  startx = (startx < 0) ? 0 : startx;
-  endx = renderedImage->width() - startx-1;
-  starty = (renderedImage->height()/2 - radius_proj -1);
-  starty = (starty < 0) ? 0 : starty;
-  endy = renderedImage->height() - starty-1;
+    // rotation matrix
+    RotMatrix mat(rot, view_long, view_lat);
 
-  for(int py=starty; py<=endy; py++)
-  {
-    // handle any paint events waiting in the queue
-    qApp->processEvents();
+    dir_z = -proj_dist;
 
-    temp = radius_proj*radius_proj - (py-renderedImage->height()/2) *
-           (py-renderedImage->height()/2);
+    // indifferent coeff.
+    c = center_dist * center_dist - radiusq;
 
-    if(temp >= 0)
-      startx = (renderedImage->width()/2 - (int)sqrt(temp));
-    else
-      startx = (renderedImage->width()/2);
-    
+    // calc. radius of projected sphere
+    b = 2 * center_dist * dir_z;
+    radius_proj = (int)sqrt(b * b / (4 * c) - dir_z * dir_z);
+
+    startx = (renderedImage->width() / 2 - radius_proj - 1);
     startx = (startx < 0) ? 0 : startx;
-    endx = renderedImage->width() - startx-1;
+    endx = renderedImage->width() - startx - 1;
+    starty = (renderedImage->height() / 2 - radius_proj - 1);
+    starty = (starty < 0) ? 0 : starty;
+    endy = renderedImage->height() - starty - 1;
 
-    // calculate offset into image data
-    if (py + shift_y < 0 || py + shift_y >= renderedImage->height())
-      continue;
-    real_startx = startx + shift_x;
-    real_startx = (real_startx < 0 ? 0 : real_startx);
-    real_startx = (real_startx >= renderedImage->width() ?
-                   renderedImage->width()-1 : real_startx);
+    for (int py = starty; py <= endy; py++) {
+        // handle any paint events waiting in the queue
+        qApp->processEvents();
 
-    real_endx = endx + shift_x;
-    real_endx = (real_endx < 0 ? 0 : real_endx);
-    real_endx = (real_endx >= renderedImage->width() ?
-                 renderedImage->width()-1 : real_endx);
+        temp = radius_proj * radius_proj - (py - renderedImage->height() / 2) * (py - renderedImage->height() / 2);
 
-    p = scan32(*renderedImage, real_startx, py + shift_y);
-    q = scan32(*renderedImage, real_endx, py + shift_y);
+        if (temp >= 0)
+            startx = (renderedImage->width() / 2 - (int)sqrt(temp));
+        else
+            startx = (renderedImage->width() / 2);
 
-    if(rot == 0.)           // optimization when using no rotation
-      endx = half_width;
+        startx = (startx < 0) ? 0 : startx;
+        endx = renderedImage->width() - startx - 1;
 
-    for(int px=startx; px<=endx; px++)
-    {
-      dir_x =  (px - renderedImage->width()/2);
-      dir_y = (-py + renderedImage->height()/2);
+        // calculate offset into image data
+        if (py + shift_y < 0 || py + shift_y >= renderedImage->height())
+            continue;
+        real_startx = startx + shift_x;
+        real_startx = (real_startx < 0 ? 0 : real_startx);
+        real_startx = (real_startx >= renderedImage->width() ? renderedImage->width() - 1 : real_startx);
 
-      a = dir_x*dir_x + dir_y*dir_y + dir_z*dir_z;
-      b = 2*center_dist*dir_z;
-      // c constant, see above
+        real_endx = endx + shift_x;
+        real_endx = (real_endx < 0 ? 0 : real_endx);
+        real_endx = (real_endx >= renderedImage->width() ? renderedImage->width() - 1 : real_endx);
 
-      radikand = b*b-4*a*c;			// what's under the sq.root when solving the
-                                // quadratic equation
-      if(radikand >= 0.)				// solution exists <=> intersection
-      {
-        wurzel = sqrt(radikand);
-        s1 = (-b + wurzel)/(2.*a);
-        s2 = (-b - wurzel)/(2.*a);
-        s = (s1<s2) ? s1 : s2;    // smaller solution belongs to nearer 
-                                  // intersection
-        sp_x = s * dir_x;         // sp = camera pos + s*dir
-        sp_y = s * dir_y;
-        sp_z = center_dist + s * dir_z;
+        p = scan32(*renderedImage, real_startx, py + shift_y);
+        q = scan32(*renderedImage, real_endx, py + shift_y);
 
-	mat.transform(sp_x, sp_y, sp_z, hit_x, hit_y, hit_z);
+        if (rot == 0.) // optimization when using no rotation
+            endx = half_width;
 
-        if(rot == 0.)             // optimization when using no rotation
-	  mat.transform(-sp_x, sp_y, sp_z, hit2_x, hit2_y, hit2_z);
-        
-        longitude = atan(hit_x/hit_z);
-        if(hit_z < 0.)
-          longitude = PI + longitude;
-        
-        r = (double)sqrt(hit_x*hit_x + hit_z*hit_z);
-        latitude = atan(-hit_y/r);
-      
-        light_angle = (light_x*hit_x + light_y*hit_y + light_z*hit_z)/radius;
-        light_angle = pow(light_angle, 1.0-trans);
-        
-        // Set pixel in image
-        *p++ = getPixelColor(longitude, latitude, light_angle);
+        for (int px = startx; px <= endx; px++) {
+            dir_x = (px - renderedImage->width() / 2);
+            dir_y = (-py + renderedImage->height() / 2);
 
-        // only when using no rotation:
-        // mirror the left half-circle of the globe: we need a new position
-        // and have to recalculate the light intensity
-        if(rot == 0.)
-        {
-          light_angle = (light_x*hit2_x + light_y*hit2_y + light_z*hit2_z)/
-                        radius;
-          light_angle = pow(light_angle, 1.0-trans);
-          *q-- = getPixelColor(2*view_long - longitude, latitude, light_angle);
+            a = dir_x * dir_x + dir_y * dir_y + dir_z * dir_z;
+            b = 2 * center_dist * dir_z;
+            // c constant, see above
+
+            radikand = b * b - 4 * a * c; // what's under the sq.root when solving the
+                // quadratic equation
+            if (radikand >= 0.) // solution exists <=> intersection
+            {
+                wurzel = sqrt(radikand);
+                s1 = (-b + wurzel) / (2. * a);
+                s2 = (-b - wurzel) / (2. * a);
+                s = (s1 < s2) ? s1 : s2; // smaller solution belongs to nearer
+                    // intersection
+                sp_x = s * dir_x; // sp = camera pos + s*dir
+                sp_y = s * dir_y;
+                sp_z = center_dist + s * dir_z;
+
+                mat.transform(sp_x, sp_y, sp_z, hit_x, hit_y, hit_z);
+
+                if (rot == 0.) // optimization when using no rotation
+                    mat.transform(-sp_x, sp_y, sp_z, hit2_x, hit2_y, hit2_z);
+
+                longitude = atan(hit_x / hit_z);
+                if (hit_z < 0.)
+                    longitude = PI + longitude;
+
+                r = (double)sqrt(hit_x * hit_x + hit_z * hit_z);
+                latitude = atan(-hit_y / r);
+
+                light_angle = (light_x * hit_x + light_y * hit_y + light_z * hit_z) / radius;
+                light_angle = pow(light_angle, 1.0 - trans);
+
+                // Set pixel in image
+                *p++ = getPixelColor(longitude, latitude, light_angle);
+
+                // only when using no rotation:
+                // mirror the left half-circle of the globe: we need a new position
+                // and have to recalculate the light intensity
+                if (rot == 0.) {
+                    light_angle = (light_x * hit2_x + light_y * hit2_y + light_z * hit2_z) / radius;
+                    light_angle = pow(light_angle, 1.0 - trans);
+                    *q-- = getPixelColor(2 * view_long - longitude, latitude, light_angle);
+                }
+            }
+            else {
+                p++;
+                q--;
+            }
         }
-      }
-      else
-      {
-        p++;
-        q--;
-      }   
-		}
-	}
+    }
 
-  if(gridtype != NO_GRID)
-    drawGrid();
-  
-  if(markerlist)
-    drawMarkers();
+    if (gridtype != NO_GRID)
+        drawGrid();
 
-  if(show_label)
-    drawLabel();
+    if (markerlist)
+        drawMarkers();
+
+    if (show_label)
+        drawLabel();
 }
 
 /* ------------------------------------------------------------------------*/
 
 void Renderer::copyBackImage()
 {
-  QRgb *p, *bp;
-  unsigned char *c_bp;
-  unsigned int y, x, by, bx;
-  unsigned int mywidth = renderedImage->width(), myheight = renderedImage->height();
-  unsigned int bwidth = backImage->width(), bheight = backImage->height();
-  
-  for (y=0, by=0; y<myheight; y++, by++)
-  {
-    if (by >= bheight)
-      by = 0;
-    
-    p = scan32(*renderedImage, 0, y);
+    QRgb *p, *bp;
+    unsigned char* c_bp;
+    unsigned int y, x, by, bx;
+    unsigned int mywidth = renderedImage->width(), myheight = renderedImage->height();
+    unsigned int bwidth = backImage->width(), bheight = backImage->height();
 
-    if(backImage->depth() == 32)
-    {
-      bp = scan32(*backImage, 0, by);
-      for (x=0, bx=0; x<mywidth; x++, bx++)
-      {
-        if (bx >= bwidth)
-        {
-          bx = 0;
-          bp = scan32(*backImage, 0, by);
+    for (y = 0, by = 0; y < myheight; y++, by++) {
+        if (by >= bheight)
+            by = 0;
+
+        p = scan32(*renderedImage, 0, y);
+
+        if (backImage->depth() == 32) {
+            bp = scan32(*backImage, 0, by);
+            for (x = 0, bx = 0; x < mywidth; x++, bx++) {
+                if (bx >= bwidth) {
+                    bx = 0;
+                    bp = scan32(*backImage, 0, by);
+                }
+                *p++ = *bp++;
+            }
         }
-        *p++ = *bp++;
-      }
+        else {
+            c_bp = (unsigned char*)backImage->scanLine(by);
+            for (x = 0, bx = 0; x < mywidth; x++, bx++) {
+                if (bx >= bwidth) {
+                    bx = 0;
+                    c_bp = (unsigned char*)backImage->scanLine(by);
+                }
+                *p++ = backImage->color(*c_bp++);
+            }
+        }
     }
-    else
-    {
-      c_bp = (unsigned char *)backImage->scanLine(by);
-      for (x=0, bx=0; x<mywidth; x++, bx++)
-      {
-        if (bx >= bwidth)
-        {
-          bx = 0;
-          c_bp = (unsigned char *) backImage->scanLine(by);
-        }
-        *p++ = backImage->color(*c_bp++);
-      }
-    }  
-  }
 }
 
 /* ------------------------------------------------------------------------*/
 
 void Renderer::calcLightVector()
 {
-  SunPos::GetSunPos(time_to_render, &sun_lat, &sun_long);
+    SunPos::GetSunPos(time_to_render, &sun_lat, &sun_long);
 
-  light_x = cos(sun_lat)*sin(sun_long);
-  light_y = sin(sun_lat);
-  light_z = cos(sun_lat)*cos(sun_long);
+    light_x = cos(sun_lat) * sin(sun_long);
+    light_y = sin(sun_lat);
+    light_z = cos(sun_lat) * cos(sun_long);
 }
 
 /* ------------------------------------------------------------------------*/
 
 unsigned int Renderer::getPixelColor(double longitude, double latitude,
-                                     double angle)
+    double angle)
 {
-  int r, g, b;
-  double shade_angle;
+    int r, g, b;
+    double shade_angle;
 
-  if (shade_area)
-    shade_angle = angle / shade_area;
-  else
-    shade_angle = 1.0;
-
-  if (mapnight != NULL)
-  {
-    if (angle > shade_area)
-    {
-      getMapColorLinear(map, longitude, latitude, &r, &g, &b);
-    }
-    else if (angle < -0.1)
-    {
-      getMapColorLinear(mapnight, longitude, latitude, &r, &g, &b);
-    }
-    else if (angle > 0.1) 
-    {
-      getMapColorLinear(map, longitude, latitude, &r, &g, &b);
-      r = r*(ambientRed + shade_angle*(1.-ambientRed));
-      g = g*(ambientGreen + shade_angle*(1.-ambientGreen));
-      b = b*(ambientBlue + shade_angle*(1.-ambientBlue));
-    }
+    if (shade_area)
+        shade_angle = angle / shade_area;
     else
-    {
-      double x;
-      int nr, ng, nb;  		// rgb values of night pixel
+        shade_angle = 1.0;
 
-      getMapColorLinear(map, longitude, latitude, &r, &g, &b);
-      getMapColorLinear(mapnight, longitude, latitude, &nr, &ng, &nb);
-      x = -5.0*angle+0.5;
-      if (angle > 0.)
-      {
-        r = x*nr + (1.0 - x)*r*(ambientRed + shade_angle*(1.-ambientRed));
-        g = x*ng + (1.0 - x)*g*(ambientGreen + shade_angle*(1.-ambientGreen));
-        b = x*nb + (1.0 - x)*b*(ambientBlue + shade_angle*(1.-ambientBlue));
-      }
-      else
-      {
-        r = x*nr + (1.0-x)*r*ambientRed;
-        g = x*ng + (1.0-x)*g*ambientGreen;
-        b = x*nb + (1.0-x)*b*ambientBlue;
-      }
-    }
-  }
-  else
-  {
-    getMapColorLinear(map, longitude, latitude, &r, &g, &b);
-    if (angle < shade_area && angle > 0.)
-    {
-      r *= ambientRed + shade_angle*(1.-ambientRed);
-      g *= ambientGreen + shade_angle*(1.-ambientGreen);
-      b *= ambientBlue + shade_angle*(1.-ambientBlue);
-    }
-    else if (angle < 0.)
-    {
-      r *= ambientRed;
-      g *= ambientGreen;
-      b *= ambientBlue;
-    }
-  }
+    if (mapnight != NULL) {
+        if (angle > shade_area) {
+            getMapColorLinear(map, longitude, latitude, &r, &g, &b);
+        }
+        else if (angle < -0.1) {
+            getMapColorLinear(mapnight, longitude, latitude, &r, &g, &b);
+        }
+        else if (angle > 0.1) {
+            getMapColorLinear(map, longitude, latitude, &r, &g, &b);
+            r = r * (ambientRed + shade_angle * (1. - ambientRed));
+            g = g * (ambientGreen + shade_angle * (1. - ambientGreen));
+            b = b * (ambientBlue + shade_angle * (1. - ambientBlue));
+        }
+        else {
+            double x;
+            int nr, ng, nb; // rgb values of night pixel
 
-  // correct luminosity for clouds
-  if(mapcloud != NULL) 
-  {
-    int cr, cg, cb;
-    getMapColorLinear(mapcloud, longitude, latitude, &cr, &cg, &cb);
-    if (cr >= 0) 
-    {
-      int ar, ag, ab;
-      // compute ambient light value
-      ar = ag = ab = 256;
-      if (angle > 0.0 && angle < shade_area) 
-      {
-	ar *= (ambientRed + shade_angle *(1.0 - ambientRed));
-	ag *= (ambientGreen + shade_angle * (1.0 - ambientGreen));
-	ab *= (ambientBlue + shade_angle * (1.0 - ambientBlue));
-      } 
-      else 
-      if (angle <= 0.0) 
-      {
-	ar *= ambientRed;
-	ag *= ambientGreen;
-	ab *= ambientBlue;
-      }
-      if (r > ar && g > ag && b > ab)
-      {
-      	cr /= 2;
-	cg /= 2;
-	cb /= 2;
-      }
+            getMapColorLinear(map, longitude, latitude, &r, &g, &b);
+            getMapColorLinear(mapnight, longitude, latitude, &nr, &ng, &nb);
+            x = -5.0 * angle + 0.5;
+            if (angle > 0.) {
+                r = x * nr + (1.0 - x) * r * (ambientRed + shade_angle * (1. - ambientRed));
+                g = x * ng + (1.0 - x) * g * (ambientGreen + shade_angle * (1. - ambientGreen));
+                b = x * nb + (1.0 - x) * b * (ambientBlue + shade_angle * (1. - ambientBlue));
+            }
+            else {
+                r = x * nr + (1.0 - x) * r * ambientRed;
+                g = x * ng + (1.0 - x) * g * ambientGreen;
+                b = x * nb + (1.0 - x) * b * ambientBlue;
+            }
+        }
+    }
+    else {
+        getMapColorLinear(map, longitude, latitude, &r, &g, &b);
+        if (angle < shade_area && angle > 0.) {
+            r *= ambientRed + shade_angle * (1. - ambientRed);
+            g *= ambientGreen + shade_angle * (1. - ambientGreen);
+            b *= ambientBlue + shade_angle * (1. - ambientBlue);
+        }
+        else if (angle < 0.) {
+            r *= ambientRed;
+            g *= ambientGreen;
+            b *= ambientBlue;
+        }
+    }
+
+    // correct luminosity for clouds
+    if (mapcloud != NULL) {
+        int cr, cg, cb;
+        getMapColorLinear(mapcloud, longitude, latitude, &cr, &cg, &cb);
+        if (cr >= 0) {
+            int ar, ag, ab;
+            // compute ambient light value
+            ar = ag = ab = 256;
+            if (angle > 0.0 && angle < shade_area) {
+                ar *= (ambientRed + shade_angle * (1.0 - ambientRed));
+                ag *= (ambientGreen + shade_angle * (1.0 - ambientGreen));
+                ab *= (ambientBlue + shade_angle * (1.0 - ambientBlue));
+            }
+            else if (angle <= 0.0) {
+                ar *= ambientRed;
+                ag *= ambientGreen;
+                ab *= ambientBlue;
+            }
+            if (r > ar && g > ag && b > ab) {
+                cr /= 2;
+                cg /= 2;
+                cb /= 2;
+            }
 #if 0
       if (r > ar)
       	cr /= 2;
@@ -912,99 +856,91 @@ unsigned int Renderer::getPixelColor(double longitude, double latitude,
       if (b > ab)
       	cb /= 2;
 #endif
-      // create opacity depending on ambient light
-      r = (ar * cr + r * (256 - cr)) / 256;
-      g = (ag * cg + g * (256 - cg)) / 256;
-      b = (ab * cb + b * (256 - cb)) / 256;
+            // create opacity depending on ambient light
+            r = (ar * cr + r * (256 - cr)) / 256;
+            g = (ag * cg + g * (256 - cg)) / 256;
+            b = (ab * cb + b * (256 - cb)) / 256;
+        }
     }
-  }
-  return qRgb(r, g, b);
+    return qRgb(r, g, b);
 }
 
 /* ------------------------------------------------------------------------*/
 
-void Renderer::getMapColorLinear(QImage *m, double longitude, double latitude,
-                                 int *r, int *g, int *b)
+void Renderer::getMapColorLinear(QImage* m, double longitude, double latitude,
+    int* r, int* g, int* b)
 {
-  latitude += PI/2;
-  longitude += PI;
-  double posx = longitude * m->width()/(2*PI);
-  double posy = latitude * m->height()/PI;
+    latitude += PI / 2;
+    longitude += PI;
+    double posx = longitude * m->width() / (2 * PI);
+    double posy = latitude * m->height() / PI;
 
-  if (posy >= m->height())
-  {
-  	posy = 2 *m->height() - posy;
-	posx += m->width()/2;
-  }
-  else if (posy < 0)
-  {
-  	posy = -posy;
-	posx += m->width()/2;
-  }
-  while (posx >= m->width())
-  	posx -= m->width();
-  while (posx < 0)
-  	posx += m->width();
-  
-  int x11 = (int)posx;
-  int y1 = (int)posy;
-  int x12 = x11+1;
-  if (x12 == m->width())
-  	x12 = 0;
-  int x21 = x11;
-  int y2 = y1+1;
-  if (y2 == m->height())
-  {
-  	y2--;
-	x21 = x11+m->width()/2;
-	if (x21 >= m->width())
-		x21 -= m->width();
-  }
-  int x22 = x12;
-  double dx = posx - x11;
-  double dy = posy - y1;
+    if (posy >= m->height()) {
+        posy = 2 * m->height() - posy;
+        posx += m->width() / 2;
+    }
+    else if (posy < 0) {
+        posy = -posy;
+        posx += m->width() / 2;
+    }
+    while (posx >= m->width())
+        posx -= m->width();
+    while (posx < 0)
+        posx += m->width();
 
-  QRgb c11, c12, c21, c22;
+    int x11 = (int)posx;
+    int y1 = (int)posy;
+    int x12 = x11 + 1;
+    if (x12 == m->width())
+        x12 = 0;
+    int x21 = x11;
+    int y2 = y1 + 1;
+    if (y2 == m->height()) {
+        y2--;
+        x21 = x11 + m->width() / 2;
+        if (x21 >= m->width())
+            x21 -= m->width();
+    }
+    int x22 = x12;
+    double dx = posx - x11;
+    double dy = posy - y1;
 
-  // offset into map pixel data
-  if(m->depth() == 32)
-  {
-    QRgb *p = scan32(*m, 0, y1);
-    c11 = p[x11];
-    c12 = p[x12];
-    p = scan32(*m, 0, y2);
-    c21 = p[x21];
-    c22 = p[x22];
-  }
-  else //m->depth() == 8
-  {
-    unsigned char *p = (unsigned char *)m->scanLine(y1);
-    c11 = m->color(p[x11]);
-    c12 = m->color(p[x12]);
-    p = (unsigned char *)m->scanLine(y2);
-    c21 = m->color(p[x21]);
-    c22 = m->color(p[x22]);
-  }
+    QRgb c11, c12, c21, c22;
 
-  *r = (int)( (qRed(c22)*dx+qRed(c21)*(1-dx)) * dy +
-		(qRed(c12)*dx+qRed(c11)*(1-dx)) * (1-dy) );
-  *g = (int)( (qGreen(c22)*dx+qGreen(c21)*(1-dx)) * dy +
-		(qGreen(c12)*dx+qGreen(c11)*(1-dx)) * (1-dy) );
-  *b = (int)( (qBlue(c22)*dx+qBlue(c21)*(1-dx)) * dy +
-		(qBlue(c12)*dx+qBlue(c11)*(1-dx)) * (1-dy) );
+    // offset into map pixel data
+    if (m->depth() == 32) {
+        QRgb* p = scan32(*m, 0, y1);
+        c11 = p[x11];
+        c12 = p[x12];
+        p = scan32(*m, 0, y2);
+        c21 = p[x21];
+        c22 = p[x22];
+    }
+    else //m->depth() == 8
+    {
+        unsigned char* p = (unsigned char*)m->scanLine(y1);
+        c11 = m->color(p[x11]);
+        c12 = m->color(p[x12]);
+        p = (unsigned char*)m->scanLine(y2);
+        c21 = m->color(p[x21]);
+        c22 = m->color(p[x22]);
+    }
+
+    *r = (int)((qRed(c22) * dx + qRed(c21) * (1 - dx)) * dy + (qRed(c12) * dx + qRed(c11) * (1 - dx)) * (1 - dy));
+    *g = (int)((qGreen(c22) * dx + qGreen(c21) * (1 - dx)) * dy + (qGreen(c12) * dx + qGreen(c11) * (1 - dx)) * (1 - dy));
+    *b = (int)((qBlue(c22) * dx + qBlue(c21) * (1 - dx)) * dy + (qBlue(c12) * dx + qBlue(c11) * (1 - dx)) * (1 - dy));
 }
 
 /* ------------------------------------------------------------------------*/
 
 void Renderer::drawMarkers()
 {
-  // Matrix M of renderFrame, but transposed
-  RotMatrix mat(rot, view_long, view_lat, radius);
-  mat.transpose();
-  markerlist->render(mat, *renderedImage, radius, center_dist, proj_dist, 
-  	shift_x, shift_y);
+    // Matrix M of renderFrame, but transposed
+    RotMatrix mat(rot, view_long, view_lat, radius);
+    mat.transpose();
+    markerlist->render(mat, *renderedImage, radius, center_dist, proj_dist,
+        shift_x, shift_y);
 }
-
 
 /* ------------------------------------------------------------------------*/
 
@@ -1012,262 +948,251 @@ void Renderer::drawMarkers()
 
 void Renderer::drawGrid()
 {
-  double lon, lat;
-  double s_x, s_y, s_z;
-  double loc_x, loc_y, loc_z;
-  int screen_x, screen_y;
-  double visible_angle;
-  double cos_angle;
-  double light_angle;
-  double temp;
-  
-  QRgb *p;
-  unsigned int pixel;
-  int r, g, b;
-  
-  // Matrix M of renderFrame, but transposed
-  RotMatrix mat(rot, view_long, view_lat, radius);
-  mat.transpose();
+    double lon, lat;
+    double s_x, s_y, s_z;
+    double loc_x, loc_y, loc_z;
+    int screen_x, screen_y;
+    double visible_angle;
+    double cos_angle;
+    double light_angle;
+    double temp;
 
-  visible_angle = radius/center_dist;
+    QRgb* p;
+    unsigned int pixel;
+    int r, g, b;
 
-  temp = PI/2.0 - d_gridline;
-  
-  for(lat=-temp; lat<=temp+0.01; lat+=d_gridline)
-  {
-    s_y = sin(lat);
+    // Matrix M of renderFrame, but transposed
+    RotMatrix mat(rot, view_long, view_lat, radius);
+    mat.transpose();
 
-    for(lon=-PI; lon<PI; lon+=d_griddot)
-    {
-      s_x = cos(lat)*sin(lon);
-      s_z = cos(lat)*cos(lon);
-      mat.transform(s_x, s_y, s_z, loc_x, loc_y, loc_z);
-    
-      cos_angle = loc_z/radius;
-      light_angle = light_x*s_x + light_y*s_y + light_z*s_z;
-    
-      if(cos_angle < visible_angle)
-      // location lies on the other side
-      continue;
-      
-      loc_z = center_dist - loc_z;
-      screen_x = (int)(loc_x*proj_dist/loc_z);
-      screen_y = (int)(-loc_y*proj_dist/loc_z);
-      screen_x += renderedImage->width()/2 + shift_x;
-      screen_y += renderedImage->height()/2 + shift_y;
+    visible_angle = radius / center_dist;
 
-      if((screen_x < 0) || (screen_x >= renderedImage->width()))
-        // location out of bounds
-        continue;
-      if((screen_y <0) || (screen_y >= renderedImage->height()))
-        continue;
+    temp = PI / 2.0 - d_gridline;
 
-      p = scan32(*renderedImage, screen_x, screen_y);
+    for (lat = -temp; lat <= temp + 0.01; lat += d_gridline) {
+        s_y = sin(lat);
 
-      // Set pixel in image
-      if(gridtype == NICE_GRID)
-      {
-        pixel = getPixelColor(lon, -lat, light_angle);
-        r = qRed(pixel)*3;
-        g = qGreen(pixel)*3;
-        b = qBlue(pixel)*3;
+        for (lon = -PI; lon < PI; lon += d_griddot) {
+            s_x = cos(lat) * sin(lon);
+            s_z = cos(lat) * cos(lon);
+            mat.transform(s_x, s_y, s_z, loc_x, loc_y, loc_z);
 
-        r = (r>255) ? 255 : r;
-        g = (g>255) ? 255 : g;
-        b = (b>255) ? 255 : b;
-      
-        *p = qRgb(r, g, b);
-      }
-      else
-        *p = qRgb(255, 255, 255);
+            cos_angle = loc_z / radius;
+            light_angle = light_x * s_x + light_y * s_y + light_z * s_z;
+
+            if (cos_angle < visible_angle)
+                // location lies on the other side
+                continue;
+
+            loc_z = center_dist - loc_z;
+            screen_x = (int)(loc_x * proj_dist / loc_z);
+            screen_y = (int)(-loc_y * proj_dist / loc_z);
+            screen_x += renderedImage->width() / 2 + shift_x;
+            screen_y += renderedImage->height() / 2 + shift_y;
+
+            if ((screen_x < 0) || (screen_x >= renderedImage->width()))
+                // location out of bounds
+                continue;
+            if ((screen_y < 0) || (screen_y >= renderedImage->height()))
+                continue;
+
+            p = scan32(*renderedImage, screen_x, screen_y);
+
+            // Set pixel in image
+            if (gridtype == NICE_GRID) {
+                pixel = getPixelColor(lon, -lat, light_angle);
+                r = qRed(pixel) * 3;
+                g = qGreen(pixel) * 3;
+                b = qBlue(pixel) * 3;
+
+                r = (r > 255) ? 255 : r;
+                g = (g > 255) ? 255 : g;
+                b = (b > 255) ? 255 : b;
+
+                *p = qRgb(r, g, b);
+            }
+            else
+                *p = qRgb(255, 255, 255);
+        }
     }
-  }
 
-  for(lon=-PI; lon<PI; lon+=d_gridline)
-  {
-    for(lat=-temp; lat<=temp; lat+=d_griddot)
-    {
-      s_x = cos(lat)*sin(lon);
-      s_y = sin(lat);
-      s_z = cos(lat)*cos(lon);
-      mat.transform(s_x, s_y, s_z, loc_x, loc_y, loc_z);
-    
-      cos_angle = loc_z/radius;
-      light_angle = light_x*s_x + light_y*s_y + light_z*s_z;
-    
-      if(cos_angle < visible_angle)
-      // location lies on the other side
-      continue;
-      
-      loc_z = center_dist - loc_z;
-      screen_x = (int)(loc_x*proj_dist/loc_z);
-      screen_y = (int)(-loc_y*proj_dist/loc_z);
-      screen_x += renderedImage->width()/2 + shift_x;
-      screen_y += renderedImage->height()/2 + shift_y;
+    for (lon = -PI; lon < PI; lon += d_gridline) {
+        for (lat = -temp; lat <= temp; lat += d_griddot) {
+            s_x = cos(lat) * sin(lon);
+            s_y = sin(lat);
+            s_z = cos(lat) * cos(lon);
+            mat.transform(s_x, s_y, s_z, loc_x, loc_y, loc_z);
 
-      if((screen_x < 0) || (screen_x >= renderedImage->width()))
-        // location out of bounds
-        continue;
-      if((screen_y <0) || (screen_y >= renderedImage->height()))
-        continue;
+            cos_angle = loc_z / radius;
+            light_angle = light_x * s_x + light_y * s_y + light_z * s_z;
 
-      p = scan32(*renderedImage, screen_x, screen_y);
+            if (cos_angle < visible_angle)
+                // location lies on the other side
+                continue;
 
-      // Set pixel in image
-      if(gridtype == NICE_GRID)
-      {
-        pixel = getPixelColor(lon, -lat, light_angle);
-        r = qRed(pixel)*3;
-        g = qGreen(pixel)*3;
-        b = qBlue(pixel)*3;
+            loc_z = center_dist - loc_z;
+            screen_x = (int)(loc_x * proj_dist / loc_z);
+            screen_y = (int)(-loc_y * proj_dist / loc_z);
+            screen_x += renderedImage->width() / 2 + shift_x;
+            screen_y += renderedImage->height() / 2 + shift_y;
 
-        r = (r>255) ? 255 : r;
-        g = (g>255) ? 255 : g;
-        b = (b>255) ? 255 : b;
-      
-        *p = qRgb(r, g, b);
-      }
-      else
-        *p = qRgb(255, 255, 255);
+            if ((screen_x < 0) || (screen_x >= renderedImage->width()))
+                // location out of bounds
+                continue;
+            if ((screen_y < 0) || (screen_y >= renderedImage->height()))
+                continue;
+
+            p = scan32(*renderedImage, screen_x, screen_y);
+
+            // Set pixel in image
+            if (gridtype == NICE_GRID) {
+                pixel = getPixelColor(lon, -lat, light_angle);
+                r = qRed(pixel) * 3;
+                g = qGreen(pixel) * 3;
+                b = qBlue(pixel) * 3;
+
+                r = (r > 255) ? 255 : r;
+                g = (g > 255) ? 255 : g;
+                b = (b > 255) ? 255 : b;
+
+                *p = qRgb(r, g, b);
+            }
+            else
+                *p = qRgb(255, 255, 255);
+        }
     }
-  }
 }
 
 /* ------------------------------------------------------------------------*/
 
-QImage *Renderer::getImage()
+QImage* Renderer::getImage()
 {
-  QImage *clonedImage = NULL;
+    QImage* clonedImage = NULL;
 
-  clonedImage = new QImage(*renderedImage);
-  ASSERT(clonedImage != NULL);
-  return clonedImage;
+    clonedImage = new QImage(*renderedImage);
+    ASSERT(clonedImage != NULL);
+    return clonedImage;
 }
 
 /* ------------------------------------------------------------------------*/
 
 void Renderer::drawLabel()
-{  
-  QDateTime    dt;
-  QString      labelstring;
-  QPainter     p;
-  QColor transparentcolor = QTBLACK;
-  QColor whitecolor = QTWHITE;
-  unsigned int pixel;
-  int          x, y;
-  int          wx, wy;
-  QRgb *src, *dest;
-  double vlon, vlat;
-  double slon, slat;
-  struct tm    *tm;
-  
-  dt.setTime_t(time_to_render);
-  tm = localtime(&time_to_render);
-  
-  vlon = view_long*180./PI;
-  vlat = view_lat*180./PI;
-  slon = sun_long*180./PI;
-  slat = sun_lat*180./PI;
-  
-  labelstring.sprintf("%s, %s %d. %d, %d:%02d %s\n"
-                      "View pos %2.2f° %c %2.2f° %c\n"
-                      "Sun pos %2.2f° %c %2.2f° %c",
-#if QT_VERSION >= 200
-                      dt.date().dayName(dt.date().dayOfWeek()).latin1(),
-                      dt.date().monthName(dt.date().month()).latin1(),
-#else
-                      dt.date().dayName(dt.date().dayOfWeek()),
-                      dt.date().monthName(dt.date().month()),
-#endif
-                      dt.date().day(), dt.date().year(),
-                      dt.time().hour(), dt.time().minute(),
-                      tzname[tm->tm_isdst],
-                      fabs(vlat), (vlat < 0.) ? 'S' : 'N',
-                      fabs(vlon), (vlon < 0.) ? 'W' : 'E',
-                      fabs(slat), (slat < 0.) ? 'S' : 'N',
-                      fabs(slon), (slon < 0.) ? 'W' : 'E');
+{
+    QDateTime dt;
+    QString labelstring;
+    QPainter p;
+    QColor transparentcolor = QTBLACK;
+    QColor whitecolor = QTWHITE;
+    unsigned int pixel;
+    int x, y;
+    int wx, wy;
+    QRgb *src, *dest;
+    double vlon, vlat;
+    double slon, slat;
+    struct tm* tm;
 
-  QFont labelFont("helvetica", 12, QFont::Bold);
-  QFontMetrics fm(labelFont);
-  
-#if QT_VERSION >= 200
-  QRect br = fm.boundingRect(0, 0, 0, 0, Qt::AlignLeft|Qt::AlignTop,
-                             labelstring);
-#else
-  QRect br = fm.boundingRect(0, 0, 0, 0, AlignLeft|AlignTop, labelstring);
-#endif
-  QPixmap pm(br.width()+10, br.height()+10);
-  
-  p.begin(&pm);
-  p.setFont(labelFont);
-  p.fillRect(0,0,pm.width(), pm.height(), transparentcolor);
-  p.setPen(whitecolor);
-#if QT_VERSION >= 200
-  p.drawText(5, 5, br.width(), br.height(), Qt::AlignLeft|Qt::AlignTop,
-             labelstring);
-#else
-  p.drawText(5, 5, br.width(), br.height(), AlignLeft|AlignTop, labelstring);
-#endif
-  p.end();
-  
-  QImage labelimage = pm.convertToImage();
-  if(labelimage.depth() != 32)
-    labelimage = labelimage.convertDepth(32);
+    dt.setTime_t(time_to_render);
+    tm = localtime(&time_to_render);
 
-  if(label_x > 0)
-    x = label_x;
-  else
-    x = renderedImage->width()-labelimage.width()+label_x;
-  if(label_y > 0)
-    y = label_y;
-  else
-    y = renderedImage->height()-labelimage.height()+label_y;
-  
-  for(wy=0 ; wy<labelimage.height(); wy++)
-  {
-    dest = scan32(*renderedImage, x, y+wy);
-    src = scan32(labelimage, 0, wy);
-    
-    for(wx=0 ; wx<labelimage.width(); wx++)
-    {      
-      if(QColor(*src) == whitecolor)
-        *dest++ = *src++;
-      else if (QColor(*src) == transparentcolor)
-      {
-        pixel = *dest;
-        src++;
-        *dest++ = qRgb(qRed(pixel)/2, qGreen(pixel)/2, qBlue(pixel)/2);
-      }      
-      else
-      {
-        pixel = *dest;
-	int percent = qRed(*src++);
-	*dest++ = qRgb(
-	    (qRed(pixel)/2 * (256-percent) + 255 * percent) / 256,
-	    (qGreen(pixel)/2 * (256-percent) + 255 * percent) / 256,
-	    (qBlue(pixel)/2 * (256-percent) + 255 * percent) / 256);
-      }
+    vlon = view_long * 180. / PI;
+    vlat = view_lat * 180. / PI;
+    slon = sun_long * 180. / PI;
+    slat = sun_lat * 180. / PI;
+
+    labelstring.sprintf("%s, %s %d. %d, %d:%02d %s\n"
+                        "View pos %2.2f° %c %2.2f° %c\n"
+                        "Sun pos %2.2f° %c %2.2f° %c",
+#if QT_VERSION >= 200
+        dt.date().dayName(dt.date().dayOfWeek()).latin1(),
+        dt.date().monthName(dt.date().month()).latin1(),
+#else
+        dt.date().dayName(dt.date().dayOfWeek()),
+        dt.date().monthName(dt.date().month()),
+#endif
+        dt.date().day(), dt.date().year(),
+        dt.time().hour(), dt.time().minute(),
+        tzname[tm->tm_isdst],
+        fabs(vlat), (vlat < 0.) ? 'S' : 'N',
+        fabs(vlon), (vlon < 0.) ? 'W' : 'E',
+        fabs(slat), (slat < 0.) ? 'S' : 'N',
+        fabs(slon), (slon < 0.) ? 'W' : 'E');
+
+    QFont labelFont("helvetica", 12, QFont::Bold);
+    QFontMetrics fm(labelFont);
+
+#if QT_VERSION >= 200
+    QRect br = fm.boundingRect(0, 0, 0, 0, Qt::AlignLeft | Qt::AlignTop,
+        labelstring);
+#else
+    QRect br = fm.boundingRect(0, 0, 0, 0, AlignLeft | AlignTop, labelstring);
+#endif
+    QPixmap pm(br.width() + 10, br.height() + 10);
+
+    p.begin(&pm);
+    p.setFont(labelFont);
+    p.fillRect(0, 0, pm.width(), pm.height(), transparentcolor);
+    p.setPen(whitecolor);
+#if QT_VERSION >= 200
+    p.drawText(5, 5, br.width(), br.height(), Qt::AlignLeft | Qt::AlignTop,
+        labelstring);
+#else
+    p.drawText(5, 5, br.width(), br.height(), AlignLeft | AlignTop, labelstring);
+#endif
+    p.end();
+
+    QImage labelimage = pm.convertToImage();
+    if (labelimage.depth() != 32)
+        labelimage = labelimage.convertDepth(32);
+
+    if (label_x > 0)
+        x = label_x;
+    else
+        x = renderedImage->width() - labelimage.width() + label_x;
+    if (label_y > 0)
+        y = label_y;
+    else
+        y = renderedImage->height() - labelimage.height() + label_y;
+
+    for (wy = 0; wy < labelimage.height(); wy++) {
+        dest = scan32(*renderedImage, x, y + wy);
+        src = scan32(labelimage, 0, wy);
+
+        for (wx = 0; wx < labelimage.width(); wx++) {
+            if (QColor(*src) == whitecolor)
+                *dest++ = *src++;
+            else if (QColor(*src) == transparentcolor) {
+                pixel = *dest;
+                src++;
+                *dest++ = qRgb(qRed(pixel) / 2, qGreen(pixel) / 2, qBlue(pixel) / 2);
+            }
+            else {
+                pixel = *dest;
+                int percent = qRed(*src++);
+                *dest++ = qRgb(
+                    (qRed(pixel) / 2 * (256 - percent) + 255 * percent) / 256,
+                    (qGreen(pixel) / 2 * (256 - percent) + 255 * percent) / 256,
+                    (qBlue(pixel) / 2 * (256 - percent) + 255 * percent) / 256);
+            }
+        }
     }
-  }
-} 
+}
 
 /* ------------------------------------------------------------------------*/
 
 void Renderer::setStars(double f, bool show)
 {
-	if (stars)
-		delete stars;
-	if (show)
-	    stars = new Stars(f, *renderedImage);
-	else
-	    stars = NULL;
+    if (stars)
+        delete stars;
+    if (show)
+        stars = new Stars(f, *renderedImage);
+    else
+        stars = NULL;
 }
 
 void Renderer::drawStars()
 {
-  if (stars)
-  	stars->render(*renderedImage);
+    if (stars)
+        stars->render(*renderedImage);
 }
 
 /* ------------------------------------------------------------------------*/
-

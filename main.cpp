@@ -26,25 +26,25 @@
  *
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <qstring.h>
 #include "config.h"
 #include "earthapp.h"
+#include <qstring.h>
+#include <stdio.h>
+#include <string.h>
 
 #ifdef WITH_QIMAGEIO
 #include <qimageio.h>
 #endif
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
-  EarthApplication myApp(argc, argv);
+    EarthApplication myApp(argc, argv);
 
 #ifdef WITH_QIMAGEIO
-  qInitImageIO();
+    qInitImageIO();
 #endif
-  
-  myApp.init();
-  myApp.exec();
-  return 0;
+
+    myApp.init();
+    myApp.exec();
+    return 0;
 }

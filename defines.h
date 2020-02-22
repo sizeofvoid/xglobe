@@ -11,18 +11,17 @@
 #if QT_VERSION >= 200
 #define QTBLACK Qt::black
 #define QTWHITE Qt::white
-#define QTBLUE  Qt::blue
-#define QTRED	Qt::red
+#define QTBLUE Qt::blue
+#define QTRED Qt::red
 #else
 #define QTBLACK black
 #define QTWHITE white
-#define QTBLUE  blue
-#define QTRED	red
+#define QTBLUE blue
+#define QTRED red
 #endif
 
-static inline QRgb *scan32(QImage &img, int x, int y)
+static inline QRgb* scan32(QImage& img, int x, int y)
 {
-	assert(img.depth() == 32);
-	return reinterpret_cast<QRgb *>(img.scanLine(y)) + x;
+    assert(img.depth() == 32);
+    return reinterpret_cast<QRgb*>(img.scanLine(y)) + x;
 }
-

@@ -13,18 +13,18 @@
 #define _RANDOM_H
 /* Singleton random generator class */
 
-class Gen
-{
+class Gen {
 public:
-	Gen();	// dummy constructor, relies on initialized instead
-	int operator ()(int max) const;
-	double gaussian();
+    Gen(); // dummy constructor, relies on initialized instead
+    int operator()(int max) const;
+    double gaussian();
+
 private:
-	static bool initialized;
-	inline int draw() const;
-	// gaussian generator algorithm draws 2 numbers each time
-	static bool has_one;
-	static double preserve;
+    static bool initialized;
+    inline int draw() const;
+    // gaussian generator algorithm draws 2 numbers each time
+    static bool has_one;
+    static double preserve;
 };
 
 #endif

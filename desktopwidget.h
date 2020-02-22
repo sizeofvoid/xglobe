@@ -23,21 +23,20 @@
 #ifndef _DESKTOPWIDGET_H
 #define _DESKTOPWIDGET_H
 
-#include <qwidget.h>
-#include <qpixmap.h>
 #include <qpainter.h>
+#include <qpixmap.h>
+#include <qwidget.h>
 
-class DesktopWidget : public QWidget
-{
+class DesktopWidget : public QWidget {
 public:
-  DesktopWidget(QWidget *parent=0, const char *name=0 );
-  ~DesktopWidget();
-  void paintEvent(QPaintEvent *pe);
-  void updateDisplay(QImage *image);
-    
+    DesktopWidget(QWidget* parent = 0, const char* name = 0);
+    ~DesktopWidget();
+    void paintEvent(QPaintEvent* pe);
+    void updateDisplay(QImage* image);
+
 private:
-  QPixmap *currentImage;
-  bool    haveImage;
+    QPixmap* currentImage;
+    bool haveImage;
 };
 
 #endif

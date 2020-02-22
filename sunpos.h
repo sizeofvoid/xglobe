@@ -26,20 +26,19 @@
 #include <qobject.h>
 #include <time.h>
 
-class SunPos  
-{
+class SunPos {
 private:
-  static double solve_keplers_equation(double M);
-  static double sun_ecliptic_longitude(time_t ssue);
-  static void   ecliptic_to_equatorial(double lambda, double beta,
-                                       double *alpha, double *delta);
-  static double julian_date(int y, int m, int d);
-  static double GST(time_t ssue);
-  SunPos() {}
+    static double solve_keplers_equation(double M);
+    static double sun_ecliptic_longitude(time_t ssue);
+    static void ecliptic_to_equatorial(double lambda, double beta,
+        double* alpha, double* delta);
+    static double julian_date(int y, int m, int d);
+    static double GST(time_t ssue);
+    SunPos() {}
 
 public:
-  static void GetSunPos(time_t ssue, double *lat, double *lon);
-  ~SunPos() {}
+    static void GetSunPos(time_t ssue, double* lat, double* lon);
+    ~SunPos() {}
 };
 
 #endif
