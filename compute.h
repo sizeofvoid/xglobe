@@ -1,18 +1,9 @@
 #pragma once
 
-#ifndef PI
-#define PI ((double)3.141592654)
-#endif
-#ifndef TWOPI
-#define TWOPI (2 * PI)
-#endif
-
-#define MAX(x, y) ((x) < (y) ? (y) : (x))
-#define MIN(x, y) ((x) > (y) ? (y) : (x))
-
 class RotMatrix {
 public:
     RotMatrix(double rot, double lon, double lat, double radius = 1.0);
+
     inline void transform(double src_x, double src_y, double src_z,
         double& dest_x, double& dest_y, double& dest_z) const
     {

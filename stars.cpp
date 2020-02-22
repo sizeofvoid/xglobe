@@ -1,6 +1,7 @@
 #include "stars.h"
-#include <qcolor.h>
-#include <qimage.h>
+
+#include <QColor>
+#include <QImage>
 
 struct star {
     int x;

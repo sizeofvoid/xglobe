@@ -67,29 +67,26 @@
 
 #include "renderer.h"
 #include "compute.h"
-#include "config.h"
-#include "defines.h"
 #include "file.h"
 #include "sunpos.h"
 #include <math.h>
-#include <qapplication.h>
-#include <qdatetime.h>
-#include <qpainter.h>
-#include <qpixmap.h>
+#include <QApplication>
+#include <QDateTime>
+#include <QPainter>
+#include <QPixmap>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 /* ------------------------------------------------------------------------*/
 
 Renderer::Renderer(const QSize& size, const char* mapfile)
 {
-    markerlist = NULL;
-    map = NULL;
-    mapnight = NULL;
-    backImage = NULL;
-    mapcloud = NULL;
-    track_clouds = NULL;
+    markerlist = nullptr;
+    map = nullptr;
+    mapnight = nullptr;
+    backImage = nullptr;
+    mapcloud = nullptr;
+    track_clouds = nullptr;
 
     renderedImage = new QImage(size, 32);
     if (!renderedImage) {
@@ -106,16 +103,16 @@ Renderer::Renderer(const QSize& size, const char* mapfile)
     this->view_lat = 0.;
     this->sun_long = 0.;
     this->sun_lat = 0.;
-    this->fov = 0.5 * PI / 180.;
+    this->fov = 0.5 * M_PI / 180.;
     this->zoom = 0.9;
     this->ambientRed = 0.15;
     this->ambientGreen = 0.15;
     this->ambientBlue = 0.15;
-    this->show_label = TRUE;
+    this->show_label = true;
     this->gridtype = NO_GRID;
-    this->d_gridline = 15.0 * PI / 180.;
-    this->d_griddot = PI / 180.;
-    stars = NULL;
+    this->d_gridline = 15.0 * M_PI / 180.;
+    this->d_griddot = M_PI / 180.;
+    stars = nullptr;
     this->trans = 0.0;
     this->rot = 0.0;
 
@@ -147,7 +144,7 @@ QImage* Renderer::loadImage(const char* name)
 
 int Renderer::loadNightMap(const char* nmapfile)
 {
-    if (mapnight != NULL) // we already have a night map!
+    if (mapnight != nullptr) // we already have a night map!
         return 1;
 
     mapnight = loadImage(nmapfile ? nmapfile : "mapnight.bmp");
@@ -164,10 +161,10 @@ static inline bool bad_color(int r, int g, int b)
 
 int Renderer::loadCloudMap(const char* cmapfile, int cf)
 {
-    if (track_clouds == NULL && cmapfile != NULL) {
+    if (track_clouds == nullptr && cmapfile != nullptr) {
         /* create scale array, atan looks fine to sharpen clouds */
         for (int i = 0; i < 255; i++) {
-            int j = atan((i - cf) / 20.0) * 290 / PI + 125;
+            int j = atan((i - cf) / 20.0) * 290 / M_PI + 125;
             if (j < 0)
                 v[i] = 0;
             else if (j > 255)
@@ -178,7 +175,7 @@ int Renderer::loadCloudMap(const char* cmapfile, int cf)
         track_clouds = new FileChange(find_xglobefile(cmapfile));
     }
 
-    if (track_clouds == NULL || !track_clouds->reload())
+    if (track_clouds == nullptr || !track_clouds->reload())
         return 1;
     if (mapcloud)
         delete mapcloud;
@@ -260,7 +257,7 @@ int Renderer::loadCloudMap(const char* cmapfile, int cf)
 
 int Renderer::loadBackImage(const char* imagefile, bool tld)
 {
-    if (backImage != NULL)
+    if (backImage != nullptr)
         return 1;
 
     tiled = tld;
@@ -314,50 +311,50 @@ void Renderer::setViewPos(double lat, double lon)
     if (lon < -180.)
         lon = 180. + (lon + 180.);
 
-    view_lat = lat * PI / 180.;
-    view_long = lon * PI / 180.;
+    view_lat = lat * M_PI / 180.;
+    view_long = lon * M_PI / 180.;
 }
 
 /* ------------------------------------------------------------------------*/
 
 double Renderer::getViewLat()
 {
-    return view_lat * 180. / PI;
+    return view_lat * 180. / M_PI;
 }
 
 /* ------------------------------------------------------------------------*/
 
 double Renderer::getViewLong()
 {
-    return view_long * 180. / PI;
+    return view_long * 180. / M_PI;
 }
 
 /* ------------------------------------------------------------------------*/
 
 void Renderer::setRotation(double r)
 {
-    rot = r * PI / 180.;
+    rot = r * M_PI / 180.;
 }
 
 /* ------------------------------------------------------------------------*/
 
 double Renderer::getRotation()
 {
-    return rot * 180. / PI;
+    return rot * 180. / M_PI;
 }
 
 /* ------------------------------------------------------------------------*/
 
 double Renderer::getSunLat()
 {
-    return sun_lat * 180. / PI;
+    return sun_lat * 180. / M_PI;
 }
 
 /* ------------------------------------------------------------------------*/
 
 double Renderer::getSunLong()
 {
-    return sun_long * 180. / PI;
+    return sun_long * 180. / M_PI;
 }
 
 /* ------------------------------------------------------------------------*/
@@ -432,13 +429,13 @@ void Renderer::setAmbientRGB(double ambient_red, double ambient_green,
     double ambient_blue)
 {
     const int samples = 100;
-    if (mapnight != NULL) {
+    if (mapnight != nullptr) {
         // Auto-calibrate ambient rgb by random sampling.
         int dr_tot = 0, dg_tot = 0, db_tot = 0;
         int nr_tot = 0, ng_tot = 0, nb_tot = 0;
         for (int i = 0; i < samples; i++) {
-            double longitude = gen(3600) * PI / 1800.0;
-            double latitude = gen(1800) * PI / 1800.0 - PI / 2.0;
+            double longitude = gen(3600) * M_PI / 1800.0;
+            double latitude = gen(1800) * M_PI / 1800.0 - M_PI / 2.0;
             int r, g, b;
             getMapColorLinear(map, longitude, latitude, &r, &g, &b);
             dr_tot += r;
@@ -464,7 +461,7 @@ void Renderer::setAmbientRGB(double ambient_red, double ambient_green,
 
 void Renderer::setFov(double fov)
 {
-    this->fov = fov * PI / 180.;
+    this->fov = fov * M_PI / 180.;
     calcDistance();
 }
 
@@ -487,28 +484,28 @@ time_t Renderer::getTime()
 
 void Renderer::setNumGridLines(int num)
 {
-    d_gridline = PI / (2.0 * num);
+    d_gridline = M_PI / (2.0 * num);
 }
 
 /* ------------------------------------------------------------------------*/
 
 int Renderer::getNumGridLines()
 {
-    return (int)(PI / 2 * d_gridline);
+    return (int)(M_PI / 2 * d_gridline);
 }
 
 /* ------------------------------------------------------------------------*/
 
 void Renderer::setNumGridDots(int num)
 {
-    d_griddot = 2.0 * PI / num;
+    d_griddot = 2.0 * M_PI / num;
 }
 
 /* ------------------------------------------------------------------------*/
 
 int Renderer::getNumGridDots()
 {
-    return (int)(2.0 * PI / d_griddot);
+    return (int)(2.0 * M_PI / d_griddot);
 }
 
 /* ------------------------------------------------------------------------*/
@@ -596,7 +593,7 @@ void Renderer::renderFrame()
         memset(p, 0, renderedImage->bytesPerLine());
     }
 
-    if (backImage != NULL)
+    if (backImage != nullptr)
         copyBackImage();
 
     drawStars();
@@ -679,7 +676,7 @@ void Renderer::renderFrame()
 
                 longitude = atan(hit_x / hit_z);
                 if (hit_z < 0.)
-                    longitude = PI + longitude;
+                    longitude = M_PI + longitude;
 
                 r = (double)sqrt(hit_x * hit_x + hit_z * hit_z);
                 latitude = atan(-hit_y / r);
@@ -779,7 +776,7 @@ unsigned int Renderer::getPixelColor(double longitude, double latitude,
     else
         shade_angle = 1.0;
 
-    if (mapnight != NULL) {
+    if (mapnight != nullptr) {
         if (angle > shade_area) {
             getMapColorLinear(map, longitude, latitude, &r, &g, &b);
         }
@@ -826,7 +823,7 @@ unsigned int Renderer::getPixelColor(double longitude, double latitude,
     }
 
     // correct luminosity for clouds
-    if (mapcloud != NULL) {
+    if (mapcloud != nullptr) {
         int cr, cg, cb;
         getMapColorLinear(mapcloud, longitude, latitude, &cr, &cg, &cb);
         if (cr >= 0) {
@@ -870,10 +867,10 @@ unsigned int Renderer::getPixelColor(double longitude, double latitude,
 void Renderer::getMapColorLinear(QImage* m, double longitude, double latitude,
     int* r, int* g, int* b)
 {
-    latitude += PI / 2;
-    longitude += PI;
-    double posx = longitude * m->width() / (2 * PI);
-    double posy = latitude * m->height() / PI;
+    latitude += M_PI / 2;
+    longitude += M_PI;
+    double posx = longitude * m->width() / (2 * M_PI);
+    double posy = latitude * m->height() / M_PI;
 
     if (posy >= m->height()) {
         posy = 2 * m->height() - posy;
@@ -967,12 +964,12 @@ void Renderer::drawGrid()
 
     visible_angle = radius / center_dist;
 
-    temp = PI / 2.0 - d_gridline;
+    temp = M_PI / 2.0 - d_gridline;
 
     for (lat = -temp; lat <= temp + 0.01; lat += d_gridline) {
         s_y = sin(lat);
 
-        for (lon = -PI; lon < PI; lon += d_griddot) {
+        for (lon = -M_PI; lon < M_PI; lon += d_griddot) {
             s_x = cos(lat) * sin(lon);
             s_z = cos(lat) * cos(lon);
             mat.transform(s_x, s_y, s_z, loc_x, loc_y, loc_z);
@@ -1016,7 +1013,7 @@ void Renderer::drawGrid()
         }
     }
 
-    for (lon = -PI; lon < PI; lon += d_gridline) {
+    for (lon = -M_PI; lon < M_PI; lon += d_gridline) {
         for (lat = -temp; lat <= temp; lat += d_griddot) {
             s_x = cos(lat) * sin(lon);
             s_y = sin(lat);
@@ -1067,10 +1064,10 @@ void Renderer::drawGrid()
 
 QImage* Renderer::getImage()
 {
-    QImage* clonedImage = NULL;
+    QImage* clonedImage = nullptr;
 
     clonedImage = new QImage(*renderedImage);
-    ASSERT(clonedImage != NULL);
+    assert(clonedImage != nullptr);
     return clonedImage;
 }
 
@@ -1094,10 +1091,10 @@ void Renderer::drawLabel()
     dt.setTime_t(time_to_render);
     tm = localtime(&time_to_render);
 
-    vlon = view_long * 180. / PI;
-    vlat = view_lat * 180. / PI;
-    slon = sun_long * 180. / PI;
-    slat = sun_lat * 180. / PI;
+    vlon = view_long * 180. / M_PI;
+    vlat = view_lat * 180. / M_PI;
+    slon = sun_long * 180. / M_PI;
+    slat = sun_lat * 180. / M_PI;
 
     labelstring.sprintf("%s, %s %d. %d, %d:%02d %s\n"
                         "View pos %2.2f° %c %2.2f° %c\n"
@@ -1186,7 +1183,7 @@ void Renderer::setStars(double f, bool show)
     if (show)
         stars = new Stars(f, *renderedImage);
     else
-        stars = NULL;
+        stars = nullptr;
 }
 
 void Renderer::drawStars()

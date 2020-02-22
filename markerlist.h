@@ -37,21 +37,22 @@
 
 #include "compute.h"
 #include "random.h"
-#include <qcolor.h>
-#include <qfont.h>
-#include <qfontmetrics.h>
-#include <qimage.h>
-#include <qlist.h>
-#include <qrect.h>
-#include <qstring.h>
 
-class MarkerList;
+#include <QImage>
+#include <QColor>
+#include <QPixmap>
+#include <QFont>
+#include <QFontMetrics>
+#include <QList>
+#include <QRect>
+#include <QString>
+
 
 class Location {
     friend class MarkerList;
 
 public:
-    Location(double lon, double lat, const char* name, const QColor& color);
+    Location(double lon, double lat, const QString& name, const QColor& color);
     ~Location() {}
     QString getName() const;
     void getLoc(double&, double&, double&) const;
@@ -85,22 +86,22 @@ class MarkerList {
 public:
     MarkerList();
     ~MarkerList();
-    void append(const Location* l);
+    void append(Location* l);
     void setShift(int x, int y);
     int getShiftX();
     int getShiftY();
     inline Location* first() { return list.first(); }
     inline Location* last() { return list.last(); }
-    inline Location* next() { return list.next(); }
-    inline Location* prev() { return list.prev(); }
-    inline Location* current() { return list.current(); }
+    inline Location* next() { return nullptr; }
+    inline Location* prev() { return nullptr; }
+    inline Location* current() { return nullptr;  }
     inline uint count() { return list.count(); }
     inline void clear() { list.clear(); }
     void set_font(const char* name, int sz);
     void render(const RotMatrix&, QImage&, double, double, double, int, int);
 
 protected:
-    QList<Location> list;
+    QList<Location*> list;
     void paintMarker(QImage& img, Location* l);
     void paintDot(QImage& img, Location* l);
     void paintArrow(QImage& img, Location* l);

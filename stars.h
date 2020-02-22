@@ -1,6 +1,7 @@
 #pragma once
 
 #include "random.h"
+
 struct star;
 class QImage;
 

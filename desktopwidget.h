@@ -21,9 +21,9 @@
  */
 #pragma once
 
-#include <qpainter.h>
-#include <qpixmap.h>
-#include <qwidget.h>
+#include <QPainter>
+#include <QPixmap>
+#include <QWidget>
 
 class DesktopWidget : public QWidget {
 public:

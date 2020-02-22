@@ -1,5 +1,5 @@
 #include "compute.h"
-#include <math.h>
+#include <cmath>
 
 RotMatrix::RotMatrix(double rot, double lon, double lat, double radius)
 {

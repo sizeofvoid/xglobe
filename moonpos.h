@@ -22,9 +22,7 @@
  */
 #pragma once
 
-#include <math.h>
-#include <qobject.h>
-#include <time.h>
+#include <ctime>
 
 class MoonPos {
 private:

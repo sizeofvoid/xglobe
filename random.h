@@ -1,4 +1,4 @@
-/* 
+/*
  * random.h
  *
  * $Id: random.h,v 1.1 2000/06/15 09:43:29 espie Exp $
@@ -8,6 +8,7 @@
  * Copyright (C) 2000 Marc Espie
  *
  */
+
 #pragma once
 
 /* Singleton random generator class */

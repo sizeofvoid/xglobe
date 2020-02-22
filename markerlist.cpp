@@ -39,15 +39,16 @@
 
 #include "markerlist.h"
 #include "compute.h"
-#include "defines.h"
+#include "renderer.h"
 #include "file.h"
 #include "marker.xpm"
 #include <cstdlib>
 #include <math.h>
-#include <qfile.h>
-#include <qimage.h>
-#include <qpainter.h>
-#include <qtextstream.h>
+#include <QFile>
+#include <QImage>
+#include <QRect>
+#include <QPainter>
+#include <QTextStream>
 
 const int default_offset_x = 4, default_offset_y = 0, min_arrow = 5;
 
@@ -61,7 +62,7 @@ QRect Location::boundingRect(const QFontMetrics& fm)
         = Unknown;
     if (mode == Unknown) {
         char* v = ::getenv("QT_XFT");
-        if (v != NULL && strcmp(v, "true") == 0)
+        if (v != nullptr && strcmp(v, "true") == 0)
             mode = XFT;
         else
             mode = None;
@@ -75,11 +76,11 @@ QRect Location::boundingRect(const QFontMetrics& fm)
 
 /* ------------------------------------------------------------------------ */
 
-Location::Location(double lon, double lat, const char* name,
+Location::Location(double lon, double lat, const QString& name,
     const QColor& color)
 {
-    lon *= PI / 180.0;
-    lat *= PI / 180.0;
+    lon *= M_PI / 180.0;
+    lat *= M_PI / 180.0;
 
     const double cs_lat = cos(lat);
 
@@ -122,54 +123,54 @@ static bool parse_markerline(QString& line, const char* filename,
 {
     int pos1, pos2;
     // read longitude
-    pos1 = line.find(' ');
+    pos1 = line.indexOf(' ');
     if (pos1 == -1) {
         fprintf(stderr, "Syntax error in marker file \"%s\", line %d.\n",
             filename, linenum);
-        return FALSE;
+        return false;
     }
     lat = line.left(pos1).toDouble();
 
     // read latitude
-    pos2 = line.find(' ', pos1 + 1);
+    pos2 = line.indexOf(' ', pos1 + 1);
     if (pos2 == -1) {
         fprintf(stderr, "Syntax error in marker file \"%s\", line %d.\n",
             filename, linenum);
-        return FALSE;
+        return false;
     }
     lon = line.mid(pos1 + 1, pos2 - pos1 - 1).toDouble();
 
     // read name
-    pos1 = line.find('\"', pos2);
+    pos1 = line.indexOf('\"', pos2);
     if (pos1 == -1) {
         fprintf(stderr, "Syntax error in marker file \"%s\", line %d.\n",
             filename, linenum);
-        return FALSE;
+        return false;
     }
-    pos2 = line.find('\"', pos1 + 1);
+    pos2 = line.indexOf('\"', pos1 + 1);
     if (pos2 == -1) {
         fprintf(stderr, "Syntax error in marker file \"%s\", line %d.\n",
             filename, linenum);
-        return FALSE;
+        return false;
     }
     name = line.mid(pos1 + 1, pos2 - pos1 - 1);
 
     // read color value
 
-    pos1 = line.find("color=", pos2);
+    pos1 = line.indexOf("color=", pos2);
     if (pos1 != -1) {
-        pos2 = line.find('#', 0);
+        pos2 = line.indexOf('#', 0);
         if ((pos2 == -1) || (pos2 > pos1)) {
             QString colorname;
-            pos2 = line.find(' ', pos1);
+            pos2 = line.indexOf(' ', pos1);
             if (pos2 != -1)
                 colorname = line.mid(pos1 + 6, pos2 - pos1 - 6);
             else
                 colorname = line.right(line.length() - pos1 - 6);
-            color.setNamedColor((const char*)colorname);
+            color.setNamedColor(colorname);
         }
     }
-    return TRUE;
+    return true;
 }
 
 /*
@@ -189,59 +190,60 @@ bool appendMarkerFile(MarkerList& l, const char* filename)
     QFile f(find_xglobefile(filename));
     QTextStream t(&f);
 
-    if (!f.open(IO_ReadOnly))
-        return FALSE;
+    if (!f.open(QIODevice::ReadOnly))
+        return false;
 
     int linenum = 0;
 
-    while (!t.eof()) {
+    while (!t.atEnd()) {
         QString line = t.readLine();
         linenum++;
 
-        line = line.simplifyWhiteSpace();
+        line = line.simplified();
         if (line.isEmpty()) // skip empty lines
             continue;
-        if (((const char*)line)[0] == '#') // if it's a comment, skip to next line
+        if (line.startsWith('#')) // if it's a comment, skip to next line
             continue;
 
-        QColor color = QTRED;
+        QColor color = Qt::red;
         double lon, lat;
         QString name;
         if (parse_markerline(line, filename, linenum, lon, lat, name, color))
             l.append(new Location(lon, lat, name, color));
         else {
             f.close();
-            return FALSE;
+            return false;
         }
     }
     f.close();
-    return TRUE;
+    return true;
 }
 
 MarkerList::MarkerList()
-    : renderFont(NULL)
-    , fm(NULL)
+    : renderFont(nullptr)
+    , fm(nullptr)
+    //, list_it(list)
 {
-    list.setAutoDelete(TRUE);
+    // list.setAutoDelete(true);
     markerpixmap = new QPixmap((const char**)marker_xpm);
-    ASSERT(markerpixmap != NULL);
+    assert(markerpixmap != nullptr);
 }
 
 void MarkerList::set_font(const char* name, int sz)
 {
     if (renderFont) {
         delete renderFont;
-        renderFont = NULL;
+        renderFont = nullptr;
     }
     if (fm) {
         delete fm;
-        fm = NULL;
+        fm = nullptr;
     }
-    if (name == NULL)
+    if (name == nullptr)
         return;
 
     renderFont = new QFont(name, sz, QFont::Bold);
-    if (renderFont == NULL)
+    if (renderFont == nullptr)
         renderFont = new QFont("helvetica", 12, QFont::Bold);
     fm = new QFontMetrics(*renderFont);
 }
@@ -254,7 +256,7 @@ MarkerList::~MarkerList()
     delete renderFont;
 }
 
-void MarkerList::append(const Location* l)
+void MarkerList::append(Location* l)
 {
     list.append(l);
 }
@@ -275,7 +277,7 @@ void MarkerList::solve_conflicts(Location* visible_locations[], int num)
         l->br = l->boundingRect(*fm);
         l->br.moveTopLeft(QPoint(l->offset_x + l->x, l->offset_y + l->y));
         for (int j = 0; j < i; j++) {
-            QRect in = l->br.intersect(visible_locations[j]->br);
+            QRect in = l->br.intersected(visible_locations[j]->br);
             if (!in.isEmpty()) {
                 l->offset_x = gen.gaussian() * jitter;
                 l->offset_y = gen.gaussian() * jitter;
@@ -299,7 +301,7 @@ void MarkerList::solve_conflicts(Location* visible_locations[], int num)
                 l->offset_y = default_offset_y;
                 break;
             }
-            QRect in = check.intersect(visible_locations[j]->br);
+            QRect in = check.intersected(visible_locations[j]->br);
             if (!in.isEmpty())
                 break;
         }
@@ -320,11 +322,11 @@ void MarkerList::render(const RotMatrix& mat, QImage& dest,
     Location** visible_locations;
 
     visible_locations = new Location*[count()];
-    ASSERT(visible_locations != NULL);
+    assert(visible_locations != nullptr);
 
     visible_angle = radius / center_dist;
 
-    for (i = 0, l = first(); l != NULL; l = next()) {
+    for (i = 0, l = first(); l != nullptr; l = next()) {
         l->getLoc(s_x, s_y, s_z);
 
         mat.transform(s_x, s_y, s_z, loc_x, loc_y, loc_z);
@@ -360,13 +362,13 @@ void MarkerList::render(const RotMatrix& mat, QImage& dest,
     // sort the markers according to depth
     std::qsort(visible_locations, num, sizeof(Location*), compareLocations);
 
-    if (fm != NULL)
+    if (fm != nullptr)
         solve_conflicts(visible_locations, num);
 
     for (i = 0; i < num; i++)
         paintDot(dest, visible_locations[i]);
 
-    if (fm != NULL) {
+    if (fm != nullptr) {
         for (i = 0; i < num; i++)
             paintArrow(dest, visible_locations[i]);
         for (i = 0; i < num; i++)
@@ -382,11 +384,11 @@ void MarkerList::render_monochrome(QRgb color,
     QRgb *src, *dest;
 
     if (l.depth() != 32)
-        l = l.convertDepth(32);
+        l = l.convertToFormat(QImage::Format_RGB32);
 
     QRect screenrect(0, 0, img.width(), img.height());
     QRect labelrect(x, y, l.width(), l.height());
-    QRect visiblerect = screenrect.intersect(labelrect);
+    QRect visiblerect = screenrect.intersected(labelrect);
 
     if (visiblerect.isEmpty())
         // the label is not visible
@@ -438,10 +440,10 @@ void MarkerList::paintMarker(QImage& img, Location* l)
 
     p.begin(&pm);
     p.setFont(*renderFont);
-    p.fillRect(0, 0, pm.width(), pm.height(), QTBLACK);
+    p.fillRect(0, 0, pm.width(), pm.height(), Qt::black);
 
     // draw a blue seam around the text
-    p.setPen(QTBLUE);
+    p.setPen(Qt::blue);
     wx = -br.x() + 1;
     wy = -br.y();
     p.drawText(wx, wy + 1, l->getName());
@@ -449,11 +451,11 @@ void MarkerList::paintMarker(QImage& img, Location* l)
     p.drawText(wx + 1, wy + 2, l->getName());
     p.drawText(wx + 2, wy + 1, l->getName());
 
-    p.setPen(QTWHITE);
+    p.setPen(Qt::white);
     p.drawText(wx + 1, wy + 1, l->getName());
     p.end();
 
-    QImage labelimage = pm.convertToImage();
+    QImage labelimage = pm.toImage();
 
     render_monochrome(l->getColor().rgb(), img, labelimage,
         l->x - markerimage.width() / 2 + l->offset_x,
@@ -466,12 +468,12 @@ void MarkerList::paintDot(QImage& img, Location* l)
 
     QPixmap pm(markerpixmap->width(), markerpixmap->height());
     p.begin(&pm);
-    p.fillRect(0, 0, pm.width(), pm.height(), QTBLACK);
-    p.setPen(QTWHITE);
+    p.fillRect(0, 0, pm.width(), pm.height(), Qt::black);
+    p.setPen(Qt::white);
     p.drawPixmap(0, 0, *markerpixmap);
     p.end();
 
-    QImage markerimage = pm.convertToImage();
+    QImage markerimage = pm.toImage();
     render_monochrome(l->getColor().rgb(),
         img, markerimage,
         l->x - markerpixmap->width() / 2,
@@ -514,12 +516,12 @@ void MarkerList::paintArrow(QImage& img, Location* l)
     }
     QPixmap pm(wx, wy);
     p.begin(&pm);
-    p.fillRect(0, 0, wx, wy, QTBLACK);
-    p.setPen(QTWHITE);
+    p.fillRect(0, 0, wx, wy, Qt::black);
+    p.setPen(Qt::white);
     p.drawLine(x1, y1, x2, y2);
     p.end();
 
-    QImage markerimage = pm.convertToImage();
+    QImage markerimage = pm.toImage();
     render_monochrome(l->getColor().rgb(),
         img, markerimage, l->x + dx, l->y + dy);
 }

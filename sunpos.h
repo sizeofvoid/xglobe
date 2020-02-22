@@ -22,8 +22,7 @@
 
 #pragma once
 
-#include <qobject.h>
-#include <time.h>
+#include <ctime>
 
 class SunPos {
 private:

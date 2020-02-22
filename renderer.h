@@ -50,20 +50,27 @@
 #include "markerlist.h"
 #include "random.h"
 #include "stars.h"
-#include <qcolor.h>
-#include <qimage.h>
-#include <qpixmap.h>
-#include <qsize.h>
-#include <qstring.h>
-#include <time.h>
+
+#include <QColor>
+#include <QImage>
+#include <QPixmap>
+#include <QSize>
+#include <QString>
+#include <ctime>
+
+static inline QRgb *scan32(QImage &img, int x, int y)
+{
+	assert(img.depth() == 32);
+	return reinterpret_cast<QRgb *>(img.scanLine(y)) + x;
+}
 
 class Renderer {
 public:
-    Renderer(const QSize& size, const char* mapfile = NULL);
+    Renderer(const QSize& size, const char* mapfile = nullptr);
     ~Renderer();
-    int loadNightMap(const char* nmapfile = NULL);
-    int loadCloudMap(const char* cmapfile = NULL, int cloud_filter = 110);
-    int loadBackImage(const char* imagefile = NULL, bool tld = FALSE);
+    int loadNightMap(const char* nmapfile = nullptr);
+    int loadCloudMap(const char* cmapfile = nullptr, int cloud_filter = 110);
+    int loadBackImage(const char* imagefile = nullptr, bool tld = false);
     void renderFrame();
     void setViewPos(double lat, double lon);
     double getViewLat();

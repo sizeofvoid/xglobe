@@ -22,11 +22,14 @@
 
 #include "desktopwidget.h"
 #include <stdio.h>
+#include <QPaintEvent>
+
+
 
 DesktopWidget::DesktopWidget(QWidget* parent, const char* name)
-    : QWidget(parent, name, WType_Desktop | WPaintDesktop)
+    : QWidget(parent)
 {
-    haveImage = FALSE;
+    haveImage = false;
     currentImage = new QPixmap(width(), height());
     if (!currentImage) {
         fprintf(stderr, "Not enough memory!\n");
@@ -62,9 +65,9 @@ void DesktopWidget::paintEvent(QPaintEvent* pe)
 
 void DesktopWidget::updateDisplay(QImage* image)
 {
-    ASSERT(image != NULL);
+    assert(image != nullptr);
     currentImage->convertFromImage(*image);
-    haveImage = TRUE;
-    setBackgroundPixmap(*currentImage);
+    haveImage = true;
+    //setBackgroundPixmap(*currentImage);
     update();
 }

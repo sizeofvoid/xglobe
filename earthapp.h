@@ -57,22 +57,23 @@
  */
 #pragma once
 
-#include "desktopwidget.h"
+#include <QApplication>
+
 #include "markerlist.h"
 #include "random.h"
-#include "renderer.h"
-#include <qapplication.h>
-#include <qsize.h>
-#include <qstring.h>
-#include <qtimer.h>
-#include <time.h>
+
+class Renderer;
+class DesktopWidget;
+class QSize;
+class QString;
+class QTimer;
 
 class EarthApplication : public QApplication {
     Q_OBJECT
 
 public:
-    EarthApplication(int ac, char** av);
-    virtual ~EarthApplication();
+    EarthApplication(int &argc, char **argv);
+    ~EarthApplication();
 
     void init();
 

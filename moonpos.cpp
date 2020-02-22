@@ -48,10 +48,7 @@
 /* Based on Chapter 30 of Astronomical Formulae for Calculators by Meeus */
 
 #include "moonpos.h"
-
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif /* !M_PI */
+#include <cmath>
 
 /* ------------------------------------------------------------------------*/
 
@@ -276,12 +273,12 @@ void MoonPos::getMoonPos(time_t ssue, double* lat, double* lon)
     double moonlon, moonlat, moondist;
     double moonalpha, moondelta;
     static double eps, T;
-    static bool first_time = TRUE;
+    static bool first_time = true;
 
     if (first_time) {
         T = jcentury(ssue);
         eps = compute_obliquity(T);
-        first_time = FALSE;
+        first_time = false;
     }
 
     moonpos(moonlon, moonlat, moondist, jcentury(ssue));

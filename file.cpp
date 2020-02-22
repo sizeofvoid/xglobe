@@ -1,8 +1,7 @@
 #include "file.h"
-#include "config.h"
-#include <qfile.h>
-#include <qfileinfo.h>
-#include <qstring.h>
+#include <QFile>
+#include <QFileInfo>
+#include <QString>
 
 static const char* userdir;
 
@@ -18,7 +17,7 @@ QString find_xglobefile(const char* name)
         if (QFile::exists(result))
             return result;
     }
-    QString result = XGLOBE_LIB_DIR;
+    QString result = "";//XGLOBE_LIB_DIR;
     result += "/";
     result += name;
     if (!QFile::exists(result)) {
@@ -38,12 +37,14 @@ bool FileChange::reload()
     QFileInfo info(n);
     if (!info.exists())
         return false;
+    /*
     QDateTime t = info.lastModified();
-    if (!lastCheck.isValid() || t > lastCheck) {
+    if (!lastCheck.isValid() || t.secsTo(lastCheck) > 0) {
         lastCheck = t;
         return true;
     }
     else
+    */
         return false;
 }
 

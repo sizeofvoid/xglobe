@@ -65,52 +65,58 @@
  */
 
 #include "earthapp.h"
-#include "config.h"
+#include "desktopwidget.h"
+#include "renderer.h"
 #include "file.h"
 #include "moonpos.h"
-#include <ctype.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+
+#include <QSize>
+#include <QTimer>
+#include <QString>
+
+#include <cctype>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+
 #include <sys/resource.h>
 #include <sys/time.h>
 #include <unistd.h>
 
 /* ------------------------------------------------------------------------*/
 
-EarthApplication::EarthApplication(int ac, char** av)
-    : QApplication(ac, av)
+EarthApplication::EarthApplication(int &argc, char **argv)
+    : QApplication(argc, argv)
 {
-    firstTime = TRUE;
+    firstTime = true;
     view_lat = 0.;
     view_long = 0.;
     shift_x = shift_y = 0;
     delay = 300;
     zoom = 1.0;
     p_type = SUNREL;
-    builtin_markers = TRUE;
-    show_markers = TRUE;
-    show_label = TRUE;
+    builtin_markers = true;
+    show_markers = true;
+    show_label = true;
     label_x = -5;
     label_y = 5;
     ambient_red = ambient_green = ambient_blue = 0.15;
     fov = -1.;
-    with_nightmap = with_cloudmap = FALSE;
+    with_nightmap = with_cloudmap = false;
     cloud_filter = 120;
-    with_bg = FALSE;
-    tiled = FALSE;
+    with_bg = false;
+    tiled = false;
     argc_map = -1;
     argc_nightmap = -1;
     argc_cloudmap = -1;
-    do_the_dump = FALSE;
-    do_dumpcmd = FALSE;
-    dumpcmd = dumpfile = NULL;
-    dwidget = NULL;
-    use_kde = FALSE;
-    once = FALSE;
+    do_the_dump = false;
+    do_dumpcmd = false;
+    dumpcmd = dumpfile = nullptr;
+    dwidget = nullptr;
+    use_kde = false;
+    once = false;
     time_warp = 1.0;
-    have_size = FALSE;
+    have_size = false;
     grid_type = Renderer::NO_GRID;
     grid1 = 6;
     grid2 = 15;
@@ -125,7 +131,8 @@ EarthApplication::EarthApplication(int ac, char** av)
     markerfontsize = 12;
 
     // evaluate command line parameters
-    for (int i = 1; i < argc(); i++) {
+    /*
+    for (QString arg : arguments()) {
         if (strcmp(argv()[i], "-pos") == 0) {
             readPosition(++i);
         }
@@ -142,42 +149,42 @@ EarthApplication::EarthApplication(int ac, char** av)
             set_userdir(argv()[++i]);
         }
         else if (strcmp(argv()[i], "-tiled") == 0) {
-            tiled = TRUE;
+            tiled = true;
         }
         else if (strcmp(argv()[i], "-center") == 0) {
-            tiled = FALSE;
+            tiled = false;
         }
         else if (strcmp(argv()[i], "-nice") == 0) {
             readPriority(++i);
         }
         else if (strcmp(argv()[i], "-markers") == 0) {
-            builtin_markers = TRUE;
-            show_markers = TRUE;
+            builtin_markers = true;
+            show_markers = true;
         }
         else if (strcmp(argv()[i], "-nomarkers") == 0) {
-            builtin_markers = FALSE;
-            show_markers = FALSE;
+            builtin_markers = false;
+            show_markers = false;
         }
         else if (strcmp(argv()[i], "-markerfont") == 0) {
             readMarkerFont(++i);
-            show_markers = TRUE;
+            show_markers = true;
         }
         else if (strcmp(argv()[i], "-markerfontsize") == 0) {
             readMarkerFontSize(++i);
-            show_markers = TRUE;
+            show_markers = true;
         }
         else if (strcmp(argv()[i], "-markerfile") == 0) {
             readMarkerFile(++i);
-            show_markers = TRUE;
+            show_markers = true;
         }
         else if (strcmp(argv()[i], "-shift") == 0) {
             readShift(++i);
         }
         else if (strcmp(argv()[i], "-label") == 0) {
-            show_label = TRUE;
+            show_label = true;
         }
         else if (strcmp(argv()[i], "-nolabel") == 0) {
-            show_label = FALSE;
+            show_label = false;
         }
         else if (strcmp(argv()[i], "-labelpos") == 0) {
             readLabelPos(++i);
@@ -192,51 +199,51 @@ EarthApplication::EarthApplication(int ac, char** av)
             readFov(++i);
         }
         else if (strcmp(argv()[i], "-nightmap") == 0) {
-            with_nightmap = TRUE;
+            with_nightmap = true;
         }
         else if (strcmp(argv()[i], "-nonightmap") == 0) {
-            with_nightmap = FALSE;
+            with_nightmap = false;
         }
         else if (strcmp(argv()[i], "-mapfile") == 0 || strcmp(argv()[i], "-map") == 0) {
             readMapFile(++i);
         }
         else if (strcmp(argv()[i], "-nightmapfile") == 0 || strcmp(argv()[i], "-nightmap") == 0 || strcmp(argv()[i], "-night") == 0) {
             readNightMapFile(++i);
-            with_nightmap = TRUE;
+            with_nightmap = true;
         }
         else if (strcmp(argv()[i], "-cloudmapfile") == 0 || strcmp(argv()[i], "-cloudmap") == 0 || strcmp(argv()[i], "-cloud") == 0 || strcmp(argv()[i], "-clouds") == 0) {
             readCloudMapFile(++i);
-            with_cloudmap = TRUE;
+            with_cloudmap = true;
         }
         else if (strcmp(argv()[i], "-cloudfilter") == 0 || strcmp(argv()[i], "-filter") == 0) {
             readCloudFilter(++i);
-            with_cloudmap = TRUE;
+            with_cloudmap = true;
         }
         else if (strcmp(argv()[i], "-maps") == 0) {
             readMapFile(++i);
             readNightMapFile(++i);
             readCloudMapFile(++i);
-            with_nightmap = with_cloudmap = TRUE;
+            with_nightmap = with_cloudmap = true;
         }
         else if (strcmp(argv()[i], "-help") == 0) {
             printHelp();
             ::exit(0);
         }
         else if (strcmp(argv()[i], "-dump") == 0) {
-            do_the_dump = TRUE;
+            do_the_dump = true;
         }
         else if (strcmp(argv()[i], "-outfile") == 0) {
             readOutFileName(++i);
         }
         else if (strcmp(argv()[i], "-dumpcmd") == 0) {
             readDumpCmd(++i);
-            do_dumpcmd = TRUE;
+            do_dumpcmd = true;
         }
         else if (strcmp(argv()[i], "-kde") == 0) {
-            use_kde = TRUE;
+            use_kde = true;
         }
         else if (strcmp(argv()[i], "-once") == 0) {
-            once = TRUE;
+            once = true;
         }
         else if (strcmp(argv()[i], "-timewarp") == 0) {
             readTimeWarp(i + 1);
@@ -244,7 +251,7 @@ EarthApplication::EarthApplication(int ac, char** av)
         }
         else if (strcmp(argv()[i], "-size") == 0) {
             readSize(++i);
-            have_size = TRUE;
+            have_size = true;
         }
         else if (strcmp(argv()[i], "-nogrid") == 0) {
             grid_type = Renderer::NO_GRID;
@@ -285,13 +292,14 @@ EarthApplication::EarthApplication(int ac, char** av)
             ::exit(1);
         }
     }
+*/
 
     if (once || do_the_dump)
         use_kde = false;
 
     if (use_kde) {
         dwidget = new DesktopWidget();
-        ASSERT(dwidget != NULL);
+        assert(dwidget != nullptr);
         dwidget->update();
     }
 }
@@ -300,9 +308,9 @@ EarthApplication::EarthApplication(int ac, char** av)
 
 EarthApplication::~EarthApplication(void)
 {
-    ASSERT(r != NULL);
+    assert(r != nullptr);
     delete r;
-    ASSERT(timer != NULL);
+    assert(timer != nullptr);
     timer->stop();
     delete timer;
 
@@ -315,6 +323,7 @@ EarthApplication::~EarthApplication(void)
 void EarthApplication::readPosition(int i)
 {
     int pos;
+    /*
 
     if (i >= argc()) {
         printUsage();
@@ -406,12 +415,14 @@ void EarthApplication::readPosition(int i)
 
     view_lat = s.left(pos).toDouble();
     view_long = s.right(s.length() - pos - 1).toDouble();
+    */
 }
 
 /* ------------------------------------------------------------------------*/
 
 void EarthApplication::readBG(int i)
 {
+    /*
     if (i >= argc()) {
         printUsage();
         ::exit(1);
@@ -420,12 +431,14 @@ void EarthApplication::readBG(int i)
     argc_bg = i;
     with_bg = true;
     show_stars = false;
+    */
 }
 
 /* ------------------------------------------------------------------------*/
 
 void EarthApplication::readDelay(int i)
 {
+    /*
     if (i >= argc()) {
         printUsage();
         ::exit(1);
@@ -433,12 +446,14 @@ void EarthApplication::readDelay(int i)
     delay = atoi(argv()[i]);
     if (delay < 1)
         delay = 300;
+    */
 }
 
 /* ------------------------------------------------------------------------*/
 
 void EarthApplication::readZoom(int i)
 {
+    /*
     if (i >= argc()) {
         printUsage();
         ::exit(1);
@@ -446,12 +461,14 @@ void EarthApplication::readZoom(int i)
     zoom = atof(argv()[i]);
     if (zoom <= 0.)
         zoom = 1.0;
+    */
 }
 
 /* ------------------------------------------------------------------------*/
 
 void EarthApplication::readPriority(int i)
 {
+    /*
     int pri;
 
     if (i >= argc()) {
@@ -460,12 +477,14 @@ void EarthApplication::readPriority(int i)
     }
     pri = atoi(argv()[i]);
     setPriority(pri);
+    */
 }
 
 /* ------------------------------------------------------------------------*/
 
 void EarthApplication::readMarkerFile(int i)
 {
+    /*
     if (i >= argc()) {
         printUsage();
         ::exit(1);
@@ -474,21 +493,25 @@ void EarthApplication::readMarkerFile(int i)
         // bail out
         ::exit(1);
     }
+    */
 }
 
 void EarthApplication::readMarkerFont(int i)
 {
+    /*
     if (i >= argc()) {
         printUsage();
         ::exit(1);
     }
     markerfont = argv()[i];
     if (strcmp(markerfont, "none") == 0)
-        markerfont = NULL;
+        markerfont = nullptr;
+    */
 }
 
 void EarthApplication::readMarkerFontSize(int i)
 {
+    /*
     if (i >= argc()) {
         printUsage();
         ::exit(1);
@@ -498,12 +521,14 @@ void EarthApplication::readMarkerFontSize(int i)
         markerfontsize = 5;
     else if (markerfontsize >= 50)
         markerfontsize = 50;
+    */
 }
 
 /* ------------------------------------------------------------------------*/
 
 void EarthApplication::readLabelPos(int i)
 {
+    /*
     char* s;
     int n;
 
@@ -551,12 +576,14 @@ void EarthApplication::readLabelPos(int i)
     n = atoi(++s);
     if (n != 0) // to preserve the sign when 0 is used as parameter
         label_y *= n;
+    */
 }
 
 /* ------------------------------------------------------------------------*/
 
 void EarthApplication::readShift(int i)
 {
+    /*
     int pos;
 
     if (i >= argc()) {
@@ -575,12 +602,14 @@ void EarthApplication::readShift(int i)
 
     shift_x = s.left(pos).toInt();
     shift_y = s.right(s.length() - pos - 1).toInt();
+    */
 }
 
 /* ------------------------------------------------------------------------*/
 
 void EarthApplication::readSize(int i)
 {
+    /*
     int pos;
     int width, height;
 
@@ -610,12 +639,14 @@ void EarthApplication::readSize(int i)
     }
     size.setWidth(width);
     size.setHeight(height);
+    */
 }
 
 /* ------------------------------------------------------------------------*/
 
 void EarthApplication::readAmbientLight(int i)
 {
+    /*
     if (i >= argc()) {
         printUsage();
         ::exit(1);
@@ -628,12 +659,14 @@ void EarthApplication::readAmbientLight(int i)
 
     ambient_red /= 100.;
     ambient_green = ambient_blue = ambient_red;
+    */
 }
 
 /* ------------------------------------------------------------------------*/
 
 void EarthApplication::readAmbientRGB(int i)
 {
+    /*
     int pos;
 
     if (i >= argc()) {
@@ -683,12 +716,14 @@ void EarthApplication::readAmbientRGB(int i)
     else if (ambient_blue < 0.)
         ambient_blue = 0.;
     ambient_blue /= 100.;
+    */
 }
 
 /* ------------------------------------------------------------------------*/
 
 void EarthApplication::readFov(int i)
 {
+    /*
     if (i >= argc()) {
         printUsage();
         ::exit(1);
@@ -698,12 +733,14 @@ void EarthApplication::readFov(int i)
         fov = -1.;
     else if (fov >= 90.)
         fov = -1.;
+    */
 }
 
 /* ------------------------------------------------------------------------*/
 
 void EarthApplication::readTimeWarp(int i)
 {
+    /*
     if (i >= argc()) {
         printUsage();
         ::exit(1);
@@ -714,23 +751,27 @@ void EarthApplication::readTimeWarp(int i)
         printUsage();
         ::exit(1);
     }
+    */
 }
 
 /* ------------------------------------------------------------------------*/
 
 void EarthApplication::readMapFile(int i)
 {
+    /*
     if (i >= argc()) {
         printUsage();
         ::exit(1);
     }
     argc_map = i;
+    */
 }
 
 /* ------------------------------------------------------------------------*/
 
 void EarthApplication::readDumpCmd(int i)
 {
+    /*
     char cwd[512];
 
     if (i >= argc()) {
@@ -743,34 +784,40 @@ void EarthApplication::readDumpCmd(int i)
     sprintf(dumpcmd, "%s %s/xglobe.bmp", argv()[i], cwd);
     dumpfile = (char*)malloc(strlen(cwd) + 20);
     sprintf(dumpfile, "%s/xglobe.bmp", cwd);
+    */
 }
 
 /* ------------------------------------------------------------------------*/
 
 void EarthApplication::readNightMapFile(int i)
 {
+    /*
     if (i >= argc()) {
         printUsage();
         ::exit(1);
     }
     argc_nightmap = i;
+    */
 }
 
 /* ------------------------------------------------------------------------*/
 
 void EarthApplication::readCloudMapFile(int i)
 {
+    /*
     if (i >= argc()) {
         printUsage();
         ::exit(1);
     }
     argc_cloudmap = i;
+    */
 }
 
 /* ------------------------------------------------------------------------*/
 
 void EarthApplication::readCloudFilter(int i)
 {
+    /*
     if (i >= argc()) {
         printUsage();
         ::exit(1);
@@ -780,12 +827,14 @@ void EarthApplication::readCloudFilter(int i)
         cloud_filter = 0;
     if (cloud_filter > 255)
         cloud_filter = 255;
+    */
 }
 
 /* ------------------------------------------------------------------------*/
 
 int EarthApplication::readGridVal(int i)
 {
+    /*
     int n;
 
     if (i >= argc()) {
@@ -798,12 +847,14 @@ int EarthApplication::readGridVal(int i)
         ::exit(1);
     }
     return n;
+    */
 }
 
 /* ------------------------------------------------------------------------*/
 
 void EarthApplication::readStarFreq(int i)
 {
+    /*
     if (i >= argc()) {
         printUsage();
         ::exit(1);
@@ -814,11 +865,13 @@ void EarthApplication::readStarFreq(int i)
         printUsage();
         ::exit(1);
     }
+    */
 }
 /* ------------------------------------------------------------------------*/
 
 void EarthApplication::readTransition(int i)
 {
+    /*
     if (i >= argc()) {
         printUsage();
         ::exit(1);
@@ -829,12 +882,14 @@ void EarthApplication::readTransition(int i)
         ::exit(1);
     }
     transition /= 100.0;
+    */
 }
 
 /* ------------------------------------------------------------------------*/
 
 void EarthApplication::readShadeArea(int i)
 {
+    /*
     if (i >= argc()) {
         printUsage();
         ::exit(1);
@@ -845,24 +900,29 @@ void EarthApplication::readShadeArea(int i)
         ::exit(1);
     }
     shade_area /= 100.0;
+    */
 }
 
 /* ------------------------------------------------------------------------*/
 
 void EarthApplication::readRotation(int i)
 {
+    /*
     if (i >= argc()) {
         printUsage();
         ::exit(1);
     }
     rotation = atof(argv()[i]);
+    */
 }
 
 /* ------------------------------------------------------------------------*/
 
 void EarthApplication::readOutFileName(int i)
 {
+    /*
     out_file_name = QString(argv()[i]);
+    */
 }
 
 /* ------------------------------------------------------------------------*/
@@ -943,7 +1003,7 @@ void EarthApplication::setPriority(int pri)
 
 void EarthApplication::printUsage()
 {
-    printf("XGlobe %s\n", VERSION);
+    printf("XGlobe %s\n", 333);
     printf("Usage: %s [-pos pos_spec] [-wait seconds] [-mag factor] [-rot angle]\n"
            "[-markers|-nomarkers] [-markerfile file] [-label|-nolabel] [-labelpos geom]\n"
            "[-ambientlight level] [-ambientrgb rgblevel] [-nice priority]\n"
@@ -954,14 +1014,14 @@ void EarthApplication::printUsage()
            "[-kde] [-stars|-nostars] [-starfreq frequency] [-term pct] [-shade_area pct]\n"
            "[-help]\n"
            "For an explanation of command line options, use the switch -help.\n",
-        argv()[0]);
+        333);
 }
 
 /* ------------------------------------------------------------------------*/
 
 void EarthApplication::printHelp()
 {
-    printf("XGlobe %s command line options:\n\n", VERSION);
+    printf("XGlobe %s command line options:\n\n", 333);
     printf("-pos pos_spec  pos_spec consists of one of the keywords \"fixed\", \"sunrel\",\n"
            "               \"random\" or \"orbit\", possibly followed by additional arguments:\n"
            "               fixed: Followed by two numerical arguments latitude and\n"
@@ -1109,26 +1169,30 @@ void EarthApplication::init()
 {
     char* std_marker_filename = "xglobe-markers";
 
+    /*
     if (have_size) {
         r = new Renderer(size,
-            (argc_map != -1) ? argv()[argc_map] : (const char*)NULL);
+            (argc_map != -1) ? argv()[argc_map] : (const char*)nullptr);
     }
     else {
         r = new Renderer(use_kde ? dwidget->size() : desktop()->size(),
-            (argc_map != -1) ? argv()[argc_map] : (const char*)NULL);
+            (argc_map != -1) ? argv()[argc_map] : (const char*)nullptr);
     }
+    */
     if (!r) {
         fprintf(stderr, "Not enough memory!\n");
         exit(1);
     }
 
     /* initialize the Renderer */
+    /*
     if (with_nightmap)
-        r->loadNightMap((argc_nightmap != -1) ? argv()[argc_nightmap] : (const char*)NULL);
+        r->loadNightMap((argc_nightmap != -1) ? argv()[argc_nightmap] : (const char*)nullptr);
     if (with_cloudmap)
-        r->loadCloudMap((argc_cloudmap != -1) ? argv()[argc_cloudmap] : (const char*)NULL, cloud_filter);
+        r->loadCloudMap((argc_cloudmap != -1) ? argv()[argc_cloudmap] : (const char*)nullptr, cloud_filter);
     if (with_bg)
-        r->loadBackImage(((argc_bg != -1) ? argv()[argc_bg] : (const char*)NULL), tiled);
+        r->loadBackImage(((argc_bg != -1) ? argv()[argc_bg] : (const char*)nullptr), tiled);
+        */
     r->setViewPos(view_lat, view_long);
     r->setZoom(zoom);
     r->setAmbientRGB(ambient_red, ambient_green, ambient_blue);
@@ -1154,7 +1218,7 @@ void EarthApplication::init()
     r->setRotation(rotation);
 
     timer = new QTimer(this);
-    ASSERT(timer != NULL);
+    assert(timer != nullptr);
 
     connect(timer, SIGNAL(timeout()), this, SLOT(recalc()));
     QTimer::singleShot(1, this, SLOT(recalc())); // this will start rendering
@@ -1169,8 +1233,8 @@ void EarthApplication::recalc()
 
     //  beep();
     if (firstTime) {
-        firstTime = FALSE;
-        start_time = time(NULL); // first image with current time
+        firstTime = false;
+        start_time = time(nullptr); // first image with current time
         processEvents();
         r->setTime(start_time);
         switch (p_type) {
@@ -1221,14 +1285,14 @@ void EarthApplication::recalc()
     else {
         QPixmap pm;
         pm.convertFromImage(*(r->getImage()));
-        desktop()->setBackgroundPixmap(pm);
+        // XXX desktop()->setBackgroundPixmap(pm);
         if (once) {
             processEvents();
             ::exit(0);
         }
     }
 
-    current_time = time(NULL) + delay;
+    current_time = time(nullptr) + delay;
     current_time = (time_t)(start_time + (current_time - start_time) * time_warp);
     r->setTime(current_time);
     switch (p_type) {
@@ -1256,7 +1320,3 @@ void EarthApplication::recalc()
     }
     r->renderFrame();
 }
-
-/* ------------------------------------------------------------------------*/
-
-#include "earthapp.moc"

@@ -14,8 +14,8 @@
 #endif
 
 #include "random.h"
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
