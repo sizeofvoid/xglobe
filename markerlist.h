@@ -33,9 +33,7 @@
  * initial revision
  *
  */
-
-#ifndef _MARKERLIST_H
-#define _MARKERLIST_H
+#pragma once
 
 #include "compute.h"
 #include "random.h"
@@ -118,5 +116,3 @@ private:
 };
 
 bool appendMarkerFile(MarkerList& l, const char* filename);
-
-#endif

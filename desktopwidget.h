@@ -19,9 +19,7 @@
  * initial revision
  *
  */
-
-#ifndef _DESKTOPWIDGET_H
-#define _DESKTOPWIDGET_H
+#pragma once
 
 #include <qpainter.h>
 #include <qpixmap.h>
@@ -38,5 +36,3 @@ private:
     QPixmap* currentImage;
     bool haveImage;
 };
-
-#endif

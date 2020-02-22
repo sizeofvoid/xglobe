@@ -1,5 +1,4 @@
-#ifndef _FILE_H
-#define _FILE_H
+#pragma once
 #include <qdatetime.h>
 
 class QString;
@@ -16,5 +15,3 @@ private:
     const QString n;
     QDateTime lastCheck;
 };
-
-#endif

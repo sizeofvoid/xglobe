@@ -1,5 +1,4 @@
-#ifndef _COMPUTE_H
-#define _COMPUTE_H
+#pragma once
 
 #ifndef PI
 #define PI ((double)3.141592654)
@@ -32,5 +31,3 @@ private:
         b = c;
     }
 };
-
-#endif

@@ -20,9 +20,7 @@
  *
  *
  */
-
-#ifndef _MOONPOS_H
-#define _MOONPOS_H
+#pragma once
 
 #include <math.h>
 #include <qobject.h>
@@ -48,5 +46,3 @@ public:
     static void getMoonPos(time_t ssue, double* lat, double* lon);
     ~MoonPos() {}
 };
-
-#endif

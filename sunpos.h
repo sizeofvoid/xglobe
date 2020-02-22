@@ -20,8 +20,7 @@
  *
  */
 
-#ifndef _SUNPOS_H
-#define _SUNPOS_H
+#pragma once
 
 #include <qobject.h>
 #include <time.h>
@@ -40,5 +39,3 @@ public:
     static void GetSunPos(time_t ssue, double* lat, double* lon);
     ~SunPos() {}
 };
-
-#endif

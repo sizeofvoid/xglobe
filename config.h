@@ -32,15 +32,10 @@
  *
  */
 
-#ifndef _CONFIG_H
-#define _CONFIG_H
+#pragma once
 
 #define VERSION "0.5"
 
 #ifndef XGLOBE_LIB_DIR
 #define XGLOBE_LIB_DIR "./"
-#endif
-
-//#define WITH_QIMAGEIO
-
 #endif

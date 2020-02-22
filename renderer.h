@@ -44,9 +44,7 @@
  * initial revision
  *
  */
-
-#ifndef _RENDERER_H
-#define _RENDERER_H
+#pragma once
 
 #include "file.h"
 #include "markerlist.h"
@@ -169,5 +167,3 @@ private:
     Stars* stars;
     unsigned char v[256]; // values for cloud
 };
-
-#endif

@@ -5,6 +5,7 @@
  *
  * Copyright (C) 2001 Marc Espie
  */
+#pragma once
 
 #include <assert.h>
 

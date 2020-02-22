@@ -8,11 +8,9 @@
  * Copyright (C) 2000 Marc Espie
  *
  */
+#pragma once
 
-#ifndef _RANDOM_H
-#define _RANDOM_H
 /* Singleton random generator class */
-
 class Gen {
 public:
     Gen(); // dummy constructor, relies on initialized instead
@@ -26,5 +24,3 @@ private:
     static bool has_one;
     static double preserve;
 };
-
-#endif

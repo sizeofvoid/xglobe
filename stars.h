@@ -1,5 +1,4 @@
-#ifndef _STARS_H
-#define _STARS_H
+#pragma once
 
 #include "random.h"
 struct star;
@@ -19,5 +18,3 @@ private:
     Stars& operator=(const Stars&);
     Stars(const Stars&);
 };
-
-#endif

@@ -55,9 +55,7 @@
  * initial revision
  *
  */
-
-#ifndef _EARTHAPP_H
-#define _EARTHAPP_H
+#pragma once
 
 #include "desktopwidget.h"
 #include "markerlist.h"
@@ -171,5 +169,3 @@ private:
     QSize size;
     Gen gen;
 };
-
-#endif
