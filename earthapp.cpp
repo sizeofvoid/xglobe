@@ -1003,7 +1003,7 @@ void EarthApplication::setPriority(int pri)
 
 void EarthApplication::printUsage()
 {
-    printf("XGlobe %s\n", 333);
+    printf("XGlobe %s\n", VERSION);
     printf("Usage: %s [-pos pos_spec] [-wait seconds] [-mag factor] [-rot angle]\n"
            "[-markers|-nomarkers] [-markerfile file] [-label|-nolabel] [-labelpos geom]\n"
            "[-ambientlight level] [-ambientrgb rgblevel] [-nice priority]\n"
@@ -1021,7 +1021,7 @@ void EarthApplication::printUsage()
 
 void EarthApplication::printHelp()
 {
-    printf("XGlobe %s command line options:\n\n", 333);
+    printf("XGlobe %s command line options:\n\n", VERSION);
     printf("-pos pos_spec  pos_spec consists of one of the keywords \"fixed\", \"sunrel\",\n"
            "               \"random\" or \"orbit\", possibly followed by additional arguments:\n"
            "               fixed: Followed by two numerical arguments latitude and\n"

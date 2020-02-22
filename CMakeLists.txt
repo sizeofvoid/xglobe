@@ -2,6 +2,12 @@ cmake_minimum_required(VERSION 3.7.0)
 
 project(xglobe)
 
+# Version setup
+set(XGLOBE_VERSION_MAJOR "0")
+set(XGLOBE_VERSION_MINOR "6")
+set(XGLOBE_VERSION_PATCH "0")
+set(XGLOBE_VERSION "${XGLOBE_VERSION_MAJOR}.${XGLOBE_VERSION_MINOR}.${XGLOBE_VERSION_PATCH}")
+
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING
             "Choose the type of build, options are: Debug Release RelWithDebInfo Profile"
@@ -36,6 +42,8 @@ set(SOURCE
     renderer.cpp
     stars.cpp
     sunpos.cpp)
+
+add_definitions(-DVERSION="${XGLOBE_VERSION}")
 
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions -funroll-loops" CACHE STRING "Set C++ Compiler Flags" FORCE)
 
