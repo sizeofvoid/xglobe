@@ -118,7 +118,7 @@ const QColor& Location::getColor() const
 
 /* ------------------------------------------------------------------------ */
 
-static bool parse_markerline(QString& line, const char* filename,
+static bool parse_markerline(QString& line, const QString& filename,
     int linenum, double& lon, double& lat, QString& name, QColor& color)
 {
     int pos1, pos2;
@@ -126,7 +126,7 @@ static bool parse_markerline(QString& line, const char* filename,
     pos1 = line.indexOf(' ');
     if (pos1 == -1) {
         fprintf(stderr, "Syntax error in marker file \"%s\", line %d.\n",
-            filename, linenum);
+            filename.toLatin1().data(), linenum);
         return false;
     }
     lat = line.left(pos1).toDouble();
@@ -135,7 +135,7 @@ static bool parse_markerline(QString& line, const char* filename,
     pos2 = line.indexOf(' ', pos1 + 1);
     if (pos2 == -1) {
         fprintf(stderr, "Syntax error in marker file \"%s\", line %d.\n",
-            filename, linenum);
+            filename.toLatin1().data(), linenum);
         return false;
     }
     lon = line.mid(pos1 + 1, pos2 - pos1 - 1).toDouble();
@@ -144,13 +144,13 @@ static bool parse_markerline(QString& line, const char* filename,
     pos1 = line.indexOf('\"', pos2);
     if (pos1 == -1) {
         fprintf(stderr, "Syntax error in marker file \"%s\", line %d.\n",
-            filename, linenum);
+            filename.toLatin1().data(), linenum);
         return false;
     }
     pos2 = line.indexOf('\"', pos1 + 1);
     if (pos2 == -1) {
         fprintf(stderr, "Syntax error in marker file \"%s\", line %d.\n",
-            filename, linenum);
+            filename.toLatin1().data(), linenum);
         return false;
     }
     name = line.mid(pos1 + 1, pos2 - pos1 - 1);
@@ -185,7 +185,7 @@ static bool parse_markerline(QString& line, const char* filename,
  * A line with a leading '#' is ignored an can be used for comments.
  */
 
-bool appendMarkerFile(MarkerList& l, const char* filename)
+bool appendMarkerFile(MarkerList& l, const QString& filename)
 {
     QFile f(find_xglobefile(filename));
     QTextStream t(&f);
@@ -222,14 +222,13 @@ bool appendMarkerFile(MarkerList& l, const char* filename)
 MarkerList::MarkerList()
     : renderFont(nullptr)
     , fm(nullptr)
-    //, list_it(list)
+    , list_it(list)
 {
-    // list.setAutoDelete(true);
-    markerpixmap = new QPixmap((const char**)marker_xpm);
-    assert(markerpixmap != nullptr);
+    qDeleteAll(list);
+    markerpixmap = new QPixmap(marker_xpm);
 }
 
-void MarkerList::set_font(const char* name, int sz)
+void MarkerList::set_font(const QString& name, int sz)
 {
     if (renderFont) {
         delete renderFont;
@@ -239,7 +238,7 @@ void MarkerList::set_font(const char* name, int sz)
         delete fm;
         fm = nullptr;
     }
-    if (name == nullptr)
+    if (name.isEmpty())
         return;
 
     renderFont = new QFont(name, sz, QFont::Bold);

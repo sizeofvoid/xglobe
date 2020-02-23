@@ -73,6 +73,13 @@
 #include <QSize>
 #include <QTimer>
 #include <QString>
+#include <QDesktopWidget>
+#include <QPaintEvent>
+#include <QPalette>
+#include <QX11Info>
+#include <QBrush>
+#include <QDebug>
+#include <QScreen>
 
 #include <cctype>
 #include <cmath>
@@ -82,6 +89,7 @@
 #include <sys/resource.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <X11/Xlib.h>
 
 /* ------------------------------------------------------------------------*/
 
@@ -92,7 +100,7 @@ EarthApplication::EarthApplication(int &argc, char **argv)
     view_lat = 0.;
     view_long = 0.;
     shift_x = shift_y = 0;
-    delay = 300;
+    delay = 3;
     zoom = 1.0;
     p_type = SUNREL;
     builtin_markers = true;
@@ -294,12 +302,17 @@ EarthApplication::EarthApplication(int &argc, char **argv)
     }
 */
 
+    QRect  screenGeometry = primaryScreen()->geometry();
+    const int height = screenGeometry.height();
+    const int width = screenGeometry.width();
+
+    qInfo() << "Screengeometry height: " << height << " width: " << width;
+
     if (once || do_the_dump)
         use_kde = false;
 
     if (use_kde) {
         dwidget = new DesktopWidget();
-        assert(dwidget != nullptr);
         dwidget->update();
     }
 }
@@ -308,14 +321,11 @@ EarthApplication::EarthApplication(int &argc, char **argv)
 
 EarthApplication::~EarthApplication(void)
 {
-    assert(r != nullptr);
     delete r;
-    assert(timer != nullptr);
     timer->stop();
     delete timer;
 
-    if (dwidget)
-        delete dwidget;
+    delete dwidget;
 }
 
 /* ------------------------------------------------------------------------*/
@@ -331,7 +341,7 @@ void EarthApplication::readPosition(int i)
     }
 
     QString s(argv()[i]);
-    s.simplifyWhiteSpace();
+    s.simplified();
 
     if (strncmp(argv()[i], "random", 6) == 0) {
         p_type = RANDOM;
@@ -592,7 +602,7 @@ void EarthApplication::readShift(int i)
     }
 
     QString s(argv()[i]);
-    s.simplifyWhiteSpace();
+    s.simplified();
 
     pos = s.find(' ');
     if (pos == -1) {
@@ -619,7 +629,7 @@ void EarthApplication::readSize(int i)
     }
 
     QString s(argv()[i]);
-    s.simplifyWhiteSpace();
+    s.simplified();
 
     pos = s.find(' ');
     if (pos == -1)
@@ -675,7 +685,7 @@ void EarthApplication::readAmbientRGB(int i)
     }
 
     QString s(argv()[i]);
-    s.simplifyWhiteSpace();
+    s.simplified();
 
     pos = s.find(' ');
     if (pos == -1)
@@ -848,6 +858,7 @@ int EarthApplication::readGridVal(int i)
     }
     return n;
     */
+    return 0;
 }
 
 /* ------------------------------------------------------------------------*/
@@ -935,9 +946,6 @@ void EarthApplication::randomPosition()
 
 /* ------------------------------------------------------------------------*/
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif /* !M_PI */
 
 void EarthApplication::orbitPosition(time_t ssue)
 {
@@ -1014,7 +1022,7 @@ void EarthApplication::printUsage()
            "[-kde] [-stars|-nostars] [-starfreq frequency] [-term pct] [-shade_area pct]\n"
            "[-help]\n"
            "For an explanation of command line options, use the switch -help.\n",
-        333);
+        "xglobe");
 }
 
 /* ------------------------------------------------------------------------*/
@@ -1058,7 +1066,7 @@ void EarthApplication::printHelp()
            "               The diameter of the globe is factor times the shorter of the\n"
            "               width and height of the screen.\n"
            "               (default: -mag 1.0)\n\n");
-    printf("-dir dir	 Set lookup directory for files.\n\n");
+    printf("-dir dir   Set lookup directory for files.\n\n");
     printf("-rot angle     A positive angle rotates the globe clockwise, a negative one\n"
            "               counterclockwise.\n\n");
     printf("-markers       Enable displaying of built-in display markers.\n"
@@ -1123,12 +1131,12 @@ void EarthApplication::printHelp()
            "-newgrid       Enable displaying of a more fancy grid.\n\n");
     printf("-grid1 grid1   Specify the spacing of major grid lines: they are drawn with a\n"
            "               90/grid1 degree spacing.\n"
-           "               (default: -grid1 6 which corresponds to 15° between grid lines)\n\n");
+           "               (default: -grid1 6 which corresponds to 15(o) between grid lines)\n\n");
     printf("-grid2 grid2   Specify spacing of dots along major grid lines. Along the\n"
            "               equator and lines of longitude, grid dots are drawn with a\n"
            "               90/(grid1 x grid2) degree spacing.\n"
            "               (default: -grid2 15 which corresponds, along with -grid1 6,\n"
-           "               to a 1° spacing)\n\n");
+           "               to a 1(o) spacing)\n\n");
     printf("-timewarp factor  Scale the apparent rate at which time progresses by 'factor'.\n"
            "                  (default: -timewarp 1.0)\n\n");
     printf("-size size_spec Specify the size of the image to be rendered (useful in\n"
@@ -1167,32 +1175,30 @@ void EarthApplication::printHelp()
 
 void EarthApplication::init()
 {
-    char* std_marker_filename = "xglobe-markers";
+    QString std_marker_filename("xglobe-markers");
 
-    /*
     if (have_size) {
         r = new Renderer(size,
-            (argc_map != -1) ? argv()[argc_map] : (const char*)nullptr);
+                QString());
+            //(argc_map != -1) ? argv()[argc_map] : QString());
     }
     else {
-        r = new Renderer(use_kde ? dwidget->size() : desktop()->size(),
-            (argc_map != -1) ? argv()[argc_map] : (const char*)nullptr);
-    }
-    */
-    if (!r) {
-        fprintf(stderr, "Not enough memory!\n");
-        exit(1);
+        r = new Renderer(use_kde ? dwidget->baseSize() : desktop()->size(),
+                QString());
+            //(argc_map != -1) ? argv()[argc_map] : QString());
+            //(argc_map != -1) ? argv()[argc_map] : QString());
     }
 
     /* initialize the Renderer */
-    /*
     if (with_nightmap)
-        r->loadNightMap((argc_nightmap != -1) ? argv()[argc_nightmap] : (const char*)nullptr);
+        r->loadNightMap(QString());
+        //r->loadNightMap((argc_nightmap != -1) ? argv()[argc_nightmap] : (const char*)nullptr);
     if (with_cloudmap)
-        r->loadCloudMap((argc_cloudmap != -1) ? argv()[argc_cloudmap] : (const char*)nullptr, cloud_filter);
+        r->loadCloudMap(QString());
+        //r->loadCloudMap((argc_cloudmap != -1) ? argv()[argc_cloudmap] : (const char*)nullptr, cloud_filter);
     if (with_bg)
-        r->loadBackImage(((argc_bg != -1) ? argv()[argc_bg] : (const char*)nullptr), tiled);
-        */
+        r->loadBackImage(QString());
+        //r->loadBackImage(((argc_bg != -1) ? argv()[argc_bg] : (const char*)nullptr), tiled);
     r->setViewPos(view_lat, view_long);
     r->setZoom(zoom);
     r->setAmbientRGB(ambient_red, ambient_green, ambient_blue);
@@ -1200,8 +1206,8 @@ void EarthApplication::init()
         r->setFov(fov);
 
     if (builtin_markers) {
-        if (!appendMarkerFile(marker_list, (const char*)std_marker_filename))
-            ::exit(1);
+        if (!appendMarkerFile(marker_list, std_marker_filename))
+            ::exit(12);
     }
     marker_list.set_font(markerfont, markerfontsize);
     if (show_markers)
@@ -1218,7 +1224,6 @@ void EarthApplication::init()
     r->setRotation(rotation);
 
     timer = new QTimer(this);
-    assert(timer != nullptr);
 
     connect(timer, SIGNAL(timeout()), this, SLOT(recalc()));
     QTimer::singleShot(1, this, SLOT(recalc())); // this will start rendering
@@ -1231,7 +1236,6 @@ void EarthApplication::recalc()
 {
     double moon_lat, moon_long;
 
-    //  beep();
     if (firstTime) {
         firstTime = false;
         start_time = time(nullptr); // first image with current time
@@ -1283,11 +1287,18 @@ void EarthApplication::recalc()
         }
     }
     else {
-        QPixmap pm;
-        pm.convertFromImage(*(r->getImage()));
-        // XXX desktop()->setBackgroundPixmap(pm);
+        QRect  screenGeometry = desktop()->geometry();
+        const int height = screenGeometry.height();
+        const int width = screenGeometry.width();
+        qInfo() << "Desktop geometry height: " << height << " width: " << width;
+        QPalette palette;
+        palette.setBrush(desktop()->backgroundRole(),  QBrush(*(r->getImage())));
+        desktop()->setPalette(palette);
+        desktop()->show();
+        //XClearWindow(QX11Info::display(), QX11Info::appRootWindow());
+
         if (once) {
-            processEvents();
+            //processEvents();
             ::exit(0);
         }
     }

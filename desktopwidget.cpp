@@ -23,19 +23,20 @@
 #include "desktopwidget.h"
 #include <stdio.h>
 #include <QPaintEvent>
+#include <QPalette>
+#include <QX11Info>
+#include <QBrush>
+
+#include <X11/Xlib.h>
 
 
 
 DesktopWidget::DesktopWidget(QWidget* parent, const QString& name)
-    : QWidget(parent)
+    : QWidget(parent, Qt::Desktop)
 {
     haveImage = false;
     currentImage = new QPixmap(width(), height());
-    if (!currentImage) {
-        fprintf(stderr, "Not enough memory!\n");
-        ::exit(1);
-    }
-    //  fprintf(stderr, "Desktop size: %dx%d\n",width(), height());
+    fprintf(stderr, "Desktop size: %dx%d\n",width(), height());
 }
 
 DesktopWidget::~DesktopWidget()
@@ -47,6 +48,7 @@ DesktopWidget::~DesktopWidget()
 void DesktopWidget::paintEvent(QPaintEvent* pe)
 {
     QPainter p(this);
+    fprintf(stderr, "Desktop size: %dx%d\n",width(), height());
 
     if (!haveImage) {
         p.setFont(QFont("helvetica", 35));
@@ -68,6 +70,9 @@ void DesktopWidget::updateDisplay(QImage* image)
     assert(image != nullptr);
     currentImage->convertFromImage(*image);
     haveImage = true;
-    //setBackgroundPixmap(*currentImage);
+    QPalette palette;
+    palette.setBrush((this)->backgroundRole(),  QBrush(*currentImage));
+    (this)->setPalette(palette);
+    XClearWindow(QX11Info::display(), QX11Info::appRootWindow());
     update();
 }

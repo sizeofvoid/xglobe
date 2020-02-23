@@ -44,6 +44,7 @@
 #include <QFont>
 #include <QFontMetrics>
 #include <QList>
+#include <QListIterator>
 #include <QRect>
 #include <QString>
 
@@ -92,16 +93,16 @@ public:
     int getShiftY();
     inline Location* first() { return list.first(); }
     inline Location* last() { return list.last(); }
-    inline Location* next() { return nullptr; }
-    inline Location* prev() { return nullptr; }
-    inline Location* current() { return nullptr;  }
+    inline Location* next() { return list_it.hasNext() ? list_it.next() : nullptr; }
+    inline Location* prev() { return list_it.hasPrevious() ? list_it.previous() : nullptr; }
     inline uint count() { return list.count(); }
     inline void clear() { list.clear(); }
-    void set_font(const char* name, int sz);
+    void set_font(const QString& name, int sz);
     void render(const RotMatrix&, QImage&, double, double, double, int, int);
 
 protected:
     QList<Location*> list;
+    QListIterator<Location*> list_it;
     void paintMarker(QImage& img, Location* l);
     void paintDot(QImage& img, Location* l);
     void paintArrow(QImage& img, Location* l);
@@ -116,4 +117,4 @@ private:
     Gen gen;
 };
 
-bool appendMarkerFile(MarkerList& l, const char* filename);
+bool appendMarkerFile(MarkerList& l, const QString& filename);

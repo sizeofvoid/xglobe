@@ -32,6 +32,5 @@ int main(int argc, char** argv)
 {
     EarthApplication app(argc, argv);
     app.init();
-    app.exec();
     return app.exec();
 }

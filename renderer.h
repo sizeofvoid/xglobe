@@ -66,11 +66,11 @@ static inline QRgb *scan32(QImage &img, int x, int y)
 
 class Renderer {
 public:
-    Renderer(const QSize& size, const char* mapfile = nullptr);
+    Renderer(const QSize& size, const QString& mapfile = QString());
     ~Renderer();
-    int loadNightMap(const char* nmapfile = nullptr);
-    int loadCloudMap(const char* cmapfile = nullptr, int cloud_filter = 110);
-    int loadBackImage(const char* imagefile = nullptr, bool tld = false);
+    int loadNightMap(const QString& nmapfile = nullptr);
+    int loadCloudMap(const QString& cmapfile = nullptr, int cloud_filter = 110);
+    int loadBackImage(const QString& imagefile = nullptr, bool tld = false);
     void renderFrame();
     void setViewPos(double lat, double lon);
     double getViewLat();

@@ -79,7 +79,7 @@
 
 /* ------------------------------------------------------------------------*/
 
-Renderer::Renderer(const QSize& size, const char* mapfile)
+Renderer::Renderer(const QSize& size, const QString& mapfile)
 {
     markerlist = nullptr;
     map = nullptr;
@@ -89,14 +89,9 @@ Renderer::Renderer(const QSize& size, const char* mapfile)
     track_clouds = nullptr;
 
     renderedImage = new QImage(size, QImage::Format_RGB32);
-    if (!renderedImage) {
-        //fprintf(stderr, "Not enough memory for offscreen image buffer!\n");
-        ::exit(1);
-    }
+    map = loadImage(!mapfile.isEmpty() ? mapfile : "map.bmp");
 
-    map = loadImage(mapfile ? mapfile : "map.bmp");
-
-    // fprintf(stderr, "Map size: %dx%d\n", map->width(), map->height());
+     fprintf(stderr, "Map size: %dx%d\n", map->width(), map->height());
 
     this->radius = 1000.;
     this->view_long = 0.;
@@ -124,14 +119,10 @@ Renderer::Renderer(const QSize& size, const char* mapfile)
 QImage* Renderer::loadImage(const QString& name)
 {
     QImage* m = new QImage();
-    if (!m) {
-        //fprintf(stderr, "Not enough memory for map!\n");
-        ::exit(1);
-    }
 
     if (!m->load(find_xglobefile(name))) {
-        //fprintf(stderr, "Error while opening map \"%s\"!\n", name);
-        ::exit(1);
+        fprintf(stderr, "Error while opening map \"%s\"!\n", name.toLatin1().data());
+        ::exit(22);
     }
 
     if (m->depth() < 8)
@@ -142,12 +133,12 @@ QImage* Renderer::loadImage(const QString& name)
 
 /* ------------------------------------------------------------------------*/
 
-int Renderer::loadNightMap(const char* nmapfile)
+int Renderer::loadNightMap(const QString& nmapfile)
 {
-    if (mapnight != nullptr) // we already have a night map!
+    if (!mapnight) // we already have a night map!
         return 1;
 
-    mapnight = loadImage(nmapfile ? nmapfile : "mapnight.bmp");
+    mapnight = loadImage(!nmapfile.isEmpty() ? nmapfile : "mapnight.bmp");
 
     return 1;
 }
@@ -159,9 +150,9 @@ static inline bool bad_color(int r, int g, int b)
     return (r == 255 && b == 255) || (r == 2 && g == 2 && b == 2);
 }
 
-int Renderer::loadCloudMap(const char* cmapfile, int cf)
+int Renderer::loadCloudMap(const QString& cmapfile, int cf)
 {
-    if (track_clouds == nullptr && cmapfile != nullptr) {
+    if (track_clouds == nullptr && !cmapfile.isEmpty()) {
         /* create scale array, atan looks fine to sharpen clouds */
         for (int i = 0; i < 255; i++) {
             int j = atan((i - cf) / 20.0) * 290 / M_PI + 125;
@@ -182,7 +173,7 @@ int Renderer::loadCloudMap(const char* cmapfile, int cf)
     mapcloud = loadImage(track_clouds->name());
     if (!mapcloud) {
         //fprintf(stderr, "Error loading cloud mapfile \"%s\"\n", cmapfile);
-        ::exit(1);
+        ::exit(21);
     }
     int endy = mapcloud->height();
     int endx = mapcloud->width();
@@ -255,14 +246,14 @@ int Renderer::loadCloudMap(const char* cmapfile, int cf)
 
 /* ------------------------------------------------------------------------*/
 
-int Renderer::loadBackImage(const char* imagefile, bool tld)
+int Renderer::loadBackImage(const QString& imagefile, bool tld)
 {
     if (backImage != nullptr)
         return 1;
 
     tiled = tld;
 
-    backImage = loadImage(imagefile ? imagefile : "back.bmp");
+    backImage = loadImage(!imagefile.isEmpty() ? imagefile : "back.bmp");
 
     if (!tiled) {
         QSize smallSize (renderedImage->width(), renderedImage->height());
@@ -710,8 +701,8 @@ void Renderer::renderFrame()
     if (markerlist)
         drawMarkers();
 
-    if (show_label)
-        drawLabel();
+    //if (show_label)
+     ///   drawLabel();
 }
 
 /* ------------------------------------------------------------------------*/
@@ -1102,10 +1093,10 @@ void Renderer::drawLabel()
                         "View pos %2.2f° %c %2.2f° %c\n"
                         "Sun pos %2.2f° %c %2.2f° %c",
 #if QT_VERSION >= 200
-        dt.date().dayName(dt.date().dayOfWeek()).latin1(),
-        dt.date().monthName(dt.date().month()).latin1(),
+        dt.date().toString(QLatin1String("dd")).data()->toLatin1(),
+        dt.date().toString(QLatin1String("mm")).data()->toLatin1(),
 #else
-        dt.date().dayName(dt.date().dayOfWeek()),
+        dt.date().longDayName(dt.date().dayOfWeek()),
         dt.date().monthName(dt.date().month()),
 #endif
         dt.date().day(), dt.date().year(),
@@ -1115,6 +1106,7 @@ void Renderer::drawLabel()
         fabs(vlon), (vlon < 0.) ? 'W' : 'E',
         fabs(slat), (slat < 0.) ? 'S' : 'N',
         fabs(slon), (slon < 0.) ? 'W' : 'E');
+        */
 
     QFont labelFont("helvetica", 12, QFont::Bold);
     QFontMetrics fm(labelFont);
@@ -1139,7 +1131,7 @@ void Renderer::drawLabel()
 #endif
     p.end();
 
-    QImage labelimage = pm.convertToImage();
+    QImage labelimage = pm.toImage();
     if (labelimage.depth() != 32)
         labelimage = labelimage.convertToFormat(QImage::Format_RGB32);
 
@@ -1174,7 +1166,6 @@ void Renderer::drawLabel()
             }
         }
     }
-    */
 }
 
 /* ------------------------------------------------------------------------*/

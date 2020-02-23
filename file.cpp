@@ -8,7 +8,7 @@ static QString userdir;
 QString find_xglobefile(const QString& name)
 {
     if (QFile::exists(name))
-        return QString(name);
+        return name;
 
     if (userdir.isEmpty()) {
         QString result = userdir;
@@ -17,11 +17,11 @@ QString find_xglobefile(const QString& name)
         if (QFile::exists(result))
             return result;
     }
-    QString result = "";//XGLOBE_LIB_DIR;
+    QString result = "/usr/ports/pobj/xglobe-0.5/fake-amd64/usr/local"; //XGLOBE_LIB_DIR;
     result += "/";
     result += name;
     if (!QFile::exists(result)) {
-        //fprintf(stderr, "File \"%s\" not found!\n", name);
+        fprintf(stderr, "File \"%s\" not found!\n", name.toLatin1().data());
         ::exit(1);
     }
     return result;
@@ -37,14 +37,12 @@ bool FileChange::reload()
     QFileInfo info(n);
     if (!info.exists())
         return false;
-    /*
     QDateTime t = info.lastModified();
     if (!lastCheck.isValid() || t.secsTo(lastCheck) > 0) {
         lastCheck = t;
         return true;
     }
     else
-    */
         return false;
 }
 
