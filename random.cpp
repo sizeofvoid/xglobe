@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
 
 bool Gen::initialized = false;
