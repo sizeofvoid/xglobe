@@ -62,11 +62,15 @@
 #include "markerlist.h"
 #include "random.h"
 
+
+#include <memory>
+
+
 class Renderer;
 class DesktopWidget;
+class QTimer;
 class QSize;
 class QString;
-class QTimer;
 class CommandLineParser;
 
 class EarthApplication : public QApplication {
@@ -122,9 +126,6 @@ protected:
         RANDOM,
         ORBIT };
 
-    Renderer* r = nullptr;
-    DesktopWidget* dwidget = nullptr;
-    QTimer* timer = nullptr;
     double view_lat = 0;
     double view_long = 0;
     double orbit_period = 0;
@@ -172,6 +173,10 @@ protected:
 
 private:
     std::unique_ptr<CommandLineParser> clp;
+    std::unique_ptr<Renderer> r;
+    std::unique_ptr<DesktopWidget> dwidget;
+    QTimer* timer = nullptr;
+
     bool firstTime = true;
     bool do_the_dump = false;
     bool do_dumpcmd = false;

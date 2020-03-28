@@ -265,7 +265,7 @@ EarthApplication::EarthApplication(int &argc, char **argv)
     qInfo() << "Screengeometry height: " << height << " width: " << width;
 
     if (clp->isKde()) {
-        dwidget = new DesktopWidget();
+        dwidget = std::make_unique<DesktopWidget>();
         dwidget->update();
     }
 }
@@ -274,11 +274,7 @@ EarthApplication::EarthApplication(int &argc, char **argv)
 
 EarthApplication::~EarthApplication(void)
 {
-    delete r;
     timer->stop();
-    delete timer;
-
-    delete dwidget;
 }
 
 /* ------------------------------------------------------------------------*/
@@ -965,12 +961,11 @@ void EarthApplication::init()
     QString std_marker_filename("xglobe-markers");
 
     if (have_size) {
-        r = new Renderer(size,
-                QString());
+        r = std::make_unique<Renderer>(size, QString());
             //(argc_map != -1) ? argv()[argc_map] : QString());
     }
     else {
-        r = new Renderer(clp->isKde() ? dwidget->baseSize() : desktop()->size(),
+        r = std::make_unique<Renderer>(clp->isKde() ? dwidget->baseSize() : desktop()->size(),
                 QString());
             //(argc_map != -1) ? argv()[argc_map] : QString());
             //(argc_map != -1) ? argv()[argc_map] : QString());
@@ -1010,8 +1005,7 @@ void EarthApplication::init()
     r->setTransition(transition);
     r->setRotation(rotation);
 
-    timer = new QTimer(this);
-
+    QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(recalc()));
     QTimer::singleShot(1, this, SLOT(recalc())); // this will start rendering
     timer->start(delay * 1000); // the 1. image immediately
