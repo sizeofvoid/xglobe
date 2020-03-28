@@ -83,6 +83,7 @@
 #include <QProcess>
 #include <QCommandLineParser>
 #include <QCommandLineOption>
+#include <QDir>
 
 #include <cctype>
 #include <cmath>
@@ -100,9 +101,9 @@ EarthApplication::EarthApplication(int &argc, char **argv)
     : QApplication(argc, argv),
       out_file_name(QString("xglobe-dump.png")),
       grid_type(Renderer::NO_GRID),
-      tmpImageFile("xglobe-dump.XXXXXX.png")
+      tmpImageFile(QDir::tempPath() + "/xglobe-dump.XXXXXX.png")
 {
-    tmpImageFile.open();
+   tmpImageFile.open();
    QCommandLineParser parser;
    parser.setApplicationDescription("XGlobe");
    parser.addHelpOption();
@@ -146,88 +147,88 @@ EarthApplication::EarthApplication(int &argc, char **argv)
    //- negative lat. - south of equator
    //- positive long. - east of prime meridian
    //- negative long. - west of prime meridian
-   QCommandLineOption posFixedOption(QStringList() << "-pos-fixed", "two numerical arguments latitude and longitude  (given in decimal degrees) of a viewing position", "position");
+   QCommandLineOption posFixedOption(QStringList() << "pos-fixed", "two numerical arguments latitude and longitude  (given in decimal degrees) of a viewing position", "position");
    parser.addOption(posFixedOption);
-   QCommandLineOption posSunrelOption(QStringList() << "-pos-sunrel", "Numerical arguments lat. and long., indicating offsets of current sun position.", "position", "0 0");
+   QCommandLineOption posSunrelOption(QStringList() << "pos-sunrel", "Numerical arguments lat. and long., indicating offsets of current sun position.", "position", "0 0");
    parser.addOption(posSunrelOption);
-   QCommandLineOption posMoonPosOption(QStringList() << "-pos-moonpos", "Viewing position follows current moon position.", "position");
+   QCommandLineOption posMoonPosOption(QStringList() << "pos-moonpos", "Viewing position follows current moon position.", "position");
    parser.addOption(posMoonPosOption);
-   QCommandLineOption posRandomOption(QStringList() << "-pos-random", "Selects a random viewing position each time a frame is redrawn.", "position");
+   QCommandLineOption posRandomOption(QStringList() << "pos-random", "Selects a random viewing position each time a frame is redrawn.", "position");
    parser.addOption(posRandomOption);
-   QCommandLineOption posOrbitOption(QStringList() << "-pos-orbit", "The position specifier keyword orbit should be followed by three arguments, interpreted as numerical values indicating the period (in hours), orbital inclination (in decimal degrees) of a simple circular orbit, and an experimental shift modifier that adjusts the orbit with each circuit; the viewing position follows this orbit.", "position");
+   QCommandLineOption posOrbitOption(QStringList() << "pos-orbit", "The position specifier keyword orbit should be followed by three arguments, interpreted as numerical values indicating the period (in hours), orbital inclination (in decimal degrees) of a simple circular orbit, and an experimental shift modifier that adjusts the orbit with each circuit; the viewing position follows this orbit.", "position");
    parser.addOption(posOrbitOption);
 
 
-   QCommandLineOption dirOption(QStringList() << "-dir", "Set lookup directory for files.", "dir");
+   QCommandLineOption dirOption(QStringList() << "dir", "Set lookup directory for files.", "dir");
    parser.addOption(dirOption);
 
-   QCommandLineOption waitOption(QStringList() << "-wait", "Specifies the interval in seconds between screen updates.", "seconds", "300");
+   QCommandLineOption waitOption(QStringList() << "wait", "Specifies the interval in seconds between screen updates.", "seconds", "300");
    parser.addOption(waitOption);
 
-   QCommandLineOption magOption(QStringList() << "-mag", "Specifies the size of the globe in relation to the screen size. The diameter of the globe is factor times the shorter of the width and height of the screen.", "factor", "1.0");
+   QCommandLineOption magOption(QStringList() << "mag", "Specifies the size of the globe in relation to the screen size. The diameter of the globe is factor times the shorter of the width and height of the screen.", "factor", "1.0");
    parser.addOption(magOption);
 
-   QCommandLineOption rotOption(QStringList() << "-rot", "A positive angle rotates the globe clockwise, a negative one counterclockwise.", "angle");
+   QCommandLineOption rotOption(QStringList() << "rot", "A positive angle rotates the globe clockwise, a negative one counterclockwise.", "angle");
    parser.addOption(rotOption);
 
-   QCommandLineOption markerfileOption(QStringList() << "-markerfile", "Load an additional location marker file. (Have a look at file \"xglobe-markers\" for reference.)", "file", "");
+   QCommandLineOption markerfileOption(QStringList() << "markerfile", "Load an additional location marker file. (Have a look at file \"xglobe-markers\" for reference.)", "file", "");
    parser.addOption(markerfileOption);
 
-   QCommandLineOption labelposOption(QStringList() << "-labelpos", "Geom specifies the screen location of the label. Syntax: QStringList() << +-<xoffset>QStringList() << +-<yoffset>", "geom", "-5+5");
+   QCommandLineOption labelposOption(QStringList() << "labelpos", "Geom specifies the screen location of the label. Syntax: QStringList() << +-<xoffset>QStringList() << +-<yoffset>", "geom", "-5+5");
    parser.addOption(labelposOption);
 
-   QCommandLineOption ambientlightOption(QStringList() << "-ambientlight", "Indicates how the dark side of the globe appears: 0 means totally black, 100 means totally bright (= no difference between day and night side).", "level", "15");
+   QCommandLineOption ambientlightOption(QStringList() << "ambientlight", "Indicates how the dark side of the globe appears: 0 means totally black, 100 means totally bright (= no difference between day and night side).", "level", "15");
    parser.addOption(ambientlightOption);
 
-   QCommandLineOption ambientrgbOption(QStringList() << "-ambientrgb", "Works like -ambientlight but takes 3 parameters (red, green and blue value) defining the color of ambient light. This can be useful in conjunction with a night map that is tinted towards blue, for example. Using a blueish ambient light makes the transition from day to night look better. Use either -ambientlevel or -ambientrgb, not both. (example: -ambientrgb \"1 4 20\" - This will make the night side appear blueish.)", "rgblevel", "");
+   QCommandLineOption ambientrgbOption(QStringList() << "ambientrgb", "Works like -ambientlight but takes 3 parameters (red, green and blue value) defining the color of ambient light. This can be useful in conjunction with a night map that is tinted towards blue, for example. Using a blueish ambient light makes the transition from day to night look better. Use either -ambientlevel or -ambientrgb, not both. (example: -ambientrgb \"1 4 20\" - This will make the night side appear blueish.)", "rgblevel", "");
    parser.addOption(ambientrgbOption);
 
-   QCommandLineOption niceOption(QStringList() << "-nice", " Run the xglobe process with the given priority (see nice(1) and setpriority(2) manual pages).", "priority", "");
+   QCommandLineOption niceOption(QStringList() << "nice", " Run the xglobe process with the given priority (see nice(1) and setpriority(2) manual pages).", "priority", "");
    parser.addOption(niceOption);
 
-   QCommandLineOption mapOption(QStringList() << "-mapfile" << "-map", "Use another than the default world map. Supported image formats depend on qt.", "file");
+   QCommandLineOption mapOption(QStringList() << "mapfile" << "-map", "Use another than the default world map. Supported image formats depend on qt.", "file");
    parser.addOption(mapOption);
 
-   QCommandLineOption nightmapfileOption(QStringList() << "-nightmapfile" << "-nightmap" << "-night", "Same as -mapfile, but for the night map.", "file", "");
+   QCommandLineOption nightmapfileOption(QStringList() << "nightmapfile" << "-nightmap" << "-night", "Same as -mapfile, but for the night map.", "file", "");
    parser.addOption(nightmapfileOption);
 
-   QCommandLineOption cloudmapfileOption(QStringList() << "-cloudmapfile" << "-cloudmap" << "-clouds", "Same as -mapfile, but for the cloud map.", "file", "");
+   QCommandLineOption cloudmapfileOption(QStringList() << "cloudmapfile" << "-cloudmap" << "-clouds", "Same as -mapfile, but for the cloud map.", "file", "");
    parser.addOption(cloudmapfileOption);
 
-   QCommandLineOption cloudfilterOption(QStringList() << "-cloudfilter" << "-filter", "Used in conjunction with -cloudmapfile, this controls how much cloud is displayed.  n is a value between 0 and 255, where 0 will show all cloud, and 255 will only show the brightest clouds.", "n", "120");
+   QCommandLineOption cloudfilterOption(QStringList() << "cloudfilter" << "-filter", "Used in conjunction with -cloudmapfile, this controls how much cloud is displayed.  n is a value between 0 and 255, where 0 will show all cloud, and 255 will only show the brightest clouds.", "n", "120");
    parser.addOption(cloudfilterOption);
 
-   QCommandLineOption dumpcmdOption(QStringList() << "-dumpcmd", "Saves the rendered image to \"xglobe.bmp\" in the current directory, then executes \"cmd\", passing the image filename as an argument, eg '-dumpcmd Esetroot'.", "cmd", "");
+   QCommandLineOption dumpcmdOption(QStringList() << "dumpcmd", "Saves the rendered image to \"xglobe.bmp\" in the current directory, then executes \"cmd\", passing the image filename as an argument, eg '-dumpcmd Esetroot'.", "cmd", "");
    parser.addOption(dumpcmdOption);
 
-   QCommandLineOption outfileOption(QStringList() << "-outfile", "Specifies the output file name for the -dump option.", "file", "");
+   QCommandLineOption outfileOption(QStringList() << "outfile", "Specifies the output file name for the -dump option.", "file", "");
    parser.addOption(outfileOption);
 
-   QCommandLineOption grid1Option(QStringList() << "-grid1", "Specify the spacing of major grid lines: they are drawn with 90/grid1 degree spacing. (default: -grid1 6 which corresponds to 15(o) between grid lines)", "grid1", "");
+   QCommandLineOption grid1Option(QStringList() << "grid1", "Specify the spacing of major grid lines: they are drawn with 90/grid1 degree spacing. (default: -grid1 6 which corresponds to 15(o) between grid lines)", "grid1", "");
    parser.addOption(grid1Option);
 
-   QCommandLineOption grid2Option(QStringList() << "-grid2", "Specify spacing of dots along major grid lines. Along the equator and lines of longitude, grid dots are drawn with a 90/(grid1 x grid2) degree spacing. (default: -grid2 15 which corresponds, along with -grid1 6, to a 1(o) spacing)", "grid2", "15");
+   QCommandLineOption grid2Option(QStringList() << "grid2", "Specify spacing of dots along major grid lines. Along the equator and lines of longitude, grid dots are drawn with a 90/(grid1 x grid2) degree spacing. (default: -grid2 15 which corresponds, along with -grid1 6, to a 1(o) spacing)", "grid2", "15");
    parser.addOption(grid2Option);
 
-   QCommandLineOption timewarpOption(QStringList() << "-timewarp", "Scale the apparent rate at which time progresses by 'factor'.", "factor", "1.0");
+   QCommandLineOption timewarpOption(QStringList() << "timewarp", "Scale the apparent rate at which time progresses by 'factor'.", "factor", "1.0");
    parser.addOption(timewarpOption);
 
-   QCommandLineOption sizeOption(QStringList() << "-size", "Specify the size of the image to be rendered (useful in conjuntion with -dump). size_spec consists of two components, both positive integers. They are interpreted as the width and height (in pixels) of the image. The details provided for position specifiers (see above) about the characters used to delimit specifier components apply to size specifiers as well.(default: size of the desktop)", "size_spec", "");
+   QCommandLineOption sizeOption(QStringList() << "size", "Specify the size of the image to be rendered (useful in conjuntion with -dump). size_spec consists of two components, both positive integers. They are interpreted as the width and height (in pixels) of the image. The details provided for position specifiers (see above) about the characters used to delimit specifier components apply to size specifiers as well.(default: size of the desktop)", "size_spec", "");
    parser.addOption(sizeOption);
 
-   QCommandLineOption shiftOption(QStringList() << "-shift", "Specify that the center of the rendered image should be shifted by some amount from the center of the image. The spec consists of two components, both integers; these components are interpreted as the offsets (in pixels) in the X and Y directions. By default, the center of the rendered image is aligned with the center of the image.", "spec", "");
+   QCommandLineOption shiftOption(QStringList() << "shift", "Specify that the center of the rendered image should be shifted by some amount from the center of the image. The spec consists of two components, both integers; these components are interpreted as the offsets (in pixels) in the X and Y directions. By default, the center of the rendered image is aligned with the center of the image.", "spec", "");
    parser.addOption(shiftOption);
 
-   QCommandLineOption backgOption(QStringList() << "-backg", "Use the image in file as the screen background, instead of a black screen, which is the default.", "file", "");
+   QCommandLineOption backgOption(QStringList() << "backg", "Use the image in file as the screen background, instead of a black screen, which is the default.", "file", "");
    parser.addOption(backgOption);
 
-   QCommandLineOption starfreqOption(QStringList() << "-starfreq", "If displaying of stars is enabled, frequency percent of the background pixels are turned into stars", "frequency", "0.002");
+   QCommandLineOption starfreqOption(QStringList() << "starfreq", "If displaying of stars is enabled, frequency percent of the background pixels are turned into stars", "frequency", "0.002");
    parser.addOption(starfreqOption);
 
-   QCommandLineOption termOption(QStringList() << "-term", "Specify the shading discontinuity at the terminator (day/night line). Pct should be between 0 and 100, where 100 is maximum discontinuity and 0 makes a very smooth transition.", "pct", "0");
+   QCommandLineOption termOption(QStringList() << "term", "Specify the shading discontinuity at the terminator (day/night line). Pct should be between 0 and 100, where 100 is maximum discontinuity and 0 makes a very smooth transition.", "pct", "0");
    parser.addOption(termOption);
 
-   QCommandLineOption shade_areaOption(QStringList() << "-shade_area", "Specify the proportion of the day-side to be progressively shaded prior to a transition with the night-side.  A value of 100 means all the day area will be shaded, whereas 0 will result in no shading at all.  60 would keep 40\% of the day area nearest the sun free from shading.", "pct", "100");
+   QCommandLineOption shade_areaOption(QStringList() << "shade_area", "Specify the proportion of the day-side to be progressively shaded prior to a transition with the night-side.  A value of 100 means all the day area will be shaded, whereas 0 will result in no shading at all.  60 would keep 40\% of the day area nearest the sun free from shading.", "pct", "100");
    parser.addOption(shade_areaOption);
 
 
