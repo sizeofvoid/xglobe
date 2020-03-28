@@ -1051,14 +1051,16 @@ void EarthApplication::recalc()
         QImage* i = r->getImage();
         i->save(clp->getImageTmpFileName(), "PNG");
 
-        QString program = "/usr/local/bin/xwallpaper";
         QStringList arguments;
         arguments << "--zoom" << clp->getImageTmpFileName();
 
-        qInfo() << "QProcess: " << program << arguments;
+        qInfo() << "QProcess: " << xwallpaper_bin << arguments;
 
-        QProcess *myProcess = new QProcess(this);
-        myProcess->start(program, arguments);
+        QProcess runXwallpaper(this);
+        runXwallpaper.start(xwallpaper_bin, arguments);
+
+        if (!runXwallpaper.waitForFinished())
+            qDebug() << "failed to execute xwallpaper: " << runXwallpaper.errorString();
 
         if (clp->isOnce()) {
             processEvents();

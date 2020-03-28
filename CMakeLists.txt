@@ -21,6 +21,13 @@ find_package(X11 REQUIRED)
 link_libraries(${X11_LIBRARIES})
 include_directories(${X11_INCLUDE_DIR})
 
+find_program(XWALLPAPER_BIN xwallpaper)
+if (NOT XWALLPAPER_BIN)
+    message(FATAL_ERROR "Missing xwallpaper, please install xwallpaper")
+else()
+    add_compile_definitions(XWALLPAPER_BIN="${XWALLPAPER_BIN}")
+endif()
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)

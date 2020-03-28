@@ -184,4 +184,9 @@ private:
     bool have_size = false;
     QSize size;
     Gen gen;
+#if defined (XWALLPAPER_BIN)
+    const QString xwallpaper_bin = QLatin1String(XWALLPAPER_BIN);
+#else
+    const QString xwallpaper_bin = QLatin1String("xxx");
+#endif
 };
