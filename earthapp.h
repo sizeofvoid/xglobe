@@ -177,7 +177,6 @@ private:
     bool do_the_dump = false;
     bool do_dumpcmd = false;
     bool use_kde = false;
-    bool once = false;
     bool have_size = false;
     QSize size;
     Gen gen;

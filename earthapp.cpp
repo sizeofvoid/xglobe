@@ -212,12 +212,6 @@ EarthApplication::EarthApplication(int &argc, char **argv)
             readDumpCmd(++i);
             do_dumpcmd = true;
         }
-        else if (strcmp(argv()[i], "-kde") == 0) {
-            use_kde = true;
-        }
-        else if (strcmp(argv()[i], "-once") == 0) {
-            once = true;
-        }
         else if (strcmp(argv()[i], "-timewarp") == 0) {
             readTimeWarp(i + 1);
             i++;
@@ -273,10 +267,7 @@ EarthApplication::EarthApplication(int &argc, char **argv)
 
     qInfo() << "Screengeometry height: " << height << " width: " << width;
 
-    if (once || do_the_dump)
-        use_kde = false;
-
-    if (use_kde) {
+    if (clp->isKde()) {
         dwidget = new DesktopWidget();
         dwidget->update();
     }
@@ -996,7 +987,7 @@ void EarthApplication::init()
             //(argc_map != -1) ? argv()[argc_map] : QString());
     }
     else {
-        r = new Renderer(use_kde ? dwidget->baseSize() : desktop()->size(),
+        r = new Renderer(clp->isKde() ? dwidget->baseSize() : desktop()->size(),
                 QString());
             //(argc_map != -1) ? argv()[argc_map] : QString());
             //(argc_map != -1) ? argv()[argc_map] : QString());
@@ -1086,13 +1077,13 @@ void EarthApplication::recalc()
         }
     }
 
-    if (use_kde) {
+    if (clp->isKde()) {
         dwidget->updateDisplay(r->getImage());
         processEvents(); // we want the image to be
     } // displayed immediately
     else if (do_dumpcmd) {
         system(dumpcmd);
-        if (once) {
+        if (clp->isOnce()) {
             processEvents();
             ::exit(0);
         }
@@ -1110,7 +1101,7 @@ void EarthApplication::recalc()
         QProcess *myProcess = new QProcess(this);
         myProcess->start(program, arguments);
 
-        if (once) {
+        if (clp->isOnce()) {
             processEvents();
             ::exit(0);
         }

@@ -141,7 +141,19 @@ CommandLineParser::CommandLineParser(QCoreApplication* parent)
 }
 
 QString
-CommandLineParser::getImageTmpFileName()
+CommandLineParser::getImageTmpFileName() const
 {
     return tmpImageFile.fileName();
+}
+
+bool
+CommandLineParser::isOnce() const
+{
+    return isSet(onceOption);
+}
+
+bool
+CommandLineParser::isKde() const
+{
+    return isSet(kdeOption);
 }

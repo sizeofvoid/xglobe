@@ -11,7 +11,9 @@ public:
     CommandLineParser(QCoreApplication*);
     ~CommandLineParser() = default;
 
-    QString getImageTmpFileName();
+    QString getImageTmpFileName() const;
+    bool isOnce() const;
+    bool isKde() const;
 
 private:
     QTemporaryFile tmpImageFile;
