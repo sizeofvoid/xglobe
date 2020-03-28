@@ -174,9 +174,6 @@ EarthApplication::EarthApplication(int &argc, char **argv)
         else if (strcmp(argv()[i], "-nonightmap") == 0) {
             with_nightmap = false;
         }
-        else if (strcmp(argv()[i], "-mapfile") == 0 || strcmp(argv()[i], "-map") == 0) {
-            readMapFile(++i);
-        }
         else if (strcmp(argv()[i], "-nightmapfile") == 0 || strcmp(argv()[i], "-nightmap") == 0 || strcmp(argv()[i], "-night") == 0) {
             readNightMapFile(++i);
             with_nightmap = true;
@@ -699,18 +696,6 @@ void EarthApplication::readTimeWarp(int i)
     */
 }
 
-/* ------------------------------------------------------------------------*/
-
-void EarthApplication::readMapFile(int i)
-{
-    /*
-    if (i >= argc()) {
-        printUsage();
-        ::exit(1);
-    }
-    argc_map = i;
-    */
-}
 
 /* ------------------------------------------------------------------------*/
 
@@ -961,14 +946,11 @@ void EarthApplication::init()
     QString std_marker_filename("xglobe-markers");
 
     if (have_size) {
-        r = std::make_unique<Renderer>(size, QString());
-            //(argc_map != -1) ? argv()[argc_map] : QString());
+        r = std::make_unique<Renderer>(size, clp->getMapFileName());
     }
     else {
         r = std::make_unique<Renderer>(clp->isKde() ? dwidget->baseSize() : desktop()->size(),
-                QString());
-            //(argc_map != -1) ? argv()[argc_map] : QString());
-            //(argc_map != -1) ? argv()[argc_map] : QString());
+                                       clp->getMapFileName());
     }
 
     /* initialize the Renderer */

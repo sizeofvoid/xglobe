@@ -24,6 +24,7 @@
 
 #include <QCoreApplication>
 #include <QDir>
+#include <QDebug>
 
 CommandLineParser::CommandLineParser(QCoreApplication* parent)
     : QCommandLineParser(),
@@ -165,4 +166,16 @@ CommandLineParser::getMag() const
     bool ok;
     const double d = mag.toDouble(&ok);
     return ok ? d : 1.0;
+}
+
+QString
+CommandLineParser::getMapFileName() const
+{
+    const QString mapFile = value(mapOption);
+    QFile file(mapFile);
+    bool exists = file.exists();
+    if (!exists)
+        qWarning() << "Mapfile not exists: " << mapFile;
+
+    return exists ? mapFile : QString();
 }

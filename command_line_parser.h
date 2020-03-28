@@ -15,6 +15,7 @@ public:
     bool isOnce() const;
     bool isKde() const;
     double getMag() const;
+    QString getMapFileName() const;
 
 private:
     QTemporaryFile tmpImageFile;
