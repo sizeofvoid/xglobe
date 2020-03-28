@@ -157,3 +157,12 @@ CommandLineParser::isKde() const
 {
     return isSet(kdeOption);
 }
+
+double
+CommandLineParser::getMag() const
+{
+    QString mag = value(magOption);
+    bool ok;
+    const double d = mag.toDouble(&ok);
+    return ok ? d : 1.0;
+}

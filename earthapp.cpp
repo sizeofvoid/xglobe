@@ -112,9 +112,6 @@ EarthApplication::EarthApplication(int &argc, char **argv)
         else if (strcmp(argv()[i], "-wait") == 0) {
             readDelay(++i);
         }
-        else if (strcmp(argv()[i], "-mag") == 0) {
-            readZoom(++i);
-        }
         else if (strcmp(argv()[i], "-backg") == 0) {
             readBG(++i);
         }
@@ -415,20 +412,6 @@ void EarthApplication::readDelay(int i)
     */
 }
 
-/* ------------------------------------------------------------------------*/
-
-void EarthApplication::readZoom(int i)
-{
-    /*
-    if (i >= argc()) {
-        printUsage();
-        ::exit(1);
-    }
-    zoom = atof(argv()[i]);
-    if (zoom <= 0.)
-        zoom = 1.0;
-    */
-}
 
 /* ------------------------------------------------------------------------*/
 
@@ -1004,7 +987,7 @@ void EarthApplication::init()
         r->loadBackImage(QString());
         //r->loadBackImage(((argc_bg != -1) ? argv()[argc_bg] : (const char*)nullptr), tiled);
     r->setViewPos(view_lat, view_long);
-    r->setZoom(zoom);
+    r->setZoom(clp->getMag());
     r->setAmbientRGB(ambient_red, ambient_green, ambient_blue);
     if (fov != -1.)
         r->setFov(fov);

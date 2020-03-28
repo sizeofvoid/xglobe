@@ -130,7 +130,6 @@ protected:
     double orbit_period = 0;
     double orbit_inclin = 0;
     double orbit_shift = 0; 
-    double zoom = 1;
     int delay = 3;
     PosType p_type = SUNREL;
     bool builtin_markers = true;
