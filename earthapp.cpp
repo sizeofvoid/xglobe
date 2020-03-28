@@ -6,6 +6,7 @@
  * This file is part of XGlobe. See README for details.
  *
  * Copyright (C) 1998 Thorsten Scheuermann
+ * Copyright (C) 2020 Rafael Sadowski
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public Licenses as published by
