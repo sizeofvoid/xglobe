@@ -73,27 +73,17 @@
 #include "command_line_parser.h"
 
 
-#include <QSize>
 #include <QTimer>
 #include <QString>
 #include <QDesktopWidget>
-#include <QPaintEvent>
-#include <QPalette>
-#include <QX11Info>
-#include <QBrush>
 #include <QDebug>
-#include <QScreen>
 #include <QProcess>
 
-#include <cctype>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 
+#include <unistd.h>
 #include <sys/resource.h>
 #include <sys/time.h>
-#include <unistd.h>
-#include <X11/Xlib.h>
 
 /* ------------------------------------------------------------------------*/
 
@@ -194,7 +184,7 @@ EarthApplication::EarthApplication(int &argc, char **argv)
         }
         else if (strcmp(argv()[i], "-help") == 0) {
             printHelp();
-            ::exit(0);
+            exit(0);
         }
         else if (strcmp(argv()[i], "-dump") == 0) {
             do_the_dump = true;
@@ -250,16 +240,10 @@ EarthApplication::EarthApplication(int &argc, char **argv)
         else {
             fprintf(stderr, "Unknown command line switch: %s\n\n", argv()[i]);
             printUsage();
-            ::exit(1);
+            exit(1);
         }
     }
 */
-
-    QRect  screenGeometry = primaryScreen()->geometry();
-    const int height = screenGeometry.height();
-    const int width = screenGeometry.width();
-
-    qInfo() << "Screengeometry height: " << height << " width: " << width;
 
     if (clp->isKde()) {
         dwidget = std::make_unique<DesktopWidget>();
@@ -283,7 +267,7 @@ void EarthApplication::readPosition(int i)
 
     if (i >= argc()) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
 
     QString s(argv()[i]);
@@ -305,7 +289,7 @@ void EarthApplication::readPosition(int i)
         p_type = ORBIT;
     else {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
 
     if (p_type == ORBIT) {
@@ -313,14 +297,14 @@ void EarthApplication::readPosition(int i)
         pos = s.find(' ');
         if (pos == -1) {
             printUsage();
-            ::exit(1);
+            exit(1);
         }
         s = s.right(s.length() - pos - 1);
 
         pos = s.find(' ');
         if (pos == -1) {
             printUsage();
-            ::exit(1);
+            exit(1);
         }
 
         orbit_period = s.left(pos).toDouble() * 3600;
@@ -332,15 +316,15 @@ void EarthApplication::readPosition(int i)
 
         if (orbit_period <= 0) {
             fprintf(stderr, "orbit period must be a positive number.\n");
-            ::exit(1);
+            exit(1);
         }
         if (orbit_inclin > 90 || orbit_inclin < -90) {
             fprintf(stderr, "orbit inclination must be between -90 and 90\n");
-            ::exit(1);
+            exit(1);
         }
         if (orbit_shift < 0) {
             fprintf(stderr, "orbit shift must be larger than or equal to zero\n");
-            ::exit(1);
+            exit(1);
         }
 
         view_lat = view_long = 0;
@@ -355,7 +339,7 @@ void EarthApplication::readPosition(int i)
         pos = s.find('/');
     if (pos == -1) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
     s = s.right(s.length() - pos - 1);
 
@@ -366,7 +350,7 @@ void EarthApplication::readPosition(int i)
         pos = s.find('/');
     if (pos == -1) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
 
     view_lat = s.left(pos).toDouble();
@@ -381,7 +365,7 @@ void EarthApplication::readBG(int i)
     /*
     if (i >= argc()) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
 
     argc_bg = i;
@@ -397,7 +381,7 @@ void EarthApplication::readDelay(int i)
     /*
     if (i >= argc()) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
     delay = atoi(argv()[i]);
     if (delay < 1)
@@ -415,7 +399,7 @@ void EarthApplication::readPriority(int i)
 
     if (i >= argc()) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
     pri = atoi(argv()[i]);
     setPriority(pri);
@@ -429,11 +413,11 @@ void EarthApplication::readMarkerFile(int i)
     /*
     if (i >= argc()) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
     if (!appendMarkerFile(marker_list, argv()[i])) {
         // bail out
-        ::exit(1);
+        exit(1);
     }
     */
 }
@@ -443,7 +427,7 @@ void EarthApplication::readMarkerFont(int i)
     /*
     if (i >= argc()) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
     markerfont = argv()[i];
     if (strcmp(markerfont, "none") == 0)
@@ -456,7 +440,7 @@ void EarthApplication::readMarkerFontSize(int i)
     /*
     if (i >= argc()) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
     markerfontsize = atoi(argv()[i]);
     if (markerfontsize <= 5)
@@ -476,7 +460,7 @@ void EarthApplication::readLabelPos(int i)
 
     if (i >= argc()) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
 
     s = argv()[i];
@@ -492,7 +476,7 @@ void EarthApplication::readLabelPos(int i)
 
     default:
         printUsage();
-        ::exit(1);
+        exit(1);
     }
 
     n = atoi(++s);
@@ -513,7 +497,7 @@ void EarthApplication::readLabelPos(int i)
 
     default:
         printUsage();
-        ::exit(1);
+        exit(1);
     }
     n = atoi(++s);
     if (n != 0) // to preserve the sign when 0 is used as parameter
@@ -530,7 +514,7 @@ void EarthApplication::readShift(int i)
 
     if (i >= argc()) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
 
     QString s(argv()[i]);
@@ -539,7 +523,7 @@ void EarthApplication::readShift(int i)
     pos = s.find(' ');
     if (pos == -1) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
 
     shift_x = s.left(pos).toInt();
@@ -557,7 +541,7 @@ void EarthApplication::readSize(int i)
 
     if (i >= argc()) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
 
     QString s(argv()[i]);
@@ -570,14 +554,14 @@ void EarthApplication::readSize(int i)
         pos = s.find('/');
     if (pos == -1) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
 
     width = s.left(pos).toInt();
     height = s.right(s.length() - pos - 1).toInt();
     if ((width <= 0) || (height <= 0)) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
     size.setWidth(width);
     size.setHeight(height);
@@ -591,7 +575,7 @@ void EarthApplication::readAmbientLight(int i)
     /*
     if (i >= argc()) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
     ambient_red = atof(argv()[i]);
     if (ambient_red > 100.)
@@ -613,7 +597,7 @@ void EarthApplication::readAmbientRGB(int i)
 
     if (i >= argc()) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
 
     QString s(argv()[i]);
@@ -626,7 +610,7 @@ void EarthApplication::readAmbientRGB(int i)
         pos = s.find('/');
     if (pos == -1) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
 
     ambient_red = s.left(pos).toDouble();
@@ -639,7 +623,7 @@ void EarthApplication::readAmbientRGB(int i)
         pos = s.find('/');
     if (pos == -1) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
     ambient_blue = s.right(s.length() - pos - 1).toDouble();
 
@@ -668,7 +652,7 @@ void EarthApplication::readFov(int i)
     /*
     if (i >= argc()) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
     fov = atof(argv()[i]);
     if (fov <= 0)
@@ -685,13 +669,13 @@ void EarthApplication::readTimeWarp(int i)
     /*
     if (i >= argc()) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
     time_warp = atof(argv()[i]);
     if (time_warp < 0.0) {
         printf("Error: timewarp must be positive!\n");
         printUsage();
-        ::exit(1);
+        exit(1);
     }
     */
 }
@@ -706,7 +690,7 @@ void EarthApplication::readDumpCmd(int i)
 
     if (i >= argc()) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
 
     getcwd(cwd, 512);
@@ -724,7 +708,7 @@ void EarthApplication::readNightMapFile(int i)
     /*
     if (i >= argc()) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
     argc_nightmap = i;
     */
@@ -737,7 +721,7 @@ void EarthApplication::readCloudMapFile(int i)
     /*
     if (i >= argc()) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
     argc_cloudmap = i;
     */
@@ -750,7 +734,7 @@ void EarthApplication::readCloudFilter(int i)
     /*
     if (i >= argc()) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
     cloud_filter = atoi(argv()[i]);
     if (cloud_filter < 0)
@@ -769,12 +753,12 @@ int EarthApplication::readGridVal(int i)
 
     if (i >= argc()) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
     n = atoi(argv()[i]);
     if (n <= 0) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
     return n;
     */
@@ -788,13 +772,13 @@ void EarthApplication::readStarFreq(int i)
     /*
     if (i >= argc()) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
     star_freq = atof(argv()[i]);
     if (star_freq < 0.0) {
         printf("Error: star frequency must be positive!\n");
         printUsage();
-        ::exit(1);
+        exit(1);
     }
     */
 }
@@ -805,12 +789,12 @@ void EarthApplication::readTransition(int i)
     /*
     if (i >= argc()) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
     transition = atof(argv()[i]);
     if ((transition < 0.0) || (transition > 100.0)) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
     transition /= 100.0;
     */
@@ -823,12 +807,12 @@ void EarthApplication::readShadeArea(int i)
     /*
     if (i >= argc()) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
     shade_area = atof(argv()[i]);
     if ((shade_area < 0.0) || (shade_area > 100.0)) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
     shade_area /= 100.0;
     */
@@ -841,7 +825,7 @@ void EarthApplication::readRotation(int i)
     /*
     if (i >= argc()) {
         printUsage();
-        ::exit(1);
+        exit(1);
     }
     rotation = atof(argv()[i]);
     */
@@ -971,7 +955,7 @@ void EarthApplication::init()
 
     if (builtin_markers) {
         if (!appendMarkerFile(marker_list, std_marker_filename))
-            ::exit(12);
+            exit(12);
     }
     marker_list.set_font(markerfont, markerfontsize);
     if (show_markers)
@@ -1032,7 +1016,7 @@ void EarthApplication::recalc()
         if (do_the_dump) {
             QImage* i = r->getImage();
             i->save(out_file_name, "PNG");
-            ::exit(0);
+            exit(0);
         }
     }
 
@@ -1044,7 +1028,7 @@ void EarthApplication::recalc()
         system(dumpcmd);
         if (clp->isOnce()) {
             processEvents();
-            ::exit(0);
+            exit(0);
         }
     }
     else {
@@ -1064,7 +1048,7 @@ void EarthApplication::recalc()
 
         if (clp->isOnce()) {
             processEvents();
-            ::exit(0);
+            exit(0);
         }
     }
 
