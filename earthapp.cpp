@@ -80,6 +80,9 @@
 #include <QBrush>
 #include <QDebug>
 #include <QScreen>
+#include <QProcess>
+#include <QCommandLineParser>
+#include <QCommandLineOption>
 
 #include <cctype>
 #include <cmath>
@@ -94,49 +97,157 @@
 /* ------------------------------------------------------------------------*/
 
 EarthApplication::EarthApplication(int &argc, char **argv)
-    : QApplication(argc, argv)
+    : QApplication(argc, argv),
+      out_file_name(QString("xglobe-dump.bmp")),
+      grid_type(Renderer::NO_GRID)
 {
-    firstTime = true;
-    view_lat = 0.;
-    view_long = 0.;
-    shift_x = shift_y = 0;
-    delay = 3;
-    zoom = 1.0;
-    p_type = SUNREL;
-    builtin_markers = true;
-    show_markers = true;
-    show_label = true;
-    label_x = -5;
-    label_y = 5;
-    ambient_red = ambient_green = ambient_blue = 0.15;
-    fov = -1.;
-    with_nightmap = with_cloudmap = false;
-    cloud_filter = 120;
-    with_bg = false;
-    tiled = false;
-    argc_map = -1;
-    argc_nightmap = -1;
-    argc_cloudmap = -1;
-    do_the_dump = false;
-    do_dumpcmd = false;
-    dumpcmd = dumpfile = nullptr;
-    dwidget = nullptr;
-    use_kde = false;
-    once = false;
-    time_warp = 1.0;
-    have_size = false;
-    grid_type = Renderer::NO_GRID;
-    grid1 = 6;
-    grid2 = 15;
-    orbit_period = orbit_inclin = orbit_shift = 0;
-    show_stars = true;
-    star_freq = 0.002;
-    transition = 0.0;
-    shade_area = 1.0;
-    out_file_name = QString("xglobe-dump.bmp");
-    rotation = 0.0;
-    markerfont = "helvetica";
-    markerfontsize = 12;
+   QCommandLineParser parser;
+   parser.setApplicationDescription("XGlobe");
+   parser.addHelpOption();
+   parser.addVersionOption();
+
+   // A boolean option with a single name
+   QCommandLineOption onceOption("once", "With this option, XGlobe renders an image once and exits.");
+   parser.addOption(onceOption);
+   QCommandLineOption dumpOption("dump", "Saves the rendered image to the file specified with the -outfile option (default: \"xglobe-dump.bmp\") instead of displaying it on screen.");
+   parser.addOption(dumpOption);
+   QCommandLineOption nightmapOption("nightmap", "Use default world map for the night side. The switch -ambientlight will be ignored.");
+   parser.addOption(nightmapOption);
+   QCommandLineOption nonightmapOption("nonightmap", "Disable use of night map.");
+   parser.addOption(nonightmapOption);
+   QCommandLineOption nolabelOption("nolabel", "Disable displaying of label (default: -label)");
+   parser.addOption(nolabelOption);
+   QCommandLineOption labelOption("label", "Enable displaying of label indicating current date and time etc.");
+   parser.addOption(labelOption);
+   QCommandLineOption markersOption("markers", "Enable displaying of built-in display markers.");
+   parser.addOption(markersOption);
+   QCommandLineOption nomarkersOption("nomarkers", "Disable displaying of built-in display markers (default: -marker)");
+   parser.addOption(nomarkersOption);
+   QCommandLineOption gridOption("grid", "Enable displaying of grid on the globe.");
+   parser.addOption(gridOption);
+   QCommandLineOption nogridOption("nogrid", "Disable displaying of grid on the globe.");
+   parser.addOption(nogridOption);
+   QCommandLineOption newgridOption("newgrid", "Enable displaying of a more fancy grid.");
+   parser.addOption(newgridOption);
+   QCommandLineOption tiledOption("tiled", "The background image specified using -backg is by default expanded to fill the screen. This option will cause it to be tiled instead.");
+   parser.addOption(tiledOption);
+   QCommandLineOption kdeOption("kde", "Use this option when the globe disappears after switching virtual screens. This is needed when using KDE.");
+   parser.addOption(kdeOption);
+   QCommandLineOption starsOption("stars", "Enable displaying of stars in the background (default).");
+   parser.addOption(starsOption);
+   QCommandLineOption nostarsOption("nostars", "Disable displaying of stars in the background.");
+   parser.addOption(nostarsOption);
+
+    // Options with a value
+
+   //- positive lat. - north of equator
+   //- negative lat. - south of equator
+   //- positive long. - east of prime meridian
+   //- negative long. - west of prime meridian
+   QCommandLineOption posFixedOption(QStringList() << "-pos-fixed", "two numerical arguments latitude and longitude  (given in decimal degrees) of a viewing position", "position");
+   parser.addOption(posFixedOption);
+   QCommandLineOption posSunrelOption(QStringList() << "-pos-sunrel", "Numerical arguments lat. and long., indicating offsets of current sun position.", "position", "0 0");
+   parser.addOption(posSunrelOption);
+   QCommandLineOption posMoonPosOption(QStringList() << "-pos-moonpos", "Viewing position follows current moon position.", "position");
+   parser.addOption(posMoonPosOption);
+   QCommandLineOption posRandomOption(QStringList() << "-pos-random", "Selects a random viewing position each time a frame is redrawn.", "position");
+   parser.addOption(posRandomOption);
+   QCommandLineOption posOrbitOption(QStringList() << "-pos-orbit", "The position specifier keyword orbit should be followed by three arguments, interpreted as numerical values indicating the period (in hours), orbital inclination (in decimal degrees) of a simple circular orbit, and an experimental shift modifier that adjusts the orbit with each circuit; the viewing position follows this orbit.", "position");
+   parser.addOption(posOrbitOption);
+
+
+   QCommandLineOption dirOption(QStringList() << "-dir", "Set lookup directory for files.", "dir");
+   parser.addOption(dirOption);
+
+   QCommandLineOption waitOption(QStringList() << "-wait", "Specifies the interval in seconds between screen updates.", "seconds", "300");
+   parser.addOption(waitOption);
+
+   QCommandLineOption magOption(QStringList() << "-mag", "Specifies the size of the globe in relation to the screen size. The diameter of the globe is factor times the shorter of the width and height of the screen.", "factor", "1.0");
+   parser.addOption(magOption);
+
+   QCommandLineOption rotOption(QStringList() << "-rot", "A positive angle rotates the globe clockwise, a negative one counterclockwise.", "angle");
+   parser.addOption(rotOption);
+
+   QCommandLineOption markerfileOption(QStringList() << "-markerfile", "Load an additional location marker file. (Have a look at file \"xglobe-markers\" for reference.)", "file", "");
+   parser.addOption(markerfileOption);
+
+   QCommandLineOption labelposOption(QStringList() << "-labelpos", "Geom specifies the screen location of the label. Syntax: QStringList() << +-<xoffset>QStringList() << +-<yoffset>", "geom", "-5+5");
+   parser.addOption(labelposOption);
+
+   QCommandLineOption ambientlightOption(QStringList() << "-ambientlight", "Indicates how the dark side of the globe appears: 0 means totally black, 100 means totally bright (= no difference between day and night side).", "level", "15");
+   parser.addOption(ambientlightOption);
+
+   QCommandLineOption ambientrgbOption(QStringList() << "-ambientrgb", "Works like -ambientlight but takes 3 parameters (red, green and blue value) defining the color of ambient light. This can be useful in conjunction with a night map that is tinted towards blue, for example. Using a blueish ambient light makes the transition from day to night look better. Use either -ambientlevel or -ambientrgb, not both. (example: -ambientrgb \"1 4 20\" - This will make the night side appear blueish.)", "rgblevel", "");
+   parser.addOption(ambientrgbOption);
+
+   QCommandLineOption niceOption(QStringList() << "-nice", " Run the xglobe process with the given priority (see nice(1) and setpriority(2) manual pages).", "priority", "");
+   parser.addOption(niceOption);
+
+   QCommandLineOption mapOption(QStringList() << "-mapfile" << "-map", "Use another than the default world map. Supported image formats depend on qt.", "file");
+   parser.addOption(mapOption);
+
+   QCommandLineOption nightmapfileOption(QStringList() << "-nightmapfile" << "-nightmap" << "-night", "Same as -mapfile, but for the night map.", "file", "");
+   parser.addOption(nightmapfileOption);
+
+   QCommandLineOption cloudmapfileOption(QStringList() << "-cloudmapfile" << "-cloudmap" << "-clouds", "Same as -mapfile, but for the cloud map.", "file", "");
+   parser.addOption(cloudmapfileOption);
+
+   QCommandLineOption cloudfilterOption(QStringList() << "-cloudfilter" << "-filter", "Used in conjunction with -cloudmapfile, this controls how much cloud is displayed.  n is a value between 0 and 255, where 0 will show all cloud, and 255 will only show the brightest clouds.", "n", "120");
+   parser.addOption(cloudfilterOption);
+
+   QCommandLineOption dumpcmdOption(QStringList() << "-dumpcmd", "Saves the rendered image to \"xglobe.bmp\" in the current directory, then executes \"cmd\", passing the image filename as an argument, eg '-dumpcmd Esetroot'.", "cmd", "");
+   parser.addOption(dumpcmdOption);
+
+   QCommandLineOption outfileOption(QStringList() << "-outfile", "Specifies the output file name for the -dump option.", "file", "");
+   parser.addOption(outfileOption);
+
+   QCommandLineOption grid1Option(QStringList() << "-grid1", "Specify the spacing of major grid lines: they are drawn with 90/grid1 degree spacing. (default: -grid1 6 which corresponds to 15(o) between grid lines)", "grid1", "");
+   parser.addOption(grid1Option);
+
+   QCommandLineOption grid2Option(QStringList() << "-grid2", "Specify spacing of dots along major grid lines. Along the equator and lines of longitude, grid dots are drawn with a 90/(grid1 x grid2) degree spacing. (default: -grid2 15 which corresponds, along with -grid1 6, to a 1(o) spacing)", "grid2", "15");
+   parser.addOption(grid2Option);
+
+   QCommandLineOption timewarpOption(QStringList() << "-timewarp", "Scale the apparent rate at which time progresses by 'factor'.", "factor", "1.0");
+   parser.addOption(timewarpOption);
+
+   QCommandLineOption sizeOption(QStringList() << "-size", "Specify the size of the image to be rendered (useful in conjuntion with -dump). size_spec consists of two components, both positive integers. They are interpreted as the width and height (in pixels) of the image. The details provided for position specifiers (see above) about the characters used to delimit specifier components apply to size specifiers as well.(default: size of the desktop)", "size_spec", "");
+   parser.addOption(sizeOption);
+
+   QCommandLineOption shiftOption(QStringList() << "-shift", "Specify that the center of the rendered image should be shifted by some amount from the center of the image. The spec consists of two components, both integers; these components are interpreted as the offsets (in pixels) in the X and Y directions. By default, the center of the rendered image is aligned with the center of the image.", "spec", "");
+   parser.addOption(shiftOption);
+
+   QCommandLineOption backgOption(QStringList() << "-backg", "Use the image in file as the screen background, instead of a black screen, which is the default.", "file", "");
+   parser.addOption(backgOption);
+
+   QCommandLineOption starfreqOption(QStringList() << "-starfreq", "If displaying of stars is enabled, frequency percent of the background pixels are turned into stars", "frequency", "0.002");
+   parser.addOption(starfreqOption);
+
+   QCommandLineOption termOption(QStringList() << "-term", "Specify the shading discontinuity at the terminator (day/night line). Pct should be between 0 and 100, where 100 is maximum discontinuity and 0 makes a very smooth transition.", "pct", "0");
+   parser.addOption(termOption);
+
+   QCommandLineOption shade_areaOption(QStringList() << "-shade_area", "Specify the proportion of the day-side to be progressively shaded prior to a transition with the night-side.  A value of 100 means all the day area will be shaded, whereas 0 will result in no shading at all.  60 would keep 40\% of the day area nearest the sun free from shading.", "pct", "100");
+   parser.addOption(shade_areaOption);
+
+
+    // A boolean option with multiple names (-f, --force)
+    QCommandLineOption forceOption(QStringList() << "f" << "force",
+            QCoreApplication::translate("main", "Overwrite existing files."));
+    parser.addOption(forceOption);
+
+    // An option with a value
+    QCommandLineOption targetDirectoryOption(QStringList() << "t" << "target-directory",
+            QCoreApplication::translate("main", "Copy all source files into <directory>."),
+            QCoreApplication::translate("main", "directory"));
+    parser.addOption(targetDirectoryOption);
+
+    // Process the actual command line arguments given by the user
+    parser.process(*this);
+
+    const QStringList args = parser.positionalArguments();
+    // source is args.at(0), destination is args.at(1)
+
+    //bool showProgress = parser.isSet(showProgressOption);
+    bool force = parser.isSet(forceOption);
 
     // evaluate command line parameters
     /*
@@ -1011,164 +1122,12 @@ void EarthApplication::setPriority(int pri)
 
 void EarthApplication::printUsage()
 {
-    printf("XGlobe %s\n", VERSION);
-    printf("Usage: %s [-pos pos_spec] [-wait seconds] [-mag factor] [-rot angle]\n"
-           "[-markers|-nomarkers] [-markerfile file] [-label|-nolabel] [-labelpos geom]\n"
-           "[-ambientlight level] [-ambientrgb rgblevel] [-nice priority]\n"
-           "[-nightmap|-nonightmap] [-mapfile file] [-nightmapfile file] \n"
-           "[-cloudmapfile file] [-cloudfilter n] [-dump] [-dumpcmd cmd] [-outfile file]\n"
-           "[-once] [-grid|-nogrid|-newgrid] [-grid1 grid1] [-grid2 grid2]\n"
-           "[-timewarp factor] [-size size_spec] [-shift spec] [-backg file] [-tiled]\n"
-           "[-kde] [-stars|-nostars] [-starfreq frequency] [-term pct] [-shade_area pct]\n"
-           "[-help]\n"
-           "For an explanation of command line options, use the switch -help.\n",
-        "xglobe");
 }
 
 /* ------------------------------------------------------------------------*/
 
 void EarthApplication::printHelp()
 {
-    printf("XGlobe %s command line options:\n\n", VERSION);
-    printf("-pos pos_spec  pos_spec consists of one of the keywords \"fixed\", \"sunrel\",\n"
-           "               \"random\" or \"orbit\", possibly followed by additional arguments:\n"
-           "               fixed: Followed by two numerical arguments latitude and\n"
-           "                 longitude (given in decimal degrees) of a viewing position.\n"
-           "                 - positive lat. - north of equator\n"
-           "                 - negative lat. - south of equator\n"
-           "                 - positive long. - east of prime meridian\n"
-           "                 - negative long. - west of prime meridian\n"
-           "               sunrel: Followed by to numerical arguments lat. and long.,\n"
-           "                 indicating offsets of current sun position.\n"
-           "               moonpos: Viewing position follows current moon position.\n"
-           "               random: selects a random viewing position each time a frame is\n"
-           "                 redrawn.\n"
-           "               orbit:  The position specifier keyword orbit should be followed\n"
-           "                 by three arguments, interpreted as numerical values indicating\n"
-           "                 the period (in hours), orbital inclination (in decimal degrees)\n"
-           "                 of a simple circular orbit, and an experimental shift modifier\n"
-           "                 that adjusts the orbit with each circuit; the viewing position\n"
-           "                 follows this orbit.\n"
-           "                 Astute  readers will surely note that these parameters are not\n"
-           "                 sufficient to uniquely specify a single circular orbit. This\n"
-           "                 problem is solved by limiting the space of possible orbits to\n"
-           "                 those positioned over 0 degrees latitude, 0 degrees longitude\n"
-           "                 at time zero (the Un*x epoch, see time(3)).\n"
-           "               Examples explaining characters to delimit specifier components:\n"
-           "                  -pos 'fixed 30.0 40.53'\n"
-           "                  -pos sunrel,-12.3,130\n"
-           "                  -pos fixed/20.0/30.0}\n"
-           "                  -pos 'orbit 4.2 26.3'\n"
-           "               (default: -pos 'sunrel 0 0')\n\n");
-    printf("-wait secs     Specifies the interval in seconds between screen updates.\n"
-           "               (default: -wait 300)\n\n");
-    printf("-mag factor    Specifies the size of the globe in relation to the screen size.\n"
-           "               The diameter of the globe is factor times the shorter of the\n"
-           "               width and height of the screen.\n"
-           "               (default: -mag 1.0)\n\n");
-    printf("-dir dir   Set lookup directory for files.\n\n");
-    printf("-rot angle     A positive angle rotates the globe clockwise, a negative one\n"
-           "               counterclockwise.\n\n");
-    printf("-markers       Enable displaying of built-in display markers.\n"
-           "-nomarkers     Disable displaying of built-in display markers.\n"
-           "               (default: -marker)\n\n");
-    printf("-markerfile file  Load an additional location marker file. (Have a look at\n"
-           "                  file \"xglobe-markers\" for reference.)\n\n");
-    printf("-label         Enable displaying of label indicating current date and time etc.\n"
-           "-nolabel       Disable displaying of label\n"
-           "               (default: -label)\n\n");
-    printf("-labelpos geom  geom specifies the screen location of the label.\n"
-           "                Syntax: {+-}<xoffset>{+-}<yoffset>\n"
-           "                   positive xoffset - offset from right display edge\n"
-           "                   negative xoffset - offset from left display edge\n"
-           "                   positive yoffset - offset from top display edge\n"
-           "                   negative yoffset - offset from bottom display edge\n"
-           "                (default: -labelpos -5+5)\n\n");
-    printf("-ambientlight level  Indicates how the dark side of the globe appears:\n"
-           "                     0 means totally black, 100 means totally bright (= no\n"
-           "                     difference between day and night side).\n"
-           "                     (default: -ambientlight 15)\n\n");
-    printf("-ambientrgb rgblevel Works like -ambientlight but takes 3 parameters (red,\n"
-           "                     green and blue value) defining the color of ambient\n"
-           "                     light. This can be useful in conjunction with a night\n"
-           "                     map that is tinted towards blue, for example. Using a\n"
-           "                     blueish ambient light makes the transition from day to\n"
-           "                     night look better.\n"
-           "                     Use either -ambientlevel or -ambientrgb, not both.\n"
-           "                     (example: -ambientrgb \"1 4 20\"  - This will make the\n"
-           "                     night side appear blueish.)\n\n");
-    printf("-nice priority Run the xglobe process with the given priority (see nice(1) and\n"
-           "               setpriority(2) manual pages).\n\n");
-    printf("-nightmap      Use default world map for the night side. The switch\n"
-           "               -ambientlight will be ignored.\n"
-           "-nonightmap    Disable use of night map.\n\n");
-    printf("-mapfile|-map file  Use another than the default world map. Supported image\n"
-           "               formats depend on qt.\n\n");
-    printf("-nightmapfile|-nightmap|-night file  Same as -mapfile, but for the night map.\n\n");
-    printf("-cloudmapfile|-cloudmap|-clouds file  Same as -mapfile, but for the cloud map.\n\n");
-    printf("-maps map night clouds  All three maps in one option.\n\n");
-    printf("-cloudfilter|-filter n Used in conjunction with -cloudmapfile, this controls\n"
-           "               how much cloud is displayed.  n is a value between 0 and 255,\n"
-           "               where 0 will show all cloud, and 255 will only show the\n"
-           "               brightest clouds.  The default value is 120.\n");
-    printf("-backg file    Use the image in file as the screen background, instead of a\n"
-           "               black screen, which is the default.\n\n");
-    printf("-tiled         The background image specified using -backg is by default\n"
-           "               expanded to fill the screen.  This option will cause it to\n"
-           "               be tiled instead.\n\n");
-    printf("-kde           Use this option when the globe disappears after switching\n"
-           "               virtual screens. This is needed when using KDE.\n\n");
-    printf("-dump          Saves the rendered image to the file specified with the -outfile\n"
-           "               option (default: \"xglobe-dump.bmp\") instead of displaying it\n"
-           "               on screen.\n\n");
-    printf("-dumpcmd cmd   Saves the rendered image to \"xglobe.bmp\" in the current\n"
-           "               directory, then executes \"cmd\", passing the image filename\n"
-           "               as an argument, eg '-dumpcmd Esetroot'.\n\n");
-    printf("-outfile file  Specifies the output file name for the -dump option.\n\n");
-    printf("-once          With this option, XGlobe renders an image once and exits.\n\n");
-    printf("-grid          Enable displaying of grid on the globe.\n"
-           "-nogrid        Disable displaying of grid on the globe.\n"
-           "-newgrid       Enable displaying of a more fancy grid.\n\n");
-    printf("-grid1 grid1   Specify the spacing of major grid lines: they are drawn with a\n"
-           "               90/grid1 degree spacing.\n"
-           "               (default: -grid1 6 which corresponds to 15(o) between grid lines)\n\n");
-    printf("-grid2 grid2   Specify spacing of dots along major grid lines. Along the\n"
-           "               equator and lines of longitude, grid dots are drawn with a\n"
-           "               90/(grid1 x grid2) degree spacing.\n"
-           "               (default: -grid2 15 which corresponds, along with -grid1 6,\n"
-           "               to a 1(o) spacing)\n\n");
-    printf("-timewarp factor  Scale the apparent rate at which time progresses by 'factor'.\n"
-           "                  (default: -timewarp 1.0)\n\n");
-    printf("-size size_spec Specify the size of the image to be rendered (useful in\n"
-           "                conjuntion with -dump). size_spec consists of two components,\n"
-           "                both positive integers. They are interpreted as the width and\n"
-           "                height (in pixels) of the image.\n"
-           "                The details provided for position specifiers (see above) about\n"
-           "                the characters used to delimit specifier components apply to\n"
-           "                size specifiers as well.\n"
-           "                (default: size of the desktop)\n\n");
-    printf("-shift spec    Specify that the center of the rendered image should be shifted\n"
-           "               by some amount from the center of the image. The spec consists\n"
-           "               of two components, both integers; these components are\n"
-           "               interpreted as the offsets (in pixels) in the X and Y\n"
-           "               directions.\n"
-           "               By default, the center of the rendered image is aligned with the\n"
-           "               center of the image.\n\n");
-    printf("-stars         Enable displaying of stars in the background (default)\n"
-           "-nostars       Disable displaying of stars in the background\n\n");
-    printf("-starfreq frequency    If displaying of stars is enabled, frequency percent\n"
-           "                       of the background pixels are turned into stars\n"
-           "                       (default: 0.002%%)\n\n");
-    printf("-term pct      Specify the shading discontinuity at the terminator (day/night\n"
-           "               line). Pct should be between 0 and 100, where 100 is maximum\n"
-           "               discontinuity and 0 makes a very smooth transition.\n"
-           "               (default: -term 0)\n\n");
-    printf("-shade_area pct Specify the proportion of the day-side to be progressively\n"
-           "                shaded prior to a transition with the night-side.  A value of\n"
-           "                100 means all the day area will be shaded, whereas 0 will result\n"
-           "                in no shading at all.  60 would keep 40%% of the day area nearest\n"
-           "                the sun free from shading. (default: -shade_area 100)\n\n");
-    printf("-help          Display this help text.\n\n");
 }
 
 /* ------------------------------------------------------------------------*/
@@ -1287,7 +1246,17 @@ void EarthApplication::recalc()
         }
     }
     else {
-        QRect  screenGeometry = desktop()->geometry();
+
+        QString program = "/usr/bin/xwallpaper";
+        QStringList arguments;
+        arguments << dumpfile;
+
+        QProcess *myProcess = new QProcess(this);
+        myProcess->start(program, arguments);
+
+
+        /*
+        QRect screenGeometry = desktop()->geometry();
         const int height = screenGeometry.height();
         const int width = screenGeometry.width();
         qInfo() << "Desktop geometry height: " << height << " width: " << width;
@@ -1301,6 +1270,7 @@ void EarthApplication::recalc()
             //processEvents();
             ::exit(0);
         }
+        */
     }
 
     current_time = time(nullptr) + delay;
