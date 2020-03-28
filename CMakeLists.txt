@@ -36,6 +36,7 @@ set(CMAKE_REQUIRED_FLAGS -std=c++17)
 set(SOURCE
     main.cpp
     compute.cpp
+    command_line_parser.cpp
     desktopwidget.cpp
     earthapp.cpp
     file.cpp

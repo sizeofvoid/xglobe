@@ -58,7 +58,6 @@
 #pragma once
 
 #include <QApplication>
-#include <QTemporaryFile>
 
 #include "markerlist.h"
 #include "random.h"
@@ -68,6 +67,7 @@ class DesktopWidget;
 class QSize;
 class QString;
 class QTimer;
+class CommandLineParser;
 
 class EarthApplication : public QApplication {
     Q_OBJECT
@@ -172,7 +172,7 @@ protected:
     QString out_file_name;
 
 private:
-    QTemporaryFile tmpImageFile;
+    std::unique_ptr<CommandLineParser> clp;
     bool firstTime = true;
     bool do_the_dump = false;
     bool do_dumpcmd = false;
