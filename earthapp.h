@@ -58,6 +58,7 @@
 #pragma once
 
 #include <QApplication>
+#include <QTemporaryFile>
 
 #include "markerlist.h"
 #include "random.h"
@@ -171,6 +172,7 @@ protected:
     QString out_file_name;
 
 private:
+    QTemporaryFile tmpImageFile;
     bool firstTime = true;
     bool do_the_dump = false;
     bool do_dumpcmd = false;

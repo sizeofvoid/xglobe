@@ -98,9 +98,11 @@
 
 EarthApplication::EarthApplication(int &argc, char **argv)
     : QApplication(argc, argv),
-      out_file_name(QString("xglobe-dump.bmp")),
-      grid_type(Renderer::NO_GRID)
+      out_file_name(QString("xglobe-dump.png")),
+      grid_type(Renderer::NO_GRID),
+      tmpImageFile("xglobe-dump.XXXXXX.png")
 {
+    tmpImageFile.open();
    QCommandLineParser parser;
    parser.setApplicationDescription("XGlobe");
    parser.addHelpOption();
@@ -1227,7 +1229,7 @@ void EarthApplication::recalc()
 
         if (do_the_dump) {
             QImage* i = r->getImage();
-            i->save(out_file_name, "BMP");
+            i->save(out_file_name, "PNG");
             ::exit(0);
         }
     }
@@ -1237,8 +1239,6 @@ void EarthApplication::recalc()
         processEvents(); // we want the image to be
     } // displayed immediately
     else if (do_dumpcmd) {
-        QImage* i = r->getImage();
-        i->save(dumpfile, "BMP");
         system(dumpcmd);
         if (once) {
             processEvents();
@@ -1246,31 +1246,22 @@ void EarthApplication::recalc()
         }
     }
     else {
+        QImage* i = r->getImage();
+        i->save(tmpImageFile.fileName(), "PNG");
 
-        QString program = "/usr/bin/xwallpaper";
+        QString program = "/usr/local/bin/xwallpaper";
         QStringList arguments;
-        arguments << dumpfile;
+        arguments << "--zoom" << tmpImageFile.fileName();
+
+        qInfo() << "QProcess: " << program << arguments;
 
         QProcess *myProcess = new QProcess(this);
         myProcess->start(program, arguments);
 
-
-        /*
-        QRect screenGeometry = desktop()->geometry();
-        const int height = screenGeometry.height();
-        const int width = screenGeometry.width();
-        qInfo() << "Desktop geometry height: " << height << " width: " << width;
-        QPalette palette;
-        palette.setBrush(desktop()->backgroundRole(),  QBrush(*(r->getImage())));
-        desktop()->setPalette(palette);
-        desktop()->show();
-        //XClearWindow(QX11Info::display(), QX11Info::appRootWindow());
-
         if (once) {
-            //processEvents();
+            processEvents();
             ::exit(0);
         }
-        */
     }
 
     current_time = time(nullptr) + delay;
