@@ -113,6 +113,9 @@ private:
     void orbitPosition(time_t);
     void setPriority(int pri);
 
+    void firstRecalc(time_t);
+    void processImage();
+
 public slots:
     void recalc();
 

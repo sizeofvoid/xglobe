@@ -819,49 +819,96 @@ void EarthApplication::init()
 
 void EarthApplication::recalc()
 {
-    double moon_lat, moon_long;
+    start_time = time(nullptr); // first image with current time
 
     if (firstTime) {
-        firstTime = false;
-        start_time = time(nullptr); // first image with current time
-        processEvents();
-        r->setTime(start_time);
-        switch (clp->getGeoCoordinate()->getType()) {
-        case PosType::fixed:
-             break;
-
-        case PosType::sunrel:
-            r->setViewPos(r->getSunLat() + clp->getGeoCoordinate()->getLatitude(), r->getSunLong() + clp->getGeoCoordinate()->getLongitude());
-            break;
-
-        case PosType::moonpos:
-            MoonPos::getMoonPos(start_time, &moon_lat, &moon_long);
-            r->setViewPos(moon_lat, moon_long);
-            break;
-
-        case PosType::random:
-            clp->computeRandomPosition();
-            r->setViewPos(clp->getGeoCoordinate()->getLatitude(), clp->getGeoCoordinate()->getLongitude());
-            break;
-
-        case PosType::orbit:
-            {
-                auto orbit = std::static_pointer_cast<OrbitCoordinate>(clp->getGeoCoordinate());
-                assert(orbit);
-                orbit->computePosition(start_time);
-                r->setViewPos(orbit->getLatitude(), orbit->getLongitude());
-            }
-            break;
-        }
-        r->renderFrame();
-
-        if (do_the_dump) {
-            QImage* i = r->getImage();
-            i->save(out_file_name, "PNG");
-            exit(0);
-        }
+        firstRecalc(start_time);
     }
 
+    processImage();
+
+    current_time = time(nullptr) + delay;
+    current_time = (time_t)(start_time + (current_time - start_time) * time_warp);
+    r->setTime(current_time);
+    switch (clp->getGeoCoordinate()->getType()) {
+    case PosType::fixed:
+        break;
+
+    case PosType::sunrel:
+        r->setViewPos(r->getSunLat() + clp->getGeoCoordinate()->getLatitude(), r->getSunLong() + clp->getGeoCoordinate()->getLongitude());
+        break;
+
+    case PosType::random:
+        clp->computeRandomPosition();
+        r->setViewPos(clp->getGeoCoordinate()->getLatitude(), clp->getGeoCoordinate()->getLongitude());
+        break;
+
+    case PosType::orbit:
+        {
+            auto orbit = std::static_pointer_cast<OrbitCoordinate>(clp->getGeoCoordinate());
+            assert(orbit);
+            orbit->computePosition(start_time);
+            r->setViewPos(orbit->getLatitude(), orbit->getLongitude());
+        }
+        break;
+
+    case PosType::moonpos:
+        {
+            double moon_lat, moon_long;
+            MoonPos::getMoonPos(start_time, &moon_lat, &moon_long);
+            r->setViewPos(moon_lat, moon_long);
+        }
+        break;
+    }
+    r->renderFrame();
+}
+
+void EarthApplication::firstRecalc(time_t start_time)
+{
+    firstTime = false;
+    processEvents();
+    r->setTime(start_time);
+    switch (clp->getGeoCoordinate()->getType()) {
+    case PosType::fixed:
+            break;
+
+    case PosType::sunrel:
+        r->setViewPos(r->getSunLat() + clp->getGeoCoordinate()->getLatitude(), r->getSunLong() + clp->getGeoCoordinate()->getLongitude());
+        break;
+
+    case PosType::moonpos:
+        {
+            double moon_lat, moon_long;
+            MoonPos::getMoonPos(start_time, &moon_lat, &moon_long);
+            r->setViewPos(moon_lat, moon_long);
+        }
+        break;
+
+    case PosType::random:
+        clp->computeRandomPosition();
+        r->setViewPos(clp->getGeoCoordinate()->getLatitude(), clp->getGeoCoordinate()->getLongitude());
+        break;
+
+    case PosType::orbit:
+        {
+            auto orbit = std::static_pointer_cast<OrbitCoordinate>(clp->getGeoCoordinate());
+            assert(orbit);
+            orbit->computePosition(start_time);
+            r->setViewPos(orbit->getLatitude(), orbit->getLongitude());
+        }
+        break;
+    }
+    r->renderFrame();
+
+    if (do_the_dump) {
+        QImage* i = r->getImage();
+        i->save(out_file_name, "PNG");
+        exit(0);
+    }
+}
+
+void EarthApplication::processImage()
+{
     if (clp->isKde()) {
         dwidget->updateDisplay(r->getImage());
         processEvents(); // we want the image to be
@@ -893,36 +940,4 @@ void EarthApplication::recalc()
             exit(0);
         }
     }
-
-    current_time = time(nullptr) + delay;
-    current_time = (time_t)(start_time + (current_time - start_time) * time_warp);
-    r->setTime(current_time);
-    switch (clp->getGeoCoordinate()->getType()) {
-    case PosType::fixed:
-        break;
-
-    case PosType::sunrel:
-        r->setViewPos(r->getSunLat() + clp->getGeoCoordinate()->getLatitude(), r->getSunLong() + clp->getGeoCoordinate()->getLongitude());
-        break;
-
-    case PosType::random:
-        clp->computeRandomPosition();
-        r->setViewPos(clp->getGeoCoordinate()->getLatitude(), clp->getGeoCoordinate()->getLongitude());
-        break;
-
-    case PosType::orbit:
-        {
-            auto orbit = std::static_pointer_cast<OrbitCoordinate>(clp->getGeoCoordinate());
-            assert(orbit);
-            orbit->computePosition(start_time);
-            r->setViewPos(orbit->getLatitude(), orbit->getLongitude());
-        }
-        break;
-
-    case PosType::moonpos:
-        MoonPos::getMoonPos(current_time, &moon_lat, &moon_long);
-        r->setViewPos(moon_lat, moon_long);
-        break;
-    }
-    r->renderFrame();
 }
