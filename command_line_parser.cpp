@@ -233,6 +233,11 @@ CommandLineParser::computeCoordinate()
           + (isSet(posRandomOption) ? 1 : 0)
           + (isSet(posOrbitOption) ? 1 : 0);
 
+    if (posOptions == 0) {
+        coordinate = std::make_shared<GeoCoordinate>(0, 0);
+        return;
+    }
+
     if (posOptions > 1) {
         qWarning() << "Only one position option is allowed. Use pos-{fixed|sunrel|moonpos|random|orbit}. There is none used!";
         coordinate = std::make_shared<GeoCoordinate>(0, 0);
