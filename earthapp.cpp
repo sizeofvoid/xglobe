@@ -97,9 +97,6 @@ EarthApplication::EarthApplication(int &argc, char **argv)
     // evaluate command line parameters
     /*
     for (QString arg : arguments()) {
-        if (strcmp(argv()[i], "-pos") == 0) {
-            readPosition(++i);
-        }
         else if (strcmp(argv()[i], "-wait") == 0) {
             readDelay(++i);
         }
@@ -257,79 +254,6 @@ EarthApplication::EarthApplication(int &argc, char **argv)
 EarthApplication::~EarthApplication(void)
 {
     timer->stop();
-}
-
-/* ------------------------------------------------------------------------*/
-
-void EarthApplication::readPosition(int i)
-{
-    int pos;
-    /*
-
-    if (clp->getGeoCoordinate()->getType() == PosType::orbit) {
-        // read period and inclination for orbit mode
-        pos = s.find(' ');
-        if (pos == -1) {
-            printUsage();
-            exit(1);
-        }
-        s = s.right(s.length() - pos - 1);
-
-        pos = s.find(' ');
-        if (pos == -1) {
-            printUsage();
-            exit(1);
-        }
-
-        orbit_period = s.left(pos).toDouble() * 3600;
-        orbit_inclin = s.right(s.length() - pos - 1).toDouble();
-
-        pos = s.find(' ');
-        if (pos != -1)
-            orbit_shift = s.right(s.length() - pos - 1).toDouble();
-
-        if (orbit_period <= 0) {
-            fprintf(stderr, "orbit period must be a positive number.\n");
-            exit(1);
-        }
-        if (orbit_inclin > 90 || orbit_inclin < -90) {
-            fprintf(stderr, "orbit inclination must be between -90 and 90\n");
-            exit(1);
-        }
-        if (orbit_shift < 0) {
-            fprintf(stderr, "orbit shift must be larger than or equal to zero\n");
-            exit(1);
-        }
-
-        view_lat = view_long = 0;
-        return;
-    }
-
-    // read longitude and latitude for fixed and sunrel mode
-    pos = s.find(' ');
-    if (pos == -1)
-        pos = s.find(',');
-    if (pos == -1)
-        pos = s.find('/');
-    if (pos == -1) {
-        printUsage();
-        exit(1);
-    }
-    s = s.right(s.length() - pos - 1);
-
-    pos = s.find(' ');
-    if (pos == -1)
-        pos = s.find(',');
-    if (pos == -1)
-        pos = s.find('/');
-    if (pos == -1) {
-        printUsage();
-        exit(1);
-    }
-
-    view_lat = s.left(pos).toDouble();
-    view_long = s.right(s.length() - pos - 1).toDouble();
-    */
 }
 
 /* ------------------------------------------------------------------------*/

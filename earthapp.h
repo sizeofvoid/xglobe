@@ -81,7 +81,6 @@ public:
     void init();
 
 private:
-    void readPosition(int i);
     void readDelay(int i);
     void readZoom(int i);
     void readBG(int i);
