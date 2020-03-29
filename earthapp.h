@@ -119,12 +119,7 @@ public slots:
     void recalc();
 
 protected:
-    double view_lat = 0;
-    double view_long = 0;
 
-    double orbit_period = 0;
-    double orbit_inclin = 0;
-    double orbit_shift = 0; 
     bool builtin_markers = true;
     bool show_markers = true;
     bool show_label = true;
