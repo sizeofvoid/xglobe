@@ -17,12 +17,15 @@ public:
     bool isOnce() const;
     bool isKde() const;
     double getMag() const;
+    double getWait() const;
     QString getMapFileName() const;
     TGeoCoordinatePtr getGeoCoordinate() const;
     void computeRandomPosition();
 
 private:
     void computeCoordinate();
+    double getDoubleByValue(double, QCommandLineOption const&) const;
+
     QTemporaryFile tmpImageFile;
     QCommandLineOption onceOption;
     QCommandLineOption dumpOption;

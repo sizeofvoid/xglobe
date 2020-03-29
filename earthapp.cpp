@@ -97,9 +97,6 @@ EarthApplication::EarthApplication(int &argc, char **argv)
     // evaluate command line parameters
     /*
     for (QString arg : arguments()) {
-        else if (strcmp(argv()[i], "-wait") == 0) {
-            readDelay(++i);
-        }
         else if (strcmp(argv()[i], "-backg") == 0) {
             readBG(++i);
         }
@@ -272,23 +269,6 @@ void EarthApplication::readBG(int i)
     */
 }
 
-/* ------------------------------------------------------------------------*/
-
-void EarthApplication::readDelay(int i)
-{
-    /*
-    if (i >= argc()) {
-        printUsage();
-        exit(1);
-    }
-    delay = atoi(argv()[i]);
-    if (delay < 1)
-        delay = 300;
-    */
-}
-
-
-/* ------------------------------------------------------------------------*/
 
 void EarthApplication::readPriority(int i)
 {
@@ -812,7 +792,7 @@ void EarthApplication::init()
     QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(recalc()));
     QTimer::singleShot(1, this, SLOT(recalc())); // this will start rendering
-    timer->start(delay * 1000); // the 1. image immediately
+    timer->start(clp->getWait() * 1000); // the 1. image immediately
 }
 
 /* ------------------------------------------------------------------------*/
@@ -827,7 +807,7 @@ void EarthApplication::recalc()
 
     processImage();
 
-    current_time = time(nullptr) + delay;
+    current_time = time(nullptr) + clp->getWait();
     current_time = (time_t)(start_time + (current_time - start_time) * time_warp);
     r->setTime(current_time);
     switch (clp->getGeoCoordinate()->getType()) {

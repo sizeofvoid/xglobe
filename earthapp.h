@@ -81,7 +81,6 @@ public:
     void init();
 
 private:
-    void readDelay(int i);
     void readZoom(int i);
     void readBG(int i);
     void readPriority(int i);
@@ -126,7 +125,6 @@ protected:
     double orbit_period = 0;
     double orbit_inclin = 0;
     double orbit_shift = 0; 
-    int delay = 3;
     bool builtin_markers = true;
     bool show_markers = true;
     bool show_label = true;

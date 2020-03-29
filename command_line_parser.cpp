@@ -51,7 +51,7 @@ CommandLineParser::CommandLineParser(QCoreApplication* parent)
       posRandomOption(QStringList() << "pos-random", "Selects a random viewing position each time a frame is redrawn.", "position"),
       posOrbitOption(QStringList() << "pos-orbit", "The position specifier keyword orbit should be followed by three arguments, interpreted as numerical values indicating the period (in hours), orbital inclination (in decimal degrees) of a simple circular orbit, and an experimental shift modifier that adjusts the orbit with each circuit; the viewing position follows this orbit.", "position"),
       dirOption(QStringList() << "dir", "Set lookup directory for files.", "dir"),
-      waitOption(QStringList() << "wait", "Specifies the interval in seconds between screen updates.", "seconds", "300"),
+      waitOption(QStringList() << "wait", "Specifies the interval in seconds between screen updates.", "seconds", "3"),
       magOption(QStringList() << "mag", "Specifies the size of the globe in relation to the screen size. The diameter of the globe is factor times the shorter of the width and height of the screen.", "factor", "1.0"),
       rotOption(QStringList() << "rot", "A positive angle rotates the globe clockwise, a negative one counterclockwise.", "angle"),
       markerfileOption(QStringList() << "markerfile", "Load an additional location marker file. (Have a look at file \"xglobe-markers\" for reference.)", "file", ""),
@@ -162,12 +162,26 @@ CommandLineParser::isKde() const
 }
 
 double
+CommandLineParser::getDoubleByValue(double defaultValue, QCommandLineOption const& option) const
+{
+    if (!isSet(option))
+        return defaultValue;
+    QString s = value(option);
+    bool ok;
+    const double d = s.toDouble(&ok);
+    return ok ? d : defaultValue;
+}
+
+double
+CommandLineParser::getWait() const
+{
+    return getDoubleByValue(3, waitOption);
+}
+
+double
 CommandLineParser::getMag() const
 {
-    QString mag = value(magOption);
-    bool ok;
-    const double d = mag.toDouble(&ok);
-    return ok ? d : 1.0;
+    return getDoubleByValue(1.0, magOption);
 }
 
 QString
