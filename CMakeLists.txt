@@ -44,6 +44,7 @@ set(SOURCE
     main.cpp
     compute.cpp
     command_line_parser.cpp
+    geo_coordinate.cpp
     desktopwidget.cpp
     earthapp.cpp
     file.cpp

@@ -60,11 +60,9 @@
 #include <QApplication>
 
 #include "markerlist.h"
-#include "random.h"
 
 
 #include <memory>
-
 
 class Renderer;
 class DesktopWidget;
@@ -120,19 +118,13 @@ public slots:
     void recalc();
 
 protected:
-    enum PosType { FIXED,
-        SUNREL,
-        MOONPOS,
-        RANDOM,
-        ORBIT };
-
     double view_lat = 0;
     double view_long = 0;
+
     double orbit_period = 0;
     double orbit_inclin = 0;
     double orbit_shift = 0; 
     int delay = 3;
-    PosType p_type = SUNREL;
     bool builtin_markers = true;
     bool show_markers = true;
     bool show_label = true;
@@ -183,7 +175,6 @@ private:
     bool use_kde = false;
     bool have_size = false;
     QSize size;
-    Gen gen;
 #if defined (XWALLPAPER_BIN)
     const QString xwallpaper_bin = QLatin1String(XWALLPAPER_BIN);
 #else

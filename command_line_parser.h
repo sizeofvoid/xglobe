@@ -2,8 +2,10 @@
 
 #include <QTemporaryFile>
 #include <QCommandLineParser>
+#include "geo_coordinate.h"
 
 class QCoreApplication;
+class GeoCoordinate;
 
 class CommandLineParser : public QCommandLineParser
 {
@@ -16,8 +18,11 @@ public:
     bool isKde() const;
     double getMag() const;
     QString getMapFileName() const;
+    TGeoCoordinatePtr getGeoCoordinate() const;
+    void computeRandomPosition();
 
 private:
+    void computeCoordinate();
     QTemporaryFile tmpImageFile;
     QCommandLineOption onceOption;
     QCommandLineOption dumpOption;
@@ -63,5 +68,7 @@ private:
     QCommandLineOption starfreqOption;
     QCommandLineOption termOption;
     QCommandLineOption shade_areaOption;
+
+    TGeoCoordinatePtr coordinate;
 };
 

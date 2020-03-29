@@ -71,6 +71,7 @@
 #include "file.h"
 #include "moonpos.h"
 #include "command_line_parser.h"
+#include "geo_coordinate.h"
 
 
 #include <QTimer>
@@ -265,34 +266,7 @@ void EarthApplication::readPosition(int i)
     int pos;
     /*
 
-    if (i >= argc()) {
-        printUsage();
-        exit(1);
-    }
-
-    QString s(argv()[i]);
-    s.simplified();
-
-    if (strncmp(argv()[i], "random", 6) == 0) {
-        p_type = RANDOM;
-        return;
-    }
-    else if (strncmp(argv()[i], "fixed", 5) == 0)
-        p_type = FIXED;
-    else if (strncmp(argv()[i], "sunrel", 6) == 0)
-        p_type = SUNREL;
-    else if (strncmp(argv()[i], "moonpos", 7) == 0) {
-        p_type = MOONPOS;
-        return;
-    }
-    else if (strncmp(argv()[i], "orbit", 5) == 0)
-        p_type = ORBIT;
-    else {
-        printUsage();
-        exit(1);
-    }
-
-    if (p_type == ORBIT) {
+    if (clp->getGeoCoordinate()->getType() == PosType::orbit) {
         // read period and inclination for orbit mode
         pos = s.find(' ');
         if (pos == -1) {
@@ -842,67 +816,7 @@ void EarthApplication::readOutFileName(int i)
 
 /* ------------------------------------------------------------------------*/
 
-void EarthApplication::randomPosition()
-{
-    view_lat = (gen(30001) / 30000.) * 180. - 90.;
-    view_long = (gen(30001) / 30000.) * 360. - 180.;
-}
 
-/* ------------------------------------------------------------------------*/
-
-
-void EarthApplication::orbitPosition(time_t ssue)
-{
-    double x, y, z;
-    double a, c, s;
-    double t1, t2, shift;
-
-    /* start at 0 N 0 E */
-    x = 0;
-    y = 0;
-    z = 1;
-
-    /* rotate in about y axis (from z towards x) according to the number
-   * of orbits we've completed
-   */
-    a = (((double)ssue) / orbit_period) * (2 * M_PI);
-    shift = fmod((a * orbit_shift), 360);
-    c = cos(a);
-    s = sin(a);
-    t1 = c * z - s * x;
-    t2 = s * z + c * x;
-    z = t1;
-    x = t2;
-
-    /* rotate about z axis (from x towards y) according to the
-   * inclination of the orbit
-   */
-    a = orbit_inclin * (M_PI / 180);
-    c = cos(a);
-    s = sin(a);
-    t1 = c * x - s * y;
-    t2 = s * x + c * y;
-    x = t1;
-    y = t2;
-
-    /* rotate about y axis (from x towards z) according to the number of
-   * rotations the earth has made
-   */
-    a = ((double)ssue / 86400) * (2 * M_PI);
-    c = cos(a);
-    s = sin(a);
-    t1 = c * x - s * z;
-    t2 = s * x + c * z;
-    x = t1;
-    z = t2;
-
-    view_lat = asin(y) * (180 / M_PI);
-    view_long = atan2(x, z) * (180 / M_PI);
-    if (view_long + shift > 180)
-        view_long = -180 + (shift - (180 - view_long));
-    else
-        view_long += shift;
-}
 
 /* ------------------------------------------------------------------------*/
 
@@ -947,7 +861,7 @@ void EarthApplication::init()
     if (with_bg)
         r->loadBackImage(QString());
         //r->loadBackImage(((argc_bg != -1) ? argv()[argc_bg] : (const char*)nullptr), tiled);
-    r->setViewPos(view_lat, view_long);
+    r->setViewPos(clp->getGeoCoordinate()->getLatitude(), clp->getGeoCoordinate()->getLongitude());
     r->setZoom(clp->getMag());
     r->setAmbientRGB(ambient_red, ambient_green, ambient_blue);
     if (fov != -1.)
@@ -988,27 +902,31 @@ void EarthApplication::recalc()
         start_time = time(nullptr); // first image with current time
         processEvents();
         r->setTime(start_time);
-        switch (p_type) {
-        case SUNREL:
-            r->setViewPos(r->getSunLat() + view_lat, r->getSunLong() + view_long);
+        switch (clp->getGeoCoordinate()->getType()) {
+        case PosType::fixed:
+             break;
+
+        case PosType::sunrel:
+            r->setViewPos(r->getSunLat() + clp->getGeoCoordinate()->getLatitude(), r->getSunLong() + clp->getGeoCoordinate()->getLongitude());
             break;
 
-        case MOONPOS:
+        case PosType::moonpos:
             MoonPos::getMoonPos(start_time, &moon_lat, &moon_long);
             r->setViewPos(moon_lat, moon_long);
             break;
 
-        case RANDOM:
-            randomPosition();
-            r->setViewPos(view_lat, view_long);
+        case PosType::random:
+            clp->computeRandomPosition();
+            r->setViewPos(clp->getGeoCoordinate()->getLatitude(), clp->getGeoCoordinate()->getLongitude());
             break;
 
-        case ORBIT:
-            orbitPosition(start_time);
-            r->setViewPos(view_lat, view_long);
-            break;
-
-        default:
+        case PosType::orbit:
+            {
+                auto orbit = std::static_pointer_cast<OrbitCoordinate>(clp->getGeoCoordinate());
+                assert(orbit);
+                orbit->computePosition(start_time);
+                r->setViewPos(orbit->getLatitude(), orbit->getLongitude());
+            }
             break;
         }
         r->renderFrame();
@@ -1055,27 +973,31 @@ void EarthApplication::recalc()
     current_time = time(nullptr) + delay;
     current_time = (time_t)(start_time + (current_time - start_time) * time_warp);
     r->setTime(current_time);
-    switch (p_type) {
-    case SUNREL:
-        r->setViewPos(r->getSunLat() + view_lat, r->getSunLong() + view_long);
+    switch (clp->getGeoCoordinate()->getType()) {
+    case PosType::fixed:
         break;
 
-    case RANDOM:
-        randomPosition();
-        r->setViewPos(view_lat, view_long);
+    case PosType::sunrel:
+        r->setViewPos(r->getSunLat() + clp->getGeoCoordinate()->getLatitude(), r->getSunLong() + clp->getGeoCoordinate()->getLongitude());
         break;
 
-    case ORBIT:
-        orbitPosition(current_time);
-        r->setViewPos(view_lat, view_long);
+    case PosType::random:
+        clp->computeRandomPosition();
+        r->setViewPos(clp->getGeoCoordinate()->getLatitude(), clp->getGeoCoordinate()->getLongitude());
         break;
 
-    case MOONPOS:
+    case PosType::orbit:
+        {
+            auto orbit = std::static_pointer_cast<OrbitCoordinate>(clp->getGeoCoordinate());
+            assert(orbit);
+            orbit->computePosition(start_time);
+            r->setViewPos(orbit->getLatitude(), orbit->getLongitude());
+        }
+        break;
+
+    case PosType::moonpos:
         MoonPos::getMoonPos(current_time, &moon_lat, &moon_long);
         r->setViewPos(moon_lat, moon_long);
-        break;
-
-    default:
         break;
     }
     r->renderFrame();

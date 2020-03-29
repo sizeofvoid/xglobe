@@ -21,6 +21,7 @@
  */
 
 #include "command_line_parser.h"
+#include "random.h"
 
 #include <QCoreApplication>
 #include <QDir>
@@ -139,6 +140,7 @@ CommandLineParser::CommandLineParser(QCoreApplication* parent)
 
     //bool showProgress = isSet(showProgressOption);
     //bool force = isSet(forceOption);
+    computeCoordinate();
 }
 
 QString
@@ -178,4 +180,114 @@ CommandLineParser::getMapFileName() const
         qWarning() << "Mapfile not exists: " << mapFile;
 
     return exists ? mapFile : QString();
+}
+
+void
+CommandLineParser::computeCoordinate()
+{
+    auto getLatLon = [&]() -> std::vector<double>
+    {
+        QString val;
+        size_t maxValues = 0;
+        if (isSet(posFixedOption)) {
+            val = value(posFixedOption);
+            maxValues = 2;
+        }
+        else if(isSet(posSunrelOption)) {
+            val = value(posSunrelOption);
+            maxValues = 2;
+        }
+        else if(isSet(posMoonPosOption)) {
+            val = value(posMoonPosOption);
+            maxValues = 2;
+        }
+        else if(isSet(posOrbitOption) ) {
+            val = value(posOrbitOption);
+            maxValues = 3;
+        }
+
+        auto vals = val.splitRef(QLatin1String(";"));
+        if (vals.isEmpty() || vals.size() != 2) {
+            qWarning() << "Invalid syntax for position option. Use \"latitude;longitude\", exmaple \"11.5;23.0\"";
+            return {};
+        }
+
+        std::vector<double> vecVals;
+        vecVals.reserve(maxValues);
+        for (short i = 0; i < maxValues; i++) {
+            if (vals.at(i).string()) {
+                bool ok = false;
+                const double d = vals.at(0).toDouble(&ok);
+                if (!ok)
+                    throw std::logic_error("QString::toDouble");
+                vecVals.push_back(d);
+            }
+        }
+        assert(vecVals.size() == maxValues);
+        return vecVals;
+    };
+
+    int posOptions = (isSet(posFixedOption) ? 1 : 0)
+          + (isSet(posSunrelOption) ? 1 : 0)
+          + (isSet(posMoonPosOption) ? 1 : 0)
+          + (isSet(posRandomOption) ? 1 : 0)
+          + (isSet(posOrbitOption) ? 1 : 0);
+
+    if (posOptions > 1) {
+        qWarning() << "Only one position option is allowed. Use pos-{fixed|sunrel|moonpos|random|orbit}. There is none used!";
+        coordinate = std::make_shared<GeoCoordinate>(0, 0);
+        return;
+    }
+
+    if (isSet(posRandomOption)) {
+        coordinate = std::make_shared<GeoCoordinate>(0, 0, PosType::random);
+        computeRandomPosition();
+        return;
+    }
+
+    auto lat_lon = getLatLon();
+
+    if (isSet(posFixedOption)) {
+        coordinate = std::make_shared<GeoCoordinate>(lat_lon.at(0), lat_lon.at(1), PosType::fixed);
+        return;
+    }
+    else if(isSet(posSunrelOption)) {
+        coordinate = std::make_shared<GeoCoordinate>(lat_lon.at(0), lat_lon.at(1), PosType::sunrel);
+        return;
+    }
+    else if(isSet(posMoonPosOption)) {
+        coordinate = std::make_shared<GeoCoordinate>(lat_lon.at(0), lat_lon.at(1), PosType::moonpos);
+        return;
+    }
+    else if(isSet(posOrbitOption) ) {
+
+        auto orbit_period = lat_lon.at(0) * 3600;
+        auto orbit_inclin = lat_lon.at(1);
+        auto orbit_shift = lat_lon.at(2);
+
+        if (orbit_period <= 0) {
+            qCritical("orbit period must be a positive number.\n");
+        }
+        if (orbit_inclin > 90 || orbit_inclin < -90) {
+            qCritical("orbit inclination must be between -90 and 90\n");
+        }
+        if (orbit_shift < 0) {
+            qCritical("orbit shift must be larger than or equal to zero\n");
+        }
+        coordinate = std::make_shared<OrbitCoordinate>(orbit_period, orbit_inclin, orbit_shift);
+        return;
+    }
+}
+TGeoCoordinatePtr
+CommandLineParser::getGeoCoordinate() const
+{
+    return coordinate;
+}
+
+void
+CommandLineParser::computeRandomPosition()
+{
+    Gen gen;
+    coordinate->setLatitude((gen(30001) / 30000.) * 180. - 90.);
+    coordinate->setLongitude((gen(30001) / 30000.) * 360. - 180.);
 }
