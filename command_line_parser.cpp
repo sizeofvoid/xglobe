@@ -303,28 +303,40 @@ CommandLineParser::computeCoordinate()
 std::pair<int,int>
 CommandLineParser::computeLabelPosition() const
 {
-    if (!isSet(labelposOption)) {
-        return {-5, 5};
+    return computeXYPosition(-5, 5, "Invalid syntax for position option. Use \"+-<xoffset>:+-<yoffset>\", exmaple \"-11:+23\"", labelposOption);
+}
+
+std::pair<int,int>
+CommandLineParser::computeShiftPosition() const
+{
+    return computeXYPosition(0, 0, "Invalid syntax for position option. Use \"+-<X>:+-<Y>\", exmaple \"-11:+23\"", shiftOption);
+}
+
+std::pair<int,int>
+CommandLineParser::computeXYPosition(int default_x, int default_y, QString const& warn, QCommandLineOption const& option) const
+{
+    if (!isSet(option)) {
+        return {default_x, default_y};
     }
 
     QString val = value(labelposOption);
     auto vals = val.splitRef(QLatin1String(":"));
     if (vals.isEmpty() || vals.size() != 2) {
-        qWarning() << "Invalid syntax for position option. Use \"+-<xoffset>:+-<yoffset>\", exmaple \"-11:+23\"";
-        return {-5, 5};
+        qWarning() <<warn;
+        return {default_x, default_y};
     }
 
     bool ok = false;
-    int xoffset = vals.at(0).toInt(&ok);
+    int x = vals.at(0).toInt(&ok);
     if (!ok)
         throw std::logic_error("QString::toDouble");
 
-    int yoffset = vals.at(1).toInt(&ok);
+    int y = vals.at(1).toInt(&ok);
     if (!ok)
         throw std::logic_error("QString::toDouble");
 
-    qDebug() << "Label positions x: " << xoffset << " y: " << yoffset;
-    return {xoffset, yoffset};
+    qDebug() << "positions x: " << x << " y: " << y;
+    return {x, y};
 }
 
 TGeoCoordinatePtr

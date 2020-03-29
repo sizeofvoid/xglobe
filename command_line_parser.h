@@ -19,6 +19,7 @@ public:
     double getMag() const;
     double getWait() const;
     std::pair<int,int> computeLabelPosition() const;
+    std::pair<int,int> computeShiftPosition() const;
     QString getMapFileName() const;
     TGeoCoordinatePtr getGeoCoordinate() const;
     void computeRandomPosition();
@@ -26,6 +27,7 @@ public:
 private:
     void computeCoordinate();
     double getDoubleByValue(double, QCommandLineOption const&) const;
+    std::pair<int,int> computeXYPosition(int, int, QString const&, QCommandLineOption const&) const;
 
     QTemporaryFile tmpImageFile;
     QCommandLineOption onceOption;

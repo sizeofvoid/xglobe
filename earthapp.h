@@ -122,8 +122,6 @@ protected:
     bool builtin_markers = true;
     bool show_markers = true;
     bool show_label = true;
-    int shift_x = 0;
-    int shift_y = 0;
     double ambient_red = 0.15;
     double ambient_blue = 0.15;
     double ambient_green = 0.15;

@@ -132,9 +132,6 @@ EarthApplication::EarthApplication(int &argc, char **argv)
             readMarkerFile(++i);
             show_markers = true;
         }
-        else if (strcmp(argv()[i], "-shift") == 0) {
-            readShift(++i);
-        }
         else if (strcmp(argv()[i], "-label") == 0) {
             show_label = true;
         }
@@ -325,34 +322,6 @@ void EarthApplication::readMarkerFontSize(int i)
     */
 }
 
-
-/* ------------------------------------------------------------------------*/
-
-void EarthApplication::readShift(int i)
-{
-    /*
-    int pos;
-
-    if (i >= argc()) {
-        printUsage();
-        exit(1);
-    }
-
-    QString s(argv()[i]);
-    s.simplified();
-
-    pos = s.find(' ');
-    if (pos == -1) {
-        printUsage();
-        exit(1);
-    }
-
-    shift_x = s.left(pos).toInt();
-    shift_y = s.right(s.length() - pos - 1).toInt();
-    */
-}
-
-/* ------------------------------------------------------------------------*/
 
 void EarthApplication::readSize(int i)
 {
@@ -729,7 +698,8 @@ void EarthApplication::init()
     r->setNumGridDots(grid2 * grid1 * 4);
     r->setGridType(grid_type);
     r->setStars(star_freq, show_stars);
-    r->setShift(shift_x, shift_y);
+    const auto shift = clp->computeLabelPosition();
+    r->setShift(std::get<0>(shift), std::get<1>(shift));
     r->setTransition(transition);
     r->setRotation(rotation);
 
