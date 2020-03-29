@@ -27,6 +27,8 @@
 #include <QDir>
 #include <QDebug>
 
+#include <algorithm>
+
 CommandLineParser::CommandLineParser(QCoreApplication* parent)
     : QCommandLineParser(),
       tmpImageFile(QDir::tempPath() + "/xglobe-dump.XXXXXX.png"),
@@ -55,7 +57,7 @@ CommandLineParser::CommandLineParser(QCoreApplication* parent)
       magOption(QStringList() << "mag", "Specifies the size of the globe in relation to the screen size. The diameter of the globe is factor times the shorter of the width and height of the screen.", "factor", "1.0"),
       rotOption(QStringList() << "rot", "A positive angle rotates the globe clockwise, a negative one counterclockwise.", "angle"),
       markerfileOption(QStringList() << "markerfile", "Load an additional location marker file. (Have a look at file \"xglobe-markers\" for reference.)", "file", ""),
-      labelposOption(QStringList() << "labelpos", "Geom specifies the screen location of the label. Syntax: QStringList() << +-<xoffset>QStringList() << +-<yoffset>", "geom", "-5+5"),
+      labelposOption(QStringList() << "labelpos", "Geom specifies the screen location of the label. Syntax: +-<xoffset>:+-<yoffset>", "geom", "-5:+5"),
       ambientlightOption(QStringList() << "ambientlight", "Indicates how the dark side of the globe appears: 0 means totally black, 100 means totally bright (= no difference between day and night side).", "level", "15"),
       ambientrgbOption(QStringList() << "ambientrgb", "Works like -ambientlight but takes 3 parameters (red, green and blue value) defining the color of ambient light. This can be useful in conjunction with a night map that is tinted towards blue, for example. Using a blueish ambient light makes the transition from day to night look better. Use either -ambientlevel or -ambientrgb, not both. (example: -ambientrgb \"1 4 20\" - This will make the night side appear blueish.)", "rgblevel", ""),
       niceOption(QStringList() << "nice", " Run the xglobe process with the given priority (see nice(1) and setpriority(2) manual pages).", "priority", ""),
@@ -297,6 +299,34 @@ CommandLineParser::computeCoordinate()
         return;
     }
 }
+
+std::pair<int,int>
+CommandLineParser::computeLabelPosition() const
+{
+    if (!isSet(labelposOption)) {
+        return {-5, 5};
+    }
+
+    QString val = value(labelposOption);
+    auto vals = val.splitRef(QLatin1String(":"));
+    if (vals.isEmpty() || vals.size() != 2) {
+        qWarning() << "Invalid syntax for position option. Use \"+-<xoffset>:+-<yoffset>\", exmaple \"-11:+23\"";
+        return {-5, 5};
+    }
+
+    bool ok = false;
+    int xoffset = vals.at(0).toInt(&ok);
+    if (!ok)
+        throw std::logic_error("QString::toDouble");
+
+    int yoffset = vals.at(1).toInt(&ok);
+    if (!ok)
+        throw std::logic_error("QString::toDouble");
+
+    qDebug() << "Label positions x: " << xoffset << " y: " << yoffset;
+    return {xoffset, yoffset};
+}
+
 TGeoCoordinatePtr
 CommandLineParser::getGeoCoordinate() const
 {

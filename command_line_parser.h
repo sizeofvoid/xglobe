@@ -18,6 +18,7 @@ public:
     bool isKde() const;
     double getMag() const;
     double getWait() const;
+    std::pair<int,int> computeLabelPosition() const;
     QString getMapFileName() const;
     TGeoCoordinatePtr getGeoCoordinate() const;
     void computeRandomPosition();

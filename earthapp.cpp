@@ -141,9 +141,6 @@ EarthApplication::EarthApplication(int &argc, char **argv)
         else if (strcmp(argv()[i], "-nolabel") == 0) {
             show_label = false;
         }
-        else if (strcmp(argv()[i], "-labelpos") == 0) {
-            readLabelPos(++i);
-        }
         else if (strcmp(argv()[i], "-ambientlight") == 0) {
             readAmbientLight(++i);
         }
@@ -328,60 +325,6 @@ void EarthApplication::readMarkerFontSize(int i)
     */
 }
 
-/* ------------------------------------------------------------------------*/
-
-void EarthApplication::readLabelPos(int i)
-{
-    /*
-    char* s;
-    int n;
-
-    if (i >= argc()) {
-        printUsage();
-        exit(1);
-    }
-
-    s = argv()[i];
-
-    switch (*s) {
-    case '+':
-        label_x = 1;
-        break;
-
-    case '-':
-        label_x = -1;
-        break;
-
-    default:
-        printUsage();
-        exit(1);
-    }
-
-    n = atoi(++s);
-    if (n != 0) // to preserve the sign when 0 is used as parameter
-        label_x *= n;
-
-    while (isdigit(*++s))
-        ;
-
-    switch (*s) {
-    case '+':
-        label_y = 1;
-        break;
-
-    case '-':
-        label_y = -1;
-        break;
-
-    default:
-        printUsage();
-        exit(1);
-    }
-    n = atoi(++s);
-    if (n != 0) // to preserve the sign when 0 is used as parameter
-        label_y *= n;
-    */
-}
 
 /* ------------------------------------------------------------------------*/
 
@@ -778,7 +721,8 @@ void EarthApplication::init()
     marker_list.set_font(markerfont, markerfontsize);
     if (show_markers)
         r->setMarkerList(&marker_list);
-    r->setLabelPos(label_x, label_y);
+    const auto lables = clp->computeLabelPosition();
+    r->setLabelPos(std::get<0>(lables), std::get<1>(lables));
     r->setShadeArea(shade_area);
     r->showLabel(show_label);
     r->setNumGridLines(grid1);

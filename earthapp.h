@@ -88,7 +88,6 @@ private:
     void readMarkerFont(int i);
     void readMarkerFontSize(int i);
     void readShift(int i);
-    void readLabelPos(int i);
     void readAmbientLight(int i);
     void readAmbientRGB(int i);
     void readMapFile(int i);
@@ -123,8 +122,6 @@ protected:
     bool builtin_markers = true;
     bool show_markers = true;
     bool show_label = true;
-    int label_x = -5;
-    int label_y = 5;
     int shift_x = 0;
     int shift_y = 0;
     double ambient_red = 0.15;
