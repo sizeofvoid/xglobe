@@ -52,7 +52,6 @@ CommandLineParser::CommandLineParser(QCoreApplication* parent)
       posMoonPosOption(QStringList() << "pos-moonpos", "Viewing position follows current moon position.", "position"),
       posRandomOption(QStringList() << "pos-random", "Selects a random viewing position each time a frame is redrawn.", "position"),
       posOrbitOption(QStringList() << "pos-orbit", "The position specifier keyword orbit should be followed by three arguments, interpreted as numerical values indicating the period (in hours), orbital inclination (in decimal degrees) of a simple circular orbit, and an experimental shift modifier that adjusts the orbit with each circuit; the viewing position follows this orbit.", "position"),
-      dirOption(QStringList() << "dir", "Set lookup directory for files.", "dir"),
       waitOption(QStringList() << "wait", "Specifies the interval in seconds between screen updates.", "seconds", "3"),
       magOption(QStringList() << "mag", "Specifies the size of the globe in relation to the screen size. The diameter of the globe is factor times the shorter of the width and height of the screen.", "factor", "1.0"),
       rotOption(QStringList() << "rot", "A positive angle rotates the globe clockwise, a negative one counterclockwise.", "angle"),
@@ -109,7 +108,6 @@ CommandLineParser::CommandLineParser(QCoreApplication* parent)
    addOption(posMoonPosOption);
    addOption(posRandomOption);
    addOption(posOrbitOption);
-   addOption(dirOption);
    addOption(waitOption);
    addOption(magOption);
    addOption(rotOption);
@@ -196,6 +194,18 @@ CommandLineParser::getMapFileName() const
         qWarning() << "Mapfile not exists: " << mapFile;
 
     return exists ? mapFile : QString();
+}
+
+QString
+CommandLineParser::getBackGFileName() const
+{
+    const QString backGFile = value(backgOption);
+    QFile file(backGFile);
+    bool exists = file.exists();
+    if (!exists)
+        qWarning() << "Mapfile not exists: " << backGFile;
+
+    return exists ? backGFile : QString();
 }
 
 void
@@ -352,3 +362,36 @@ CommandLineParser::computeRandomPosition()
     coordinate->setLatitude((gen(30001) / 30000.) * 180. - 90.);
     coordinate->setLongitude((gen(30001) / 30000.) * 360. - 180.);
 }
+
+bool
+CommandLineParser::isTiled() const
+{
+    return isSet(tiledOption);
+}
+
+bool
+CommandLineParser::isStars() const
+{
+    return (isSet(starsOption) && getBackGFileName().isEmpty()) && !isSet(nostarsOption);
+}
+
+std::optional<int>
+CommandLineParser::getNice() const
+{
+    if (isSet(niceOption))
+    {
+        QString val = value(niceOption);
+        bool ok = false;
+        int x = val.toInt(&ok);
+        if (ok)
+            return x;
+    }
+    return {};
+}
+
+bool
+CommandLineParser::isShowLabel() const
+{
+    return isSet(labelOption) && !isSet(labelOption);
+}
+

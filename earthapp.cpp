@@ -97,21 +97,6 @@ EarthApplication::EarthApplication(int &argc, char **argv)
     // evaluate command line parameters
     /*
     for (QString arg : arguments()) {
-        else if (strcmp(argv()[i], "-backg") == 0) {
-            readBG(++i);
-        }
-        else if (strcmp(argv()[i], "-dir") == 0) {
-            set_userdir(argv()[++i]);
-        }
-        else if (strcmp(argv()[i], "-tiled") == 0) {
-            tiled = true;
-        }
-        else if (strcmp(argv()[i], "-center") == 0) {
-            tiled = false;
-        }
-        else if (strcmp(argv()[i], "-nice") == 0) {
-            readPriority(++i);
-        }
         else if (strcmp(argv()[i], "-markers") == 0) {
             builtin_markers = true;
             show_markers = true;
@@ -131,12 +116,6 @@ EarthApplication::EarthApplication(int &argc, char **argv)
         else if (strcmp(argv()[i], "-markerfile") == 0) {
             readMarkerFile(++i);
             show_markers = true;
-        }
-        else if (strcmp(argv()[i], "-label") == 0) {
-            show_label = true;
-        }
-        else if (strcmp(argv()[i], "-nolabel") == 0) {
-            show_label = false;
         }
         else if (strcmp(argv()[i], "-ambientlight") == 0) {
             readAmbientLight(++i);
@@ -208,12 +187,6 @@ EarthApplication::EarthApplication(int &argc, char **argv)
         else if (strcmp(argv()[i], "-grid2") == 0) {
             grid2 = readGridVal(++i);
         }
-        else if (strcmp(argv()[i], "-stars") == 0) {
-            show_stars = true;
-        }
-        else if (strcmp(argv()[i], "-nostars") == 0) {
-            show_stars = false;
-        }
         else if (strcmp(argv()[i], "-starfreq") == 0) {
             readStarFreq(++i);
         }
@@ -233,6 +206,9 @@ EarthApplication::EarthApplication(int &argc, char **argv)
         }
     }
 */
+    auto optNice =clp->getNice();
+    if (optNice)
+        setpriority(PRIO_PROCESS, getpid(), *optNice);
 
     if (clp->isKde()) {
         dwidget = std::make_unique<DesktopWidget>();
@@ -247,36 +223,6 @@ EarthApplication::~EarthApplication(void)
     timer->stop();
 }
 
-/* ------------------------------------------------------------------------*/
-
-void EarthApplication::readBG(int i)
-{
-    /*
-    if (i >= argc()) {
-        printUsage();
-        exit(1);
-    }
-
-    argc_bg = i;
-    with_bg = true;
-    show_stars = false;
-    */
-}
-
-
-void EarthApplication::readPriority(int i)
-{
-    /*
-    int pri;
-
-    if (i >= argc()) {
-        printUsage();
-        exit(1);
-    }
-    pri = atoi(argv()[i]);
-    setPriority(pri);
-    */
-}
 
 /* ------------------------------------------------------------------------*/
 
@@ -630,30 +576,7 @@ void EarthApplication::readOutFileName(int i)
     */
 }
 
-/* ------------------------------------------------------------------------*/
 
-
-
-/* ------------------------------------------------------------------------*/
-
-void EarthApplication::setPriority(int pri)
-{
-    setpriority(PRIO_PROCESS, getpid(), pri);
-}
-
-/* ------------------------------------------------------------------------*/
-
-void EarthApplication::printUsage()
-{
-}
-
-/* ------------------------------------------------------------------------*/
-
-void EarthApplication::printHelp()
-{
-}
-
-/* ------------------------------------------------------------------------*/
 
 void EarthApplication::init()
 {
@@ -674,9 +597,7 @@ void EarthApplication::init()
     if (with_cloudmap)
         r->loadCloudMap(QString());
         //r->loadCloudMap((argc_cloudmap != -1) ? argv()[argc_cloudmap] : (const char*)nullptr, cloud_filter);
-    if (with_bg)
-        r->loadBackImage(QString());
-        //r->loadBackImage(((argc_bg != -1) ? argv()[argc_bg] : (const char*)nullptr), tiled);
+    r->loadBackImage(clp->getBackGFileName(), clp->isTiled());
     r->setViewPos(clp->getGeoCoordinate()->getLatitude(), clp->getGeoCoordinate()->getLongitude());
     r->setZoom(clp->getMag());
     r->setAmbientRGB(ambient_red, ambient_green, ambient_blue);
@@ -693,11 +614,11 @@ void EarthApplication::init()
     const auto lables = clp->computeLabelPosition();
     r->setLabelPos(std::get<0>(lables), std::get<1>(lables));
     r->setShadeArea(shade_area);
-    r->showLabel(show_label);
+    r->showLabel(clp->isShowLabel());
     r->setNumGridLines(grid1);
     r->setNumGridDots(grid2 * grid1 * 4);
     r->setGridType(grid_type);
-    r->setStars(star_freq, show_stars);
+    r->setStars(star_freq, clp->isStars());
     const auto shift = clp->computeLabelPosition();
     r->setShift(std::get<0>(shift), std::get<1>(shift));
     r->setTransition(transition);

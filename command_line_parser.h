@@ -21,8 +21,13 @@ public:
     std::pair<int,int> computeLabelPosition() const;
     std::pair<int,int> computeShiftPosition() const;
     QString getMapFileName() const;
+    QString getBackGFileName() const;
     TGeoCoordinatePtr getGeoCoordinate() const;
     void computeRandomPosition();
+    bool isTiled() const;
+    bool isStars() const;
+    std::optional<int> getNice() const;
+    bool isShowLabel() const;
 
 private:
     void computeCoordinate();
@@ -50,7 +55,6 @@ private:
     QCommandLineOption posMoonPosOption;
     QCommandLineOption posRandomOption;
     QCommandLineOption posOrbitOption;
-    QCommandLineOption dirOption;
     QCommandLineOption waitOption;
     QCommandLineOption magOption;
     QCommandLineOption rotOption;

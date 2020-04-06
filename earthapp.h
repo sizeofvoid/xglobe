@@ -83,7 +83,6 @@ public:
 private:
     void readZoom(int i);
     void readBG(int i);
-    void readPriority(int i);
     void readMarkerFile(int i);
     void readMarkerFont(int i);
     void readMarkerFontSize(int i);
@@ -105,11 +104,6 @@ private:
     void readShadeArea(int i);
     void readOutFileName(int i);
     void readRotation(int i);
-    void printUsage();
-    void printHelp();
-    void randomPosition();
-    void orbitPosition(time_t);
-    void setPriority(int pri);
 
     void firstRecalc(time_t);
     void processImage();
@@ -121,15 +115,12 @@ protected:
 
     bool builtin_markers = true;
     bool show_markers = true;
-    bool show_label = true;
     double ambient_red = 0.15;
     double ambient_blue = 0.15;
     double ambient_green = 0.15;
     double fov = 1.;
     bool with_nightmap = false;
     bool with_cloudmap = false;
-    bool with_bg = false;
-    bool tiled = false;
     bool show_stars = true;
     double star_freq = 0.002;
     char* dumpcmd = nullptr;
