@@ -69,7 +69,7 @@ CommandLineParser::CommandLineParser(QCoreApplication* parent)
       grid1Option(QStringList() << "grid1", "Specify the spacing of major grid lines: they are drawn with 90/grid1 degree spacing. (default: -grid1 6 which corresponds to 15(o) between grid lines)", "grid1", ""),
       grid2Option(QStringList() << "grid2", "Specify spacing of dots along major grid lines. Along the equator and lines of longitude, grid dots are drawn with a 90/(grid1 x grid2) degree spacing. (default: -grid2 15 which corresponds, along with -grid1 6, to a 1(o) spacing)", "grid2", "15"),
       timewarpOption(QStringList() << "timewarp", "Scale the apparent rate at which time progresses by 'factor'.", "factor", "1.0"),
-      sizeOption(QStringList() << "size", "Specify the size of the image to be rendered (useful in conjuntion with -dump). size_spec consists of two components, both positive integers. They are interpreted as the width and height (in pixels) of the image. The details provided for position specifiers (see above) about the characters used to delimit specifier components apply to size specifiers as well.(default: size of the desktop)", "size_spec", ""),
+      sizeOption(QStringList() << "size", "Specify the size of the image to be rendered (useful in conjuntion with -dump). size_spec consists of two components, both positive integers. They are interpreted as the width and height (in pixels) of the image. The details provided for position specifiers (see above) about the characters used to delimit specifier components apply to size specifiers as well. (default: size of the desktop)", "size_spec", ""),
       shiftOption(QStringList() << "shift", "Specify that the center of the rendered image should be shifted by some amount from the center of the image. The spec consists of two components, both integers; these components are interpreted as the offsets (in pixels) in the X and Y directions. By default, the center of the rendered image is aligned with the center of the image.", "spec", ""),
       backgOption(QStringList() << "backg", "Use the image in file as the screen background, instead of a black screen, which is the default.", "file", ""),
       starfreqOption(QStringList() << "starfreq", "If displaying of stars is enabled, frequency percent of the background pixels are turned into stars", "frequency", "0.002"),
@@ -172,6 +172,17 @@ CommandLineParser::getDoubleByValue(double defaultValue, QCommandLineOption cons
     return ok ? d : defaultValue;
 }
 
+int
+CommandLineParser::getIntByValue(int defaultValue, QCommandLineOption const& option) const
+{
+    if (!isSet(option))
+        return defaultValue;
+    QString s = value(option);
+    bool ok;
+    const int d = s.toInt(&ok);
+    return ok ? d : defaultValue;
+}
+
 double
 CommandLineParser::getWait() const
 {
@@ -206,6 +217,18 @@ CommandLineParser::getBackGFileName() const
         qWarning() << "Mapfile not exists: " << backGFile;
 
     return exists ? backGFile : QString();
+}
+
+QString
+CommandLineParser::getMarkerFileName() const
+{
+    const QString markerFileName = value(markerfileOption);
+    QFile file(markerFileName);
+    bool exists = file.exists();
+    if (!exists)
+        qWarning() << "Mapfile not exists: " << markerFileName;
+
+    return exists ? markerFileName : QString();
 }
 
 void
@@ -395,3 +418,65 @@ CommandLineParser::isShowLabel() const
     return isSet(labelOption) && !isSet(labelOption);
 }
 
+double
+CommandLineParser::getRotation() const
+{
+    return getDoubleByValue(0, rotOption);
+}
+
+bool
+CommandLineParser::isShowMarker() const
+{
+    return isSet(markersOption) || isSet(markerfileOption);
+}
+
+bool
+CommandLineParser::isBuiltinMarkers() const
+{
+    return isSet(markersOption) && !isSet(nomarkersOption);
+}
+
+bool
+CommandLineParser::isDumpToFile() const
+{
+    return isSet(dumpOption);
+}
+
+QSize
+CommandLineParser::getSize() const
+{
+    if (!isSet(sizeOption)) {
+        return {};
+    }
+
+    QString val = value(sizeOption);
+    auto vals = val.splitRef(QLatin1String(":"));
+    if (vals.isEmpty() || vals.size() != 2) {
+        qWarning() <<warn;
+        return {default_x, default_y};
+    }
+
+    bool ok = false;
+    int width = vals.at(0).toInt(&ok);
+    if (!ok)
+        throw std::logic_error("QString::toDouble");
+
+    int height = vals.at(1).toInt(&ok);
+    if (!ok)
+        throw std::logic_error("QString::toDouble");
+
+    qDebug() << "positions width: " << width << " height: " << height;
+    return {width, height};
+}
+
+int
+CommandLineParser::getGrid1() const
+{
+    return getDoubleByValue(6, grid1Option);
+}
+
+int
+CommandLineParser::getGrid2() const
+{
+    return getDoubleByValue(15, grid2Option);
+}

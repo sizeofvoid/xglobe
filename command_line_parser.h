@@ -22,16 +22,25 @@ public:
     std::pair<int,int> computeShiftPosition() const;
     QString getMapFileName() const;
     QString getBackGFileName() const;
+    QString getMapFileName() const;
     TGeoCoordinatePtr getGeoCoordinate() const;
     void computeRandomPosition();
     bool isTiled() const;
     bool isStars() const;
     std::optional<int> getNice() const;
     bool isShowLabel() const;
+    double getRotation() const;
+    bool isShowMarker() const;
+    bool isBuiltinMarkers() const;
+    bool isDumpToFile() const;
+    QSize getSize() const;
+    int getGrid1() const;
+    int getGrid2() const;
 
 private:
     void computeCoordinate();
     double getDoubleByValue(double, QCommandLineOption const&) const;
+    int getIntByValue(int, QCommandLineOption const&) const;
     std::pair<int,int> computeXYPosition(int, int, QString const&, QCommandLineOption const&) const;
 
     QTemporaryFile tmpImageFile;

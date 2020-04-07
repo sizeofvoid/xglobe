@@ -83,7 +83,6 @@ public:
 private:
     void readZoom(int i);
     void readBG(int i);
-    void readMarkerFile(int i);
     void readMarkerFont(int i);
     void readMarkerFontSize(int i);
     void readShift(int i);
@@ -94,9 +93,7 @@ private:
     void readCloudMapFile(int i);
     void readCloudFilter(int i);
     void readDumpCmd(int i);
-    void readFov(int i);
     int readGridVal(int i);
-    void readSize(int i);
     void readOrbit(int i);
     void readTimeWarp(int i);
     void readStarFreq(int i);
@@ -137,11 +134,8 @@ protected:
     const char* markerfont = "helvetica";
     int markerfontsize = 12;
     int grid_type;
-    int grid1 = 6;
-    int grid2 = 15;
     double transition = 0.0;
     double shade_area = 1.0;
-    double rotation = 0.0;
     QString out_file_name;
 
 private:
@@ -151,11 +145,8 @@ private:
     QTimer* timer = nullptr;
 
     bool firstTime = true;
-    bool do_the_dump = false;
     bool do_dumpcmd = false;
-    bool use_kde = false;
-    bool have_size = false;
-    QSize size;
+
 #if defined (XWALLPAPER_BIN)
     const QString xwallpaper_bin = QLatin1String(XWALLPAPER_BIN);
 #else

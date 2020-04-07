@@ -97,12 +97,7 @@ EarthApplication::EarthApplication(int &argc, char **argv)
     // evaluate command line parameters
     /*
     for (QString arg : arguments()) {
-        else if (strcmp(argv()[i], "-markers") == 0) {
-            builtin_markers = true;
-            show_markers = true;
-        }
         else if (strcmp(argv()[i], "-nomarkers") == 0) {
-            builtin_markers = false;
             show_markers = false;
         }
         else if (strcmp(argv()[i], "-markerfont") == 0) {
@@ -113,18 +108,11 @@ EarthApplication::EarthApplication(int &argc, char **argv)
             readMarkerFontSize(++i);
             show_markers = true;
         }
-        else if (strcmp(argv()[i], "-markerfile") == 0) {
-            readMarkerFile(++i);
-            show_markers = true;
-        }
         else if (strcmp(argv()[i], "-ambientlight") == 0) {
             readAmbientLight(++i);
         }
         else if (strcmp(argv()[i], "-ambientrgb") == 0) {
             readAmbientRGB(++i);
-        }
-        else if (strcmp(argv()[i], "-fov") == 0) {
-            readFov(++i);
         }
         else if (strcmp(argv()[i], "-nightmap") == 0) {
             with_nightmap = true;
@@ -150,13 +138,6 @@ EarthApplication::EarthApplication(int &argc, char **argv)
             readCloudMapFile(++i);
             with_nightmap = with_cloudmap = true;
         }
-        else if (strcmp(argv()[i], "-help") == 0) {
-            printHelp();
-            exit(0);
-        }
-        else if (strcmp(argv()[i], "-dump") == 0) {
-            do_the_dump = true;
-        }
         else if (strcmp(argv()[i], "-outfile") == 0) {
             readOutFileName(++i);
         }
@@ -168,10 +149,6 @@ EarthApplication::EarthApplication(int &argc, char **argv)
             readTimeWarp(i + 1);
             i++;
         }
-        else if (strcmp(argv()[i], "-size") == 0) {
-            readSize(++i);
-            have_size = true;
-        }
         else if (strcmp(argv()[i], "-nogrid") == 0) {
             grid_type = Renderer::NO_GRID;
         }
@@ -181,12 +158,6 @@ EarthApplication::EarthApplication(int &argc, char **argv)
         else if (strcmp(argv()[i], "-newgrid") == 0) {
             grid_type = Renderer::NICE_GRID;
         }
-        else if (strcmp(argv()[i], "-grid1") == 0) {
-            grid1 = readGridVal(++i);
-        }
-        else if (strcmp(argv()[i], "-grid2") == 0) {
-            grid2 = readGridVal(++i);
-        }
         else if (strcmp(argv()[i], "-starfreq") == 0) {
             readStarFreq(++i);
         }
@@ -195,9 +166,6 @@ EarthApplication::EarthApplication(int &argc, char **argv)
         }
         else if (strcmp(argv()[i], "-shade_area") == 0) {
             readShadeArea(++i);
-        }
-        else if (strcmp(argv()[i], "-rot") == 0) {
-            readRotation(++i);
         }
         else {
             fprintf(stderr, "Unknown command line switch: %s\n\n", argv()[i]);
@@ -221,23 +189,6 @@ EarthApplication::EarthApplication(int &argc, char **argv)
 EarthApplication::~EarthApplication(void)
 {
     timer->stop();
-}
-
-
-/* ------------------------------------------------------------------------*/
-
-void EarthApplication::readMarkerFile(int i)
-{
-    /*
-    if (i >= argc()) {
-        printUsage();
-        exit(1);
-    }
-    if (!appendMarkerFile(marker_list, argv()[i])) {
-        // bail out
-        exit(1);
-    }
-    */
 }
 
 void EarthApplication::readMarkerFont(int i)
@@ -268,43 +219,6 @@ void EarthApplication::readMarkerFontSize(int i)
     */
 }
 
-
-void EarthApplication::readSize(int i)
-{
-    /*
-    int pos;
-    int width, height;
-
-    if (i >= argc()) {
-        printUsage();
-        exit(1);
-    }
-
-    QString s(argv()[i]);
-    s.simplified();
-
-    pos = s.find(' ');
-    if (pos == -1)
-        pos = s.find(',');
-    if (pos == -1)
-        pos = s.find('/');
-    if (pos == -1) {
-        printUsage();
-        exit(1);
-    }
-
-    width = s.left(pos).toInt();
-    height = s.right(s.length() - pos - 1).toInt();
-    if ((width <= 0) || (height <= 0)) {
-        printUsage();
-        exit(1);
-    }
-    size.setWidth(width);
-    size.setHeight(height);
-    */
-}
-
-/* ------------------------------------------------------------------------*/
 
 void EarthApplication::readAmbientLight(int i)
 {
@@ -378,23 +292,6 @@ void EarthApplication::readAmbientRGB(int i)
     else if (ambient_blue < 0.)
         ambient_blue = 0.;
     ambient_blue /= 100.;
-    */
-}
-
-/* ------------------------------------------------------------------------*/
-
-void EarthApplication::readFov(int i)
-{
-    /*
-    if (i >= argc()) {
-        printUsage();
-        exit(1);
-    }
-    fov = atof(argv()[i]);
-    if (fov <= 0)
-        fov = -1.;
-    else if (fov >= 90.)
-        fov = -1.;
     */
 }
 
@@ -554,18 +451,6 @@ void EarthApplication::readShadeArea(int i)
     */
 }
 
-/* ------------------------------------------------------------------------*/
-
-void EarthApplication::readRotation(int i)
-{
-    /*
-    if (i >= argc()) {
-        printUsage();
-        exit(1);
-    }
-    rotation = atof(argv()[i]);
-    */
-}
 
 /* ------------------------------------------------------------------------*/
 
@@ -581,8 +466,10 @@ void EarthApplication::readOutFileName(int i)
 void EarthApplication::init()
 {
     QString std_marker_filename("xglobe-markers");
+    
+    const QSize size = clp->getSize();
 
-    if (have_size) {
+    if (size,isValid()) {
         r = std::make_unique<Renderer>(size, clp->getMapFileName());
     }
     else {
@@ -601,28 +488,36 @@ void EarthApplication::init()
     r->setViewPos(clp->getGeoCoordinate()->getLatitude(), clp->getGeoCoordinate()->getLongitude());
     r->setZoom(clp->getMag());
     r->setAmbientRGB(ambient_red, ambient_green, ambient_blue);
+    // XXX No docs
+    /*
+    if (fov <= 0)
+        fov = -1.;
+    else if (fov >= 90.)
+        fov = -1.;
+
     if (fov != -1.)
         r->setFov(fov);
+    */
 
-    if (builtin_markers) {
-        if (!appendMarkerFile(marker_list, std_marker_filename))
+    if (cpl->isBuiltinMarkers() && !cpl->getMapFileName().isEmpty()) {
+        if (!appendMarkerFile(marker_list, cpl->getMapFileName()))
             exit(12);
     }
     marker_list.set_font(markerfont, markerfontsize);
-    if (show_markers)
+    if (cpl->isShowMarker())
         r->setMarkerList(&marker_list);
     const auto lables = clp->computeLabelPosition();
     r->setLabelPos(std::get<0>(lables), std::get<1>(lables));
     r->setShadeArea(shade_area);
     r->showLabel(clp->isShowLabel());
-    r->setNumGridLines(grid1);
-    r->setNumGridDots(grid2 * grid1 * 4);
+    r->setNumGridLines(clp->getGrid1());
+    r->setNumGridDots(clp->getGrid2() * clp->getGrid1() * 4);
     r->setGridType(grid_type);
     r->setStars(star_freq, clp->isStars());
     const auto shift = clp->computeLabelPosition();
     r->setShift(std::get<0>(shift), std::get<1>(shift));
     r->setTransition(transition);
-    r->setRotation(rotation);
+    r->setRotation(clp->getRotation());
 
     QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(recalc()));
@@ -715,7 +610,7 @@ void EarthApplication::firstRecalc(time_t start_time)
     }
     r->renderFrame();
 
-    if (do_the_dump) {
+    if (clp->isDumpToFile()) {
         QImage* i = r->getImage();
         i->save(out_file_name, "PNG");
         exit(0);
