@@ -38,6 +38,12 @@ public:
     QSize getSize() const;
     int getGrid1() const;
     int getGrid2() const;
+    double getTimeWrap() const;
+    QString getNightMapfile() const;
+    QString getCloudMapFile() const;
+    int getCloudMapFilter() const;
+    bool isNightmap() const;
+    double getStarFreq() const;
 
 private:
     void computeCoordinate();

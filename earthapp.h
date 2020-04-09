@@ -93,7 +93,6 @@ private:
     void readDumpCmd(int i);
     int readGridVal(int i);
     void readOrbit(int i);
-    void readTimeWarp(int i);
     void readStarFreq(int i);
     void readTransition(int i);
     void readShadeArea(int i);
@@ -127,7 +126,6 @@ protected:
     int cloud_filter = 120;
     time_t start_time;
     time_t current_time;
-    double time_warp = 1.0;
     MarkerList marker_list;
     int grid_type;
     double transition = 0.0;

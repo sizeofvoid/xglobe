@@ -97,38 +97,11 @@ EarthApplication::EarthApplication(int &argc, char **argv)
     // evaluate command line parameters
     /*
     for (QString arg : arguments()) {
-        else if (strcmp(argv()[i], "-nomarkers") == 0) {
-            show_markers = false;
-        }
         else if (strcmp(argv()[i], "-ambientlight") == 0) {
             readAmbientLight(++i);
         }
         else if (strcmp(argv()[i], "-ambientrgb") == 0) {
             readAmbientRGB(++i);
-        }
-        else if (strcmp(argv()[i], "-nightmap") == 0) {
-            with_nightmap = true;
-        }
-        else if (strcmp(argv()[i], "-nonightmap") == 0) {
-            with_nightmap = false;
-        }
-        else if (strcmp(argv()[i], "-nightmapfile") == 0 || strcmp(argv()[i], "-nightmap") == 0 || strcmp(argv()[i], "-night") == 0) {
-            readNightMapFile(++i);
-            with_nightmap = true;
-        }
-        else if (strcmp(argv()[i], "-cloudmapfile") == 0 || strcmp(argv()[i], "-cloudmap") == 0 || strcmp(argv()[i], "-cloud") == 0 || strcmp(argv()[i], "-clouds") == 0) {
-            readCloudMapFile(++i);
-            with_cloudmap = true;
-        }
-        else if (strcmp(argv()[i], "-cloudfilter") == 0 || strcmp(argv()[i], "-filter") == 0) {
-            readCloudFilter(++i);
-            with_cloudmap = true;
-        }
-        else if (strcmp(argv()[i], "-maps") == 0) {
-            readMapFile(++i);
-            readNightMapFile(++i);
-            readCloudMapFile(++i);
-            with_nightmap = with_cloudmap = true;
         }
         else if (strcmp(argv()[i], "-outfile") == 0) {
             readOutFileName(++i);
@@ -136,10 +109,6 @@ EarthApplication::EarthApplication(int &argc, char **argv)
         else if (strcmp(argv()[i], "-dumpcmd") == 0) {
             readDumpCmd(++i);
             do_dumpcmd = true;
-        }
-        else if (strcmp(argv()[i], "-timewarp") == 0) {
-            readTimeWarp(i + 1);
-            i++;
         }
         else if (strcmp(argv()[i], "-nogrid") == 0) {
             grid_type = Renderer::NO_GRID;
@@ -149,9 +118,6 @@ EarthApplication::EarthApplication(int &argc, char **argv)
         }
         else if (strcmp(argv()[i], "-newgrid") == 0) {
             grid_type = Renderer::NICE_GRID;
-        }
-        else if (strcmp(argv()[i], "-starfreq") == 0) {
-            readStarFreq(++i);
         }
         else if (strcmp(argv()[i], "-term") == 0) {
             readTransition(++i);
@@ -259,26 +225,6 @@ void EarthApplication::readAmbientRGB(int i)
     */
 }
 
-/* ------------------------------------------------------------------------*/
-
-void EarthApplication::readTimeWarp(int i)
-{
-    /*
-    if (i >= argc()) {
-        printUsage();
-        exit(1);
-    }
-    time_warp = atof(argv()[i]);
-    if (time_warp < 0.0) {
-        printf("Error: timewarp must be positive!\n");
-        printUsage();
-        exit(1);
-    }
-    */
-}
-
-
-/* ------------------------------------------------------------------------*/
 
 void EarthApplication::readDumpCmd(int i)
 {
@@ -298,50 +244,7 @@ void EarthApplication::readDumpCmd(int i)
     */
 }
 
-/* ------------------------------------------------------------------------*/
 
-void EarthApplication::readNightMapFile(int i)
-{
-    /*
-    if (i >= argc()) {
-        printUsage();
-        exit(1);
-    }
-    argc_nightmap = i;
-    */
-}
-
-/* ------------------------------------------------------------------------*/
-
-void EarthApplication::readCloudMapFile(int i)
-{
-    /*
-    if (i >= argc()) {
-        printUsage();
-        exit(1);
-    }
-    argc_cloudmap = i;
-    */
-}
-
-/* ------------------------------------------------------------------------*/
-
-void EarthApplication::readCloudFilter(int i)
-{
-    /*
-    if (i >= argc()) {
-        printUsage();
-        exit(1);
-    }
-    cloud_filter = atoi(argv()[i]);
-    if (cloud_filter < 0)
-        cloud_filter = 0;
-    if (cloud_filter > 255)
-        cloud_filter = 255;
-    */
-}
-
-/* ------------------------------------------------------------------------*/
 
 int EarthApplication::readGridVal(int i)
 {
@@ -362,24 +265,6 @@ int EarthApplication::readGridVal(int i)
     return 0;
 }
 
-/* ------------------------------------------------------------------------*/
-
-void EarthApplication::readStarFreq(int i)
-{
-    /*
-    if (i >= argc()) {
-        printUsage();
-        exit(1);
-    }
-    star_freq = atof(argv()[i]);
-    if (star_freq < 0.0) {
-        printf("Error: star frequency must be positive!\n");
-        printUsage();
-        exit(1);
-    }
-    */
-}
-/* ------------------------------------------------------------------------*/
 
 void EarthApplication::readTransition(int i)
 {
@@ -442,12 +327,18 @@ void EarthApplication::init()
     }
 
     /* initialize the Renderer */
-    if (with_nightmap)
-        r->loadNightMap(QString());
-        //r->loadNightMap((argc_nightmap != -1) ? argv()[argc_nightmap] : (const char*)nullptr);
-    if (with_cloudmap)
-        r->loadCloudMap(QString());
-        //r->loadCloudMap((argc_cloudmap != -1) ? argv()[argc_cloudmap] : (const char*)nullptr, cloud_filter);
+    const QString nightmapfile = clp->getNightMapfile();
+    if (clp->isNightmap() && !nightmapfile.isEmpty())
+        r->loadNightMap(nightmapfile);
+    else if (!clp->getMapFileName().isEmpty())
+        r->loadNightMap(clp->getMapFileName());
+
+    const QString cloudmapfile= clp->getCloudMapFile();
+    if (!cloudmapfile.isEmpty())
+        r->loadCloudMap(cloudmapfile, clp->getCloudMapFilter());
+    else if (!clp->getMapFileName().isEmpty())
+        r->loadCloudMap(clp->getMapFileName(), clp->getCloudMapFilter());
+
     r->loadBackImage(clp->getBackGFileName(), clp->isTiled());
     r->setViewPos(clp->getGeoCoordinate()->getLatitude(), clp->getGeoCoordinate()->getLongitude());
     r->setZoom(clp->getMag());
@@ -477,7 +368,7 @@ void EarthApplication::init()
     r->setNumGridLines(clp->getGrid1());
     r->setNumGridDots(clp->getGrid2() * clp->getGrid1() * 4);
     r->setGridType(grid_type);
-    r->setStars(star_freq, clp->isStars());
+    r->setStars(clp->getStarFreq(), clp->isStars());
     const auto shift = clp->computeLabelPosition();
     r->setShift(std::get<0>(shift), std::get<1>(shift));
     r->setTransition(transition);
@@ -502,7 +393,7 @@ void EarthApplication::recalc()
     processImage();
 
     current_time = time(nullptr) + clp->getWait();
-    current_time = (time_t)(start_time + (current_time - start_time) * time_warp);
+    current_time = (time_t)(start_time + (current_time - start_time) * clp->getTimeWrap());
     r->setTime(current_time);
     switch (clp->getGeoCoordinate()->getType()) {
     case PosType::fixed:

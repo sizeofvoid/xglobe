@@ -134,6 +134,8 @@ CommandLineParser::CommandLineParser(QCoreApplication* parent)
    addOption(starfreqOption);
    addOption(termOption);
    addOption(shade_areaOption);
+   addOption(markerFontOption);
+   addOption(markerFontSizeOption);
 
     // Process the actual command line arguments given by the user
     process(*parent);
@@ -497,3 +499,56 @@ CommandLineParser::getGrid2() const
 {
     return getIntByValue(15, grid2Option);
 }
+
+double
+CommandLineParser::getTimeWrap() const
+{
+    return getDoubleByValue(15, timewarpOption);
+}
+
+QString
+CommandLineParser::getNightMapfile() const
+{
+    if (!isSet(nightmapfileOption))
+        return {};
+    const QString nightmapfile = value(nightmapfileOption);
+    QFile file(nightmapfile);
+    bool exists = file.exists();
+    if (!exists)
+        qWarning() << "Mapfile not exists: " << nightmapfile;
+
+    return exists ? nightmapfile : QString();
+}
+
+QString
+CommandLineParser::getCloudMapFile() const
+{
+    if (!isSet(cloudmapfileOption))
+        return {};
+    const QString cloudmapfile = value(cloudmapfileOption);
+    QFile file(cloudmapfile);
+    bool exists = file.exists();
+    if (!exists)
+        qWarning() << "Mapfile not exists: " << cloudmapfile;
+
+    return exists ? cloudmapfile : QString();
+}
+
+int
+CommandLineParser::getCloudMapFilter() const
+{
+    return getIntByValue(120, cloudfilterOption);
+}
+
+bool
+CommandLineParser::isNightmap() const
+{
+    return isSet(nightmapOption) || isSet(nonightmapOption);
+}
+
+double
+CommandLineParser::getStarFreq() const
+{
+    return getDoubleByValue(0.1, starfreqOption);
+}
+
