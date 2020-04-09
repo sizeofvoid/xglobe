@@ -90,8 +90,7 @@ public:
     void setShadeArea(double area);
     void setStars(double f, bool show);
     void setLabelPos(int x, int y);
-    void setAmbientRGB(double ambient_red, double ambient_green,
-        double ambient_blue);
+    void setAmbientRGB(QRgba64 const&);
     void setFov(double fov);
     void setNumGridLines(int num);
     int getNumGridLines();

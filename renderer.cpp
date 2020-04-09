@@ -74,6 +74,7 @@
 #include <QApplication>
 #include <QDateTime>
 #include <QPainter>
+#include <QRgba64>
 #include <QPixmap>
 #include <stdio.h>
 #include <stdlib.h>
@@ -418,8 +419,7 @@ void Renderer::setShadeArea(double area)
 
 /* ------------------------------------------------------------------------*/
 
-void Renderer::setAmbientRGB(double ambient_red, double ambient_green,
-    double ambient_blue)
+void Renderer::setAmbientRGB(QRgba64 const& rgb)
 {
     const int samples = 100;
     if (mapnight != nullptr) {
@@ -444,9 +444,9 @@ void Renderer::setAmbientRGB(double ambient_red, double ambient_green,
         ambientBlue = ((double)nb_tot) / db_tot;
     }
     else {
-        ambientRed = ambient_red;
-        ambientGreen = ambient_green;
-        ambientBlue = ambient_blue;
+        ambientRed = rgb.red();
+        ambientGreen = rgb.green();
+        ambientBlue = rgb.blue();
     }
 }
 

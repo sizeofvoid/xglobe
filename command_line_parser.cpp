@@ -25,6 +25,7 @@
 
 #include <QCoreApplication>
 #include <QDir>
+#include <QRgba64>
 #include <QSize>
 #include <QDebug>
 
@@ -552,3 +553,93 @@ CommandLineParser::getStarFreq() const
     return getDoubleByValue(0.1, starfreqOption);
 }
 
+QRgba64
+CommandLineParser::computeRgb() const
+{
+    if (isSet(ambientlightOption)) {
+    /*
+    if (i >= argc()) {
+        printUsage();
+        exit(1);
+    }
+    ambient_red = atof(argv()[i]);
+    if (ambient_red > 100.)
+        ambient_red = 100.;
+    else if (ambient_red < 0.)
+        ambient_red = 0.;
+
+    ambient_red /= 100.;
+    ambient_green = ambient_blue = ambient_red;
+    */
+    }
+    else if (isSet(ambientrgbOption)) {
+    /*
+    int pos;
+
+    if (i >= argc()) {
+        printUsage();
+        exit(1);
+    }
+
+    QString s(argv()[i]);
+    s.simplified();
+
+    pos = s.find(' ');
+    if (pos == -1)
+        pos = s.find(',');
+    if (pos == -1)
+        pos = s.find('/');
+    if (pos == -1) {
+        printUsage();
+        exit(1);
+    }
+
+    ambient_red = s.left(pos).toDouble();
+    ambient_green = s.right(s.length() - pos - 1).toDouble();
+    s = s.right(s.length() - pos - 1);
+    pos = s.find(' ');
+    if (pos == -1)
+        pos = s.find(',');
+    if (pos == -1)
+        pos = s.find('/');
+    if (pos == -1) {
+        printUsage();
+        exit(1);
+    }
+    ambient_blue = s.right(s.length() - pos - 1).toDouble();
+
+    if (ambient_red > 100.)
+        ambient_red = 100.;
+    else if (ambient_red < 0.)
+        ambient_red = 0.;
+    ambient_red /= 100.;
+    if (ambient_green > 100.)
+        ambient_green = 100.;
+    else if (ambient_green < 0.)
+        ambient_green = 0.;
+    ambient_green /= 100.;
+    if (ambient_blue > 100.)
+        ambient_blue = 100.;
+    else if (ambient_blue < 0.)
+        ambient_blue = 0.;
+    ambient_blue /= 100.;
+    */
+    }
+    return QRgba64::fromRgba64(0.15, 0.15, 0.15, 0);
+}
+
+QString
+CommandLineParser::getOutputFileName() const
+{
+    return value(outfileOption);
+}
+
+double
+CommandLineParser::getTransition() const
+{
+    double transition = getDoubleByValue(0.0, termOption);
+    if((transition < 0.0) || (transition > 100.0))
+        qCritical("transition should be >0 and <100.\n");
+    transition /= 100.0;
+    return transition;
+}

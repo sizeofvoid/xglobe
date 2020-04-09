@@ -6,6 +6,7 @@
 
 class QCoreApplication;
 class GeoCoordinate;
+class QRgba64;
 
 class CommandLineParser : public QCommandLineParser
 {
@@ -44,6 +45,9 @@ public:
     int getCloudMapFilter() const;
     bool isNightmap() const;
     double getStarFreq() const;
+    QRgba64 computeRgb() const;
+    QString getOutputFileName() const;
+    double getTransition() const;
 
 private:
     void computeCoordinate();

@@ -130,13 +130,13 @@ protected:
     int grid_type;
     double transition = 0.0;
     double shade_area = 1.0;
-    QString out_file_name;
 
 private:
     std::unique_ptr<CommandLineParser> clp;
     std::unique_ptr<Renderer> r;
     std::unique_ptr<DesktopWidget> dwidget;
     QTimer* timer = nullptr;
+    QString out_file_name;
 
     bool firstTime = true;
     bool do_dumpcmd = false;

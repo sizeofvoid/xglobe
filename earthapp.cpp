@@ -86,26 +86,17 @@
 #include <sys/resource.h>
 #include <sys/time.h>
 
-/* ------------------------------------------------------------------------*/
-
 EarthApplication::EarthApplication(int &argc, char **argv)
     : QApplication(argc, argv),
-      out_file_name(QString("xglobe-dump.png")),
       grid_type(Renderer::NO_GRID),
-      clp(new CommandLineParser(this))
+      clp(new CommandLineParser(this)),
+      out_file_name(clp->getOutputFileName().isEmpty()
+                    ? QString("xglobe-dump.png")
+                    : clp->getOutputFileName())
 {
     // evaluate command line parameters
     /*
     for (QString arg : arguments()) {
-        else if (strcmp(argv()[i], "-ambientlight") == 0) {
-            readAmbientLight(++i);
-        }
-        else if (strcmp(argv()[i], "-ambientrgb") == 0) {
-            readAmbientRGB(++i);
-        }
-        else if (strcmp(argv()[i], "-outfile") == 0) {
-            readOutFileName(++i);
-        }
         else if (strcmp(argv()[i], "-dumpcmd") == 0) {
             readDumpCmd(++i);
             do_dumpcmd = true;
@@ -118,9 +109,6 @@ EarthApplication::EarthApplication(int &argc, char **argv)
         }
         else if (strcmp(argv()[i], "-newgrid") == 0) {
             grid_type = Renderer::NICE_GRID;
-        }
-        else if (strcmp(argv()[i], "-term") == 0) {
-            readTransition(++i);
         }
         else if (strcmp(argv()[i], "-shade_area") == 0) {
             readShadeArea(++i);
@@ -142,89 +130,10 @@ EarthApplication::EarthApplication(int &argc, char **argv)
     }
 }
 
-/* ------------------------------------------------------------------------*/
-
 EarthApplication::~EarthApplication(void)
 {
     timer->stop();
 }
-
-
-void EarthApplication::readAmbientLight(int i)
-{
-    /*
-    if (i >= argc()) {
-        printUsage();
-        exit(1);
-    }
-    ambient_red = atof(argv()[i]);
-    if (ambient_red > 100.)
-        ambient_red = 100.;
-    else if (ambient_red < 0.)
-        ambient_red = 0.;
-
-    ambient_red /= 100.;
-    ambient_green = ambient_blue = ambient_red;
-    */
-}
-
-/* ------------------------------------------------------------------------*/
-
-void EarthApplication::readAmbientRGB(int i)
-{
-    /*
-    int pos;
-
-    if (i >= argc()) {
-        printUsage();
-        exit(1);
-    }
-
-    QString s(argv()[i]);
-    s.simplified();
-
-    pos = s.find(' ');
-    if (pos == -1)
-        pos = s.find(',');
-    if (pos == -1)
-        pos = s.find('/');
-    if (pos == -1) {
-        printUsage();
-        exit(1);
-    }
-
-    ambient_red = s.left(pos).toDouble();
-    ambient_green = s.right(s.length() - pos - 1).toDouble();
-    s = s.right(s.length() - pos - 1);
-    pos = s.find(' ');
-    if (pos == -1)
-        pos = s.find(',');
-    if (pos == -1)
-        pos = s.find('/');
-    if (pos == -1) {
-        printUsage();
-        exit(1);
-    }
-    ambient_blue = s.right(s.length() - pos - 1).toDouble();
-
-    if (ambient_red > 100.)
-        ambient_red = 100.;
-    else if (ambient_red < 0.)
-        ambient_red = 0.;
-    ambient_red /= 100.;
-    if (ambient_green > 100.)
-        ambient_green = 100.;
-    else if (ambient_green < 0.)
-        ambient_green = 0.;
-    ambient_green /= 100.;
-    if (ambient_blue > 100.)
-        ambient_blue = 100.;
-    else if (ambient_blue < 0.)
-        ambient_blue = 0.;
-    ambient_blue /= 100.;
-    */
-}
-
 
 void EarthApplication::readDumpCmd(int i)
 {
@@ -243,8 +152,6 @@ void EarthApplication::readDumpCmd(int i)
     sprintf(dumpfile, "%s/xglobe.bmp", cwd);
     */
 }
-
-
 
 int EarthApplication::readGridVal(int i)
 {
@@ -265,25 +172,6 @@ int EarthApplication::readGridVal(int i)
     return 0;
 }
 
-
-void EarthApplication::readTransition(int i)
-{
-    /*
-    if (i >= argc()) {
-        printUsage();
-        exit(1);
-    }
-    transition = atof(argv()[i]);
-    if ((transition < 0.0) || (transition > 100.0)) {
-        printUsage();
-        exit(1);
-    }
-    transition /= 100.0;
-    */
-}
-
-/* ------------------------------------------------------------------------*/
-
 void EarthApplication::readShadeArea(int i)
 {
     /*
@@ -300,22 +188,10 @@ void EarthApplication::readShadeArea(int i)
     */
 }
 
-
-/* ------------------------------------------------------------------------*/
-
-void EarthApplication::readOutFileName(int i)
-{
-    /*
-    out_file_name = QString(argv()[i]);
-    */
-}
-
-
-
 void EarthApplication::init()
 {
     QString std_marker_filename("xglobe-markers");
-    
+
     const QSize size = clp->getSize();
 
     if (size.isValid()) {
@@ -342,7 +218,7 @@ void EarthApplication::init()
     r->loadBackImage(clp->getBackGFileName(), clp->isTiled());
     r->setViewPos(clp->getGeoCoordinate()->getLatitude(), clp->getGeoCoordinate()->getLongitude());
     r->setZoom(clp->getMag());
-    r->setAmbientRGB(ambient_red, ambient_green, ambient_blue);
+    r->setAmbientRGB(clp->computeRgb());
     // XXX No docs
     /*
     if (fov <= 0)
@@ -371,7 +247,7 @@ void EarthApplication::init()
     r->setStars(clp->getStarFreq(), clp->isStars());
     const auto shift = clp->computeLabelPosition();
     r->setShift(std::get<0>(shift), std::get<1>(shift));
-    r->setTransition(transition);
+    r->setTransition(clp->getTransition());
     r->setRotation(clp->getRotation());
 
     QTimer *timer = new QTimer(this);
@@ -379,8 +255,6 @@ void EarthApplication::init()
     QTimer::singleShot(1, this, SLOT(recalc())); // this will start rendering
     timer->start(clp->getWait() * 1000); // the 1. image immediately
 }
-
-/* ------------------------------------------------------------------------*/
 
 void EarthApplication::recalc()
 {
