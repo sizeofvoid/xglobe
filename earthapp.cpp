@@ -100,14 +100,6 @@ EarthApplication::EarthApplication(int &argc, char **argv)
         else if (strcmp(argv()[i], "-nomarkers") == 0) {
             show_markers = false;
         }
-        else if (strcmp(argv()[i], "-markerfont") == 0) {
-            readMarkerFont(++i);
-            show_markers = true;
-        }
-        else if (strcmp(argv()[i], "-markerfontsize") == 0) {
-            readMarkerFontSize(++i);
-            show_markers = true;
-        }
         else if (strcmp(argv()[i], "-ambientlight") == 0) {
             readAmbientLight(++i);
         }
@@ -189,34 +181,6 @@ EarthApplication::EarthApplication(int &argc, char **argv)
 EarthApplication::~EarthApplication(void)
 {
     timer->stop();
-}
-
-void EarthApplication::readMarkerFont(int i)
-{
-    /*
-    if (i >= argc()) {
-        printUsage();
-        exit(1);
-    }
-    markerfont = argv()[i];
-    if (strcmp(markerfont, "none") == 0)
-        markerfont = nullptr;
-    */
-}
-
-void EarthApplication::readMarkerFontSize(int i)
-{
-    /*
-    if (i >= argc()) {
-        printUsage();
-        exit(1);
-    }
-    markerfontsize = atoi(argv()[i]);
-    if (markerfontsize <= 5)
-        markerfontsize = 5;
-    else if (markerfontsize >= 50)
-        markerfontsize = 50;
-    */
 }
 
 
@@ -469,7 +433,7 @@ void EarthApplication::init()
     
     const QSize size = clp->getSize();
 
-    if (size,isValid()) {
+    if (size.isValid()) {
         r = std::make_unique<Renderer>(size, clp->getMapFileName());
     }
     else {
@@ -499,12 +463,12 @@ void EarthApplication::init()
         r->setFov(fov);
     */
 
-    if (cpl->isBuiltinMarkers() && !cpl->getMapFileName().isEmpty()) {
-        if (!appendMarkerFile(marker_list, cpl->getMapFileName()))
+    if (clp->isBuiltinMarkers() && !clp->getMapFileName().isEmpty()) {
+        if (!appendMarkerFile(marker_list, clp->getMapFileName()))
             exit(12);
     }
-    marker_list.set_font(markerfont, markerfontsize);
-    if (cpl->isShowMarker())
+    marker_list.set_font(clp->getMarkerFont(), clp->getMarkerFontSize());
+    if (clp->isShowMarker())
         r->setMarkerList(&marker_list);
     const auto lables = clp->computeLabelPosition();
     r->setLabelPos(std::get<0>(lables), std::get<1>(lables));

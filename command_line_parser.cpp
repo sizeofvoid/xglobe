@@ -25,6 +25,7 @@
 
 #include <QCoreApplication>
 #include <QDir>
+#include <QSize>
 #include <QDebug>
 
 #include <algorithm>
@@ -74,7 +75,9 @@ CommandLineParser::CommandLineParser(QCoreApplication* parent)
       backgOption(QStringList() << "backg", "Use the image in file as the screen background, instead of a black screen, which is the default.", "file", ""),
       starfreqOption(QStringList() << "starfreq", "If displaying of stars is enabled, frequency percent of the background pixels are turned into stars", "frequency", "0.002"),
       termOption(QStringList() << "term", "Specify the shading discontinuity at the terminator (day/night line). Pct should be between 0 and 100, where 100 is maximum discontinuity and 0 makes a very smooth transition.", "pct", "0"),
-      shade_areaOption(QStringList() << "shade_area", "Specify the proportion of the day-side to be progressively shaded prior to a transition with the night-side.  A value of 100 means all the day area will be shaded, whereas 0 will result in no shading at all.  60 would keep 40\% of the day area nearest the sun free from shading.", "pct", "100")
+      shade_areaOption(QStringList() << "shade_area", "Specify the proportion of the day-side to be progressively shaded prior to a transition with the night-side.  A value of 100 means all the day area will be shaded, whereas 0 will result in no shading at all.  60 would keep 40\% of the day area nearest the sun free from shading.", "pct", "100"),
+      markerFontOption(QStringList() << "markerfont", "", "font", "helvetica"),
+      markerFontSizeOption(QStringList() << "markerfontsize", "", "fontsize", "")
 {
    tmpImageFile.open();
    setApplicationDescription("XGlobe");
@@ -229,6 +232,21 @@ CommandLineParser::getMarkerFileName() const
         qWarning() << "Mapfile not exists: " << markerFileName;
 
     return exists ? markerFileName : QString();
+}
+
+QString
+CommandLineParser::getMarkerFont() const
+{
+    if (!isSet(markerFontOption))
+        return {};
+    return value(markerFontOption);
+}
+
+int
+CommandLineParser::getMarkerFontSize() const
+{
+    const int size = getIntByValue(5, markerFontSizeOption);
+    return (size >= 50) ? 50 : size;
 }
 
 void
@@ -452,8 +470,7 @@ CommandLineParser::getSize() const
     QString val = value(sizeOption);
     auto vals = val.splitRef(QLatin1String(":"));
     if (vals.isEmpty() || vals.size() != 2) {
-        qWarning() <<warn;
-        return {default_x, default_y};
+        return {};
     }
 
     bool ok = false;
@@ -472,11 +489,11 @@ CommandLineParser::getSize() const
 int
 CommandLineParser::getGrid1() const
 {
-    return getDoubleByValue(6, grid1Option);
+    return getIntByValue(6, grid1Option);
 }
 
 int
 CommandLineParser::getGrid2() const
 {
-    return getDoubleByValue(15, grid2Option);
+    return getIntByValue(15, grid2Option);
 }

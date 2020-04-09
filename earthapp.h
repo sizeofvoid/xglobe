@@ -83,8 +83,6 @@ public:
 private:
     void readZoom(int i);
     void readBG(int i);
-    void readMarkerFont(int i);
-    void readMarkerFontSize(int i);
     void readShift(int i);
     void readAmbientLight(int i);
     void readAmbientRGB(int i);
@@ -131,8 +129,6 @@ protected:
     time_t current_time;
     double time_warp = 1.0;
     MarkerList marker_list;
-    const char* markerfont = "helvetica";
-    int markerfontsize = 12;
     int grid_type;
     double transition = 0.0;
     double shade_area = 1.0;

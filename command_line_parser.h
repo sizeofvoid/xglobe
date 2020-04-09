@@ -20,7 +20,6 @@ public:
     double getWait() const;
     std::pair<int,int> computeLabelPosition() const;
     std::pair<int,int> computeShiftPosition() const;
-    QString getMapFileName() const;
     QString getBackGFileName() const;
     QString getMapFileName() const;
     TGeoCoordinatePtr getGeoCoordinate() const;
@@ -31,6 +30,9 @@ public:
     bool isShowLabel() const;
     double getRotation() const;
     bool isShowMarker() const;
+    QString getMarkerFileName() const;
+    QString getMarkerFont() const;
+    int getMarkerFontSize() const;
     bool isBuiltinMarkers() const;
     bool isDumpToFile() const;
     QSize getSize() const;
@@ -87,6 +89,8 @@ private:
     QCommandLineOption starfreqOption;
     QCommandLineOption termOption;
     QCommandLineOption shade_areaOption;
+    QCommandLineOption markerFontOption;
+    QCommandLineOption markerFontSizeOption;
 
     TGeoCoordinatePtr coordinate;
 };
