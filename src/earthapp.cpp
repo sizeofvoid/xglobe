@@ -88,38 +88,11 @@
 
 EarthApplication::EarthApplication(int &argc, char **argv)
     : QApplication(argc, argv),
-      grid_type(Renderer::NO_GRID),
       clp(new CommandLineParser(this)),
       out_file_name(clp->getOutputFileName().isEmpty()
                     ? QString("xglobe-dump.png")
                     : clp->getOutputFileName())
 {
-    // evaluate command line parameters
-    /*
-    for (QString arg : arguments()) {
-        else if (strcmp(argv()[i], "-dumpcmd") == 0) {
-            readDumpCmd(++i);
-            do_dumpcmd = true;
-        }
-        else if (strcmp(argv()[i], "-nogrid") == 0) {
-            grid_type = Renderer::NO_GRID;
-        }
-        else if (strcmp(argv()[i], "-grid") == 0) {
-            grid_type = Renderer::DULL_GRID;
-        }
-        else if (strcmp(argv()[i], "-newgrid") == 0) {
-            grid_type = Renderer::NICE_GRID;
-        }
-        else if (strcmp(argv()[i], "-shade_area") == 0) {
-            readShadeArea(++i);
-        }
-        else {
-            fprintf(stderr, "Unknown command line switch: %s\n\n", argv()[i]);
-            printUsage();
-            exit(1);
-        }
-    }
-*/
     auto optNice =clp->getNice();
     if (optNice)
         setpriority(PRIO_PROCESS, getpid(), *optNice);
@@ -133,59 +106,6 @@ EarthApplication::EarthApplication(int &argc, char **argv)
 EarthApplication::~EarthApplication(void)
 {
     timer->stop();
-}
-
-void EarthApplication::readDumpCmd(int i)
-{
-    /*
-    char cwd[512];
-
-    if (i >= argc()) {
-        printUsage();
-        exit(1);
-    }
-
-    getcwd(cwd, 512);
-    dumpcmd = (char*)malloc(strlen(argv()[i]) + strlen(cwd) + 20);
-    sprintf(dumpcmd, "%s %s/xglobe.bmp", argv()[i], cwd);
-    dumpfile = (char*)malloc(strlen(cwd) + 20);
-    sprintf(dumpfile, "%s/xglobe.bmp", cwd);
-    */
-}
-
-int EarthApplication::readGridVal(int i)
-{
-    /*
-    int n;
-
-    if (i >= argc()) {
-        printUsage();
-        exit(1);
-    }
-    n = atoi(argv()[i]);
-    if (n <= 0) {
-        printUsage();
-        exit(1);
-    }
-    return n;
-    */
-    return 0;
-}
-
-void EarthApplication::readShadeArea(int i)
-{
-    /*
-    if (i >= argc()) {
-        printUsage();
-        exit(1);
-    }
-    shade_area = atof(argv()[i]);
-    if ((shade_area < 0.0) || (shade_area > 100.0)) {
-        printUsage();
-        exit(1);
-    }
-    shade_area /= 100.0;
-    */
 }
 
 void EarthApplication::init()
@@ -241,11 +161,11 @@ void EarthApplication::init()
         r->setMarkerList(&marker_list);
     const auto lables = clp->computeLabelPosition();
     r->setLabelPos(std::get<0>(lables), std::get<1>(lables));
-    r->setShadeArea(shade_area);
+    r->setShadeArea(clp->getShadeArea());
     r->showLabel(clp->isShowLabel());
     r->setNumGridLines(clp->getGrid1());
     r->setNumGridDots(clp->getGrid2() * clp->getGrid1() * 4);
-    r->setGridType(grid_type);
+    r->setGridType(clp->getGridType());
     r->setStars(clp->getStarFreq(), clp->isStars());
     const auto shift = clp->computeLabelPosition();
     r->setShift(std::get<0>(shift), std::get<1>(shift));
@@ -354,6 +274,7 @@ void EarthApplication::processImage()
         dwidget->updateDisplay(r->getImage());
         processEvents(); // we want the image to be
     } // displayed immediately
+    /* NOT yet
     else if (do_dumpcmd) {
         system(dumpcmd);
         if (clp->isOnce()) {
@@ -361,6 +282,7 @@ void EarthApplication::processImage()
             exit(0);
         }
     }
+    */
     else {
         QImage* i = r->getImage();
         i->save(clp->getImageTmpFileName(), "PNG");

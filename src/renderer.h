@@ -58,6 +58,8 @@
 #include <QString>
 #include <ctime>
 
+enum class GridType { no, dull, nice };
+
 static inline QRgb *scan32(QImage &img, int x, int y)
 {
 	assert(img.depth() == 32);
@@ -96,8 +98,8 @@ public:
     int getNumGridLines();
     void setNumGridDots(int num);
     int getNumGridDots();
-    void setGridType(int type);
-    int getGridType();
+    void setGridType(GridType);
+    GridType getGridType();
     double getStarFrequency();
     QImage* getImage();
     void setShift(int x, int y);
@@ -122,11 +124,6 @@ private:
     void paintMarker(int x, int y, Location* l);
     void drawLabel();
     static int compareLocations(const void* l1, const void* l2);
-
-public:
-    static const int NO_GRID = 0;
-    static const int DULL_GRID = 1;
-    static const int NICE_GRID = 2;
 
 protected:
     QImage* map;
@@ -164,7 +161,7 @@ private:
     double fov; // field of view
     double zoom;
     int radius_proj; // radius of sphere on screen
-    int gridtype;
+    GridType gridtype;
     double d_gridline; // dist. of grid lines in radians
     double d_griddot; // dist. of grid dots in radians
     double trans; // specifies the smoothness of the transition

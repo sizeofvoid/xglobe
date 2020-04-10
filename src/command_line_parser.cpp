@@ -643,3 +643,20 @@ CommandLineParser::getTransition() const
     transition /= 100.0;
     return transition;
 }
+
+double
+CommandLineParser::getShadeArea() const
+{
+    double shade_area = getDoubleByValue(3, waitOption);
+    if ((shade_area < 0.0) || (shade_area > 100.0)) {
+        qCritical("shade_areashould be >0 and <100.\n");
+    }
+    shade_area /= 100.0;
+    return shade_area;
+}
+
+GridType
+CommandLineParser::getGridType() const
+{
+    return GridType::no;
+}

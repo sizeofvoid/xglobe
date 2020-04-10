@@ -81,23 +81,6 @@ public:
     void init();
 
 private:
-    void readZoom(int i);
-    void readBG(int i);
-    void readShift(int i);
-    void readAmbientLight(int i);
-    void readAmbientRGB(int i);
-    void readMapFile(int i);
-    void readNightMapFile(int i);
-    void readCloudMapFile(int i);
-    void readCloudFilter(int i);
-    void readDumpCmd(int i);
-    int readGridVal(int i);
-    void readOrbit(int i);
-    void readStarFreq(int i);
-    void readTransition(int i);
-    void readShadeArea(int i);
-    void readOutFileName(int i);
-    void readRotation(int i);
 
     void firstRecalc(time_t);
     void processImage();
@@ -127,7 +110,6 @@ protected:
     time_t start_time;
     time_t current_time;
     MarkerList marker_list;
-    int grid_type;
     double transition = 0.0;
     double shade_area = 1.0;
 

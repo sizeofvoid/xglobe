@@ -3,6 +3,7 @@
 #include <QTemporaryFile>
 #include <QCommandLineParser>
 #include "geo_coordinate.h"
+#include "renderer.h"
 
 class QCoreApplication;
 class GeoCoordinate;
@@ -48,6 +49,8 @@ public:
     QRgba64 computeRgb() const;
     QString getOutputFileName() const;
     double getTransition() const;
+    double getShadeArea() const;
+    GridType getGridType() const;
 
 private:
     void computeCoordinate();

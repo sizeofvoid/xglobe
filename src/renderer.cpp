@@ -106,7 +106,7 @@ Renderer::Renderer(const QSize& size, const QString& mapfile)
     this->ambientGreen = 0.15;
     this->ambientBlue = 0.15;
     this->show_label = true;
-    this->gridtype = NO_GRID;
+    this->gridtype = GridType::no;
     this->d_gridline = 15.0 * M_PI / 180.;
     this->d_griddot = M_PI / 180.;
     stars = nullptr;
@@ -503,16 +503,14 @@ int Renderer::getNumGridDots()
 
 /* ------------------------------------------------------------------------*/
 
-void Renderer::setGridType(int type)
+void Renderer::setGridType(GridType type)
 {
     gridtype = type;
-    if ((type < 0) || (type > NICE_GRID))
-        gridtype = NO_GRID;
 }
 
 /* ------------------------------------------------------------------------*/
 
-int Renderer::getGridType()
+GridType Renderer::getGridType()
 {
     return gridtype;
 }
@@ -696,7 +694,7 @@ void Renderer::renderFrame()
         }
     }
 
-    if (gridtype != NO_GRID)
+    if (gridtype != GridType::no)
         drawGrid();
 
     if (markerlist)
@@ -989,7 +987,7 @@ void Renderer::drawGrid()
             p = scan32(*renderedImage, screen_x, screen_y);
 
             // Set pixel in image
-            if (gridtype == NICE_GRID) {
+            if (gridtype == GridType::no) {
                 pixel = getPixelColor(lon, -lat, light_angle);
                 r = qRed(pixel) * 3;
                 g = qGreen(pixel) * 3;
@@ -1035,7 +1033,7 @@ void Renderer::drawGrid()
             p = scan32(*renderedImage, screen_x, screen_y);
 
             // Set pixel in image
-            if (gridtype == NICE_GRID) {
+            if (gridtype == GridType::nice) {
                 pixel = getPixelColor(lon, -lat, light_angle);
                 r = qRed(pixel) * 3;
                 g = qGreen(pixel) * 3;
