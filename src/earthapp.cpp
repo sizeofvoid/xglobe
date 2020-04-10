@@ -215,7 +215,9 @@ void EarthApplication::init()
     else if (!clp->getMapFileName().isEmpty())
         r->loadCloudMap(clp->getMapFileName(), clp->getCloudMapFilter());
 
-    r->loadBackImage(clp->getBackGFileName(), clp->isTiled());
+
+    if (!clp->getBackGFileName().isEmpty())
+        r->loadBackImage(clp->getBackGFileName(), clp->isTiled());
     r->setViewPos(clp->getGeoCoordinate()->getLatitude(), clp->getGeoCoordinate()->getLongitude());
     r->setZoom(clp->getMag());
     r->setAmbientRGB(clp->computeRgb());
