@@ -6,6 +6,7 @@
  * This file is part of XGlobe. See README for details.
  *
  * Copyright (C) 1998 Thorsten Scheuermann
+ * Copyright (C) 2020 Rafael Sadowski
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public Licenses as published by
@@ -20,54 +21,59 @@
  *
  */
 
-#include <stdio.h>
 #include "desktopwidget.h"
+#include <stdio.h>
+#include <QPaintEvent>
+#include <QPalette>
+#include <QX11Info>
+#include <QBrush>
 
-DesktopWidget::DesktopWidget(QWidget *parent, const char *name)
-    : QWidget( parent, name, WType_Desktop | WPaintDesktop)
+#include <X11/Xlib.h>
+
+
+
+DesktopWidget::DesktopWidget(QWidget* parent, const QString& name)
+    : QWidget(parent, Qt::Desktop)
 {
-  haveImage = FALSE;
-  currentImage = new QPixmap(width(), height());
-  if(!currentImage)
-  {
-    fprintf(stderr, "Not enough memory!\n");
-    ::exit(1);
-  }
-//  fprintf(stderr, "Desktop size: %dx%d\n",width(), height());
+    haveImage = false;
+    currentImage = new QPixmap(width(), height());
+    fprintf(stderr, "Desktop size: %dx%d\n",width(), height());
 }
 
 DesktopWidget::~DesktopWidget()
 {
-  if(currentImage)
-    delete currentImage;
+    if (currentImage)
+        delete currentImage;
 }
 
-void DesktopWidget::paintEvent(QPaintEvent *pe)
+void DesktopWidget::paintEvent(QPaintEvent* pe)
 {
-  QPainter p(this);
-  
-  if(!haveImage)
-  {
-    p.setFont(QFont("helvetica", 35));
-    QRect br = p.fontMetrics().boundingRect("Please wait...");
-    p.setPen(QColor(255, 0, 0));
-    p.fillRect(0, 0, width(), height(), QColor(0, 0, 0));
-    p.drawText((width()-br.width())/2, (height()-br.height())/2,
-               "Please wait...");
-  }
-  else
-  {
-    p.drawPixmap(pe->rect().left(), pe->rect().top(),
-                 *currentImage, pe->rect().left(), pe->rect().top(),
-                 pe->rect().width(), pe->rect().height());
-  }
+    QPainter p(this);
+    fprintf(stderr, "Desktop size: %dx%d\n",width(), height());
+
+    if (!haveImage) {
+        p.setFont(QFont("helvetica", 35));
+        QRect br = p.fontMetrics().boundingRect("Please wait...");
+        p.setPen(QColor(255, 0, 0));
+        p.fillRect(0, 0, width(), height(), QColor(0, 0, 0));
+        p.drawText((width() - br.width()) / 2, (height() - br.height()) / 2,
+            "Please wait...");
+    }
+    else {
+        p.drawPixmap(pe->rect().left(), pe->rect().top(),
+            *currentImage, pe->rect().left(), pe->rect().top(),
+            pe->rect().width(), pe->rect().height());
+    }
 }
 
-void DesktopWidget::updateDisplay(QImage *image)
+void DesktopWidget::updateDisplay(QImage* image)
 {
-  ASSERT(image != NULL);
-  currentImage->convertFromImage(*image);
-  haveImage = TRUE;
-  setBackgroundPixmap(*currentImage);
-  update();
+    assert(image != nullptr);
+    currentImage->convertFromImage(*image);
+    haveImage = true;
+    QPalette palette;
+    palette.setBrush((this)->backgroundRole(),  QBrush(*currentImage));
+    (this)->setPalette(palette);
+    XClearWindow(QX11Info::display(), QX11Info::appRootWindow());
+    update();
 }

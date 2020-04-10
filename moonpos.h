@@ -20,35 +20,27 @@
  *
  *
  */
+#pragma once
 
-#ifndef _MOONPOS_H
-#define _MOONPOS_H
+#include <ctime>
 
-#include <qobject.h>
-#include <math.h>
-#include <time.h>
-
-class MoonPos
-{
+class MoonPos {
 private:
-  static void moonpos(double &moonlon, double &moonlat, double &moondist,
-                      double T);
-  static double gmst(double T, time_t);
-  static double C(double);
-  static double S(double);
-  static void compute_ra_dec(double lon, double lat, double &alpha,
-                             double &delta, double eps);
-  static double compute_obliquity(double T);
-  static double poly(double a1, double a2, double a3, double a4, double t);
-  static double jcentury(time_t);
-  static double julian(int year, int month, int day, int hour, int min,
-                       int sec);
-  MoonPos() {}
-  
-public:
-  static void getMoonPos(time_t ssue, double *lat, double *lon);
-  ~MoonPos() {}
-  
-};
+    static void moonpos(double& moonlon, double& moonlat, double& moondist,
+        double T);
+    static double gmst(double T, time_t);
+    static double C(double);
+    static double S(double);
+    static void compute_ra_dec(double lon, double lat, double& alpha,
+        double& delta, double eps);
+    static double compute_obliquity(double T);
+    static double poly(double a1, double a2, double a3, double a4, double t);
+    static double jcentury(time_t);
+    static double julian(int year, int month, int day, int hour, int min,
+        int sec);
+    MoonPos() {}
 
-#endif
+public:
+    static void getMoonPos(time_t ssue, double* lat, double* lon);
+    ~MoonPos() {}
+};

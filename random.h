@@ -1,4 +1,4 @@
-/* 
+/*
  * random.h
  *
  * $Id: random.h,v 1.1 2000/06/15 09:43:29 espie Exp $
@@ -9,22 +9,19 @@
  *
  */
 
-#ifndef _RANDOM_H
-#define _RANDOM_H
+#pragma once
+
 /* Singleton random generator class */
-
-class Gen
-{
+class Gen {
 public:
-	Gen();	// dummy constructor, relies on initialized instead
-	int operator ()(int max) const;
-	double gaussian();
-private:
-	static bool initialized;
-	inline int draw() const;
-	// gaussian generator algorithm draws 2 numbers each time
-	static bool has_one;
-	static double preserve;
-};
+    Gen(); // dummy constructor, relies on initialized instead
+    int operator()(int max) const;
+    double gaussian();
 
-#endif
+private:
+    static bool initialized;
+    inline int draw() const;
+    // gaussian generator algorithm draws 2 numbers each time
+    static bool has_one;
+    static double preserve;
+};

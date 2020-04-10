@@ -19,25 +19,20 @@
  * initial revision
  *
  */
+#pragma once
 
-#ifndef _DESKTOPWIDGET_H
-#define _DESKTOPWIDGET_H
+#include <QPainter>
+#include <QPixmap>
+#include <QWidget>
 
-#include <qwidget.h>
-#include <qpixmap.h>
-#include <qpainter.h>
-
-class DesktopWidget : public QWidget
-{
+class DesktopWidget : public QWidget {
 public:
-  DesktopWidget(QWidget *parent=0, const char *name=0 );
-  ~DesktopWidget();
-  void paintEvent(QPaintEvent *pe);
-  void updateDisplay(QImage *image);
-    
-private:
-  QPixmap *currentImage;
-  bool    haveImage;
-};
+    DesktopWidget(QWidget* parent = nullptr, const QString& name = QString());
+    ~DesktopWidget();
+    void paintEvent(QPaintEvent* pe);
+    void updateDisplay(QImage* image);
 
-#endif
+private:
+    QPixmap* currentImage;
+    bool haveImage;
+};

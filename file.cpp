@@ -1,60 +1,57 @@
 #include "file.h"
-#include "config.h"
-#include <qstring.h>
-#include <qfile.h>
-#include <qfileinfo.h>
+#include <QFile>
+#include <QFileInfo>
+#include <QString>
 
-static const char *userdir;
+static QString userdir;
 
-QString find_xglobefile(const char *name)
+QString find_xglobefile(const QString& name)
 {
-  if (QFile::exists(name))
-    return QString(name);
+    if (QFile::exists(name))
+        return name;
 
-  if (userdir != NULL)
-  {
-      QString result = userdir;
-      result += "/";
-      result += name;
-      if (QFile::exists(result))
-      	return result;
-  }
-  QString result = XGLOBE_LIB_DIR;
-  result += "/";
-  result += name;
-  if (!QFile::exists(result))
-  {
-    fprintf(stderr, "File \"%s\" not found!\n", name);
-    ::exit(1);
-  }
-  return result;
+    if (userdir.isEmpty()) {
+        QString result = userdir;
+        result += "/";
+        result += name;
+        if (QFile::exists(result))
+            return result;
+    }
+    QString result = "/usr/ports/pobj/xglobe-0.5/fake-amd64/usr/local"; //XGLOBE_LIB_DIR;
+    result += "/";
+    result += name;
+    if (!QFile::exists(result)) {
+        fprintf(stderr, "File \"%s\" not found!\n", name.toLatin1().data());
+        ::exit(1);
+    }
+    return result;
 }
 
-void set_userdir(const char *d)
+void set_userdir(const QString& d)
 {
     userdir = d;
 }
 
 bool FileChange::reload()
 {
-  QFileInfo info(n);
-  if (!info.exists())
-    return false;
-  QDateTime t = info.lastModified();
-  if (!lastCheck.isValid() || t > lastCheck)
-  {
-    lastCheck = t;
-    return true;
-  }
-  else
-    return false;
+    QFileInfo info(n);
+    if (!info.exists())
+        return false;
+    QDateTime t = info.lastModified();
+    if (!lastCheck.isValid() || t.secsTo(lastCheck) > 0) {
+        lastCheck = t;
+        return true;
+    }
+    else
+        return false;
 }
-	
-FileChange::FileChange(const QString& filename): n(filename)
+
+FileChange::FileChange(const QString& filename)
+    : n(filename)
 {
 }
 
 const QString& FileChange::name() const
 {
-  return n;
+    return n;
 }

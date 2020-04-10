@@ -1,20 +1,18 @@
-#ifndef _FILE_H
-#define _FILE_H
-#include <qdatetime.h>
+#pragma once
 
-class QString;
-extern QString find_xglobefile(const char *);
-extern void set_userdir(const char *);
+#include <QDateTime>
+#include <QString>
 
-class FileChange
-{
+QString find_xglobefile(const QString&);
+void set_userdir(const QString&);
+
+class FileChange {
 public:
     FileChange(const QString&);
     bool reload();
     const QString& name() const;
+
 private:
     const QString n;
     QDateTime lastCheck;
 };
-
-#endif
