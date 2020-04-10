@@ -41,19 +41,19 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_REQUIRED_FLAGS -std=c++17)
 
 set(SOURCE
-    main.cpp
-    compute.cpp
-    command_line_parser.cpp
-    geo_coordinate.cpp
-    desktopwidget.cpp
-    earthapp.cpp
-    file.cpp
-    markerlist.cpp
-    moonpos.cpp
-    random.cpp
-    renderer.cpp
-    stars.cpp
-    sunpos.cpp)
+    src/main.cpp
+    src/compute.cpp
+    src/command_line_parser.cpp
+    src/geo_coordinate.cpp
+    src/desktopwidget.cpp
+    src/earthapp.cpp
+    src/file.cpp
+    src/markerlist.cpp
+    src/moonpos.cpp
+    src/random.cpp
+    src/renderer.cpp
+    src/stars.cpp
+    src/sunpos.cpp)
 
 add_definitions(-DVERSION="${XGLOBE_VERSION}")
 
