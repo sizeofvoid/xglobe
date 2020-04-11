@@ -979,17 +979,11 @@ void Renderer::drawLabel()
     slon = sun_long * 180. / M_PI;
     slat = sun_lat * 180. / M_PI;
 
-    /*
-    labelstring.sprintf("%s, %s %d. %d, %d:%02d %s\n"
+    labelstring.sprintf("%d, %d %d. %d, %d:%02d %s\n"
                         "View pos %2.2f° %c %2.2f° %c\n"
                         "Sun pos %2.2f° %c %2.2f° %c",
-#if QT_VERSION >= 200
         dt.date().toString(QLatin1String("dd")).data()->toLatin1(),
         dt.date().toString(QLatin1String("mm")).data()->toLatin1(),
-#else
-        dt.date().longDayName(dt.date().dayOfWeek()),
-        dt.date().monthName(dt.date().month()),
-#endif
         dt.date().day(), dt.date().year(),
         dt.time().hour(), dt.time().minute(),
         tzname[tm->tm_isdst],
@@ -997,29 +991,21 @@ void Renderer::drawLabel()
         fabs(vlon), (vlon < 0.) ? 'W' : 'E',
         fabs(slat), (slat < 0.) ? 'S' : 'N',
         fabs(slon), (slon < 0.) ? 'W' : 'E');
-        */
 
     QFont labelFont("helvetica", 12, QFont::Bold);
     QFontMetrics fm(labelFont);
 
-#if QT_VERSION >= 200
     QRect br = fm.boundingRect(0, 0, 0, 0, Qt::AlignLeft | Qt::AlignTop,
         labelstring);
-#else
-    QRect br = fm.boundingRect(0, 0, 0, 0, AlignLeft | AlignTop, labelstring);
-#endif
+
     QPixmap pm(br.width() + 10, br.height() + 10);
 
     p.begin(&pm);
     p.setFont(labelFont);
     p.fillRect(0, 0, pm.width(), pm.height(), transparentcolor);
     p.setPen(whitecolor);
-#if QT_VERSION >= 200
     p.drawText(5, 5, br.width(), br.height(), Qt::AlignLeft | Qt::AlignTop,
         labelstring);
-#else
-    p.drawText(5, 5, br.width(), br.height(), AlignLeft | AlignTop, labelstring);
-#endif
     p.end();
 
     QImage labelimage = pm.toImage();
