@@ -78,7 +78,7 @@ set(SOURCE
     src/stars.cpp
     src/sunpos.cpp)
 
-add_definitions(-DVERSION="${XGLOBE_VERSION}")
+add_compile_definitions(DVERSION="${XGLOBE_VERSION}")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexceptions -pipe -Wall -Werror=format-security -O2 -g -fpie" CACHE STRING "Set C++ Compiler Flags" FORCE)
 
