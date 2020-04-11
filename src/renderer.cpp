@@ -79,8 +79,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/* ------------------------------------------------------------------------*/
-
 Renderer::Renderer(const QSize& size, const QString& mapfile)
 {
     markerlist = nullptr;
@@ -116,8 +114,6 @@ Renderer::Renderer(const QSize& size, const QString& mapfile)
     calcDistance();
 }
 
-/* ------------------------------------------------------------------------*/
-
 QImage* Renderer::loadImage(const QString& name)
 {
     QImage* m = new QImage();
@@ -133,8 +129,6 @@ QImage* Renderer::loadImage(const QString& name)
     return m;
 }
 
-/* ------------------------------------------------------------------------*/
-
 int Renderer::loadNightMap(const QString& nmapfile)
 {
     if (!mapnight) // we already have a night map!
@@ -144,8 +138,6 @@ int Renderer::loadNightMap(const QString& nmapfile)
 
     return 1;
 }
-
-/* ------------------------------------------------------------------------*/
 
 static inline bool bad_color(int r, int g, int b)
 {
@@ -246,8 +238,6 @@ int Renderer::loadCloudMap(const QString& cmapfile, int cf)
     return 1;
 }
 
-/* ------------------------------------------------------------------------*/
-
 int Renderer::loadBackImage(const QString& imagefile, bool tld)
 {
     if (backImage != nullptr)
@@ -267,8 +257,6 @@ int Renderer::loadBackImage(const QString& imagefile, bool tld)
     return 1;
 }
 
-/* ------------------------------------------------------------------------*/
-
 Renderer::~Renderer()
 {
     delete renderedImage;
@@ -278,8 +266,6 @@ Renderer::~Renderer()
     delete backImage;
     delete track_clouds;
 }
-
-/* ------------------------------------------------------------------------*/
 
 void Renderer::setViewPos(double lat, double lon)
 {
@@ -309,49 +295,35 @@ void Renderer::setViewPos(double lat, double lon)
     view_long = lon * M_PI / 180.;
 }
 
-/* ------------------------------------------------------------------------*/
-
 double Renderer::getViewLat()
 {
     return view_lat * 180. / M_PI;
 }
-
-/* ------------------------------------------------------------------------*/
 
 double Renderer::getViewLong()
 {
     return view_long * 180. / M_PI;
 }
 
-/* ------------------------------------------------------------------------*/
-
 void Renderer::setRotation(double r)
 {
     rot = r * M_PI / 180.;
 }
-
-/* ------------------------------------------------------------------------*/
 
 double Renderer::getRotation()
 {
     return rot * 180. / M_PI;
 }
 
-/* ------------------------------------------------------------------------*/
-
 double Renderer::getSunLat()
 {
     return sun_lat * 180. / M_PI;
 }
 
-/* ------------------------------------------------------------------------*/
-
 double Renderer::getSunLong()
 {
     return sun_long * 180. / M_PI;
 }
-
-/* ------------------------------------------------------------------------*/
 
 void Renderer::setZoom(double z)
 {
@@ -359,28 +331,20 @@ void Renderer::setZoom(double z)
     calcDistance();
 }
 
-/* ------------------------------------------------------------------------*/
-
 double Renderer::getZoom()
 {
     return zoom;
 }
-
-/* ------------------------------------------------------------------------*/
 
 void Renderer::setMarkerList(MarkerList* l)
 {
     markerlist = l;
 }
 
-/* ------------------------------------------------------------------------*/
-
 void Renderer::showLabel(bool show)
 {
     show_label = show;
 }
-
-/* ------------------------------------------------------------------------*/
 
 void Renderer::setShift(int x, int y)
 {
@@ -388,21 +352,15 @@ void Renderer::setShift(int x, int y)
     shift_y = y;
 }
 
-/* ------------------------------------------------------------------------*/
-
 int Renderer::getShiftX()
 {
     return shift_x;
 }
 
-/* ------------------------------------------------------------------------*/
-
 int Renderer::getShiftY()
 {
     return shift_y;
 }
-
-/* ------------------------------------------------------------------------*/
 
 void Renderer::setLabelPos(int x, int y)
 {
@@ -410,14 +368,10 @@ void Renderer::setLabelPos(int x, int y)
     label_y = y;
 }
 
-/* ------------------------------------------------------------------------*/
-
 void Renderer::setShadeArea(double area)
 {
     shade_area = area;
 }
-
-/* ------------------------------------------------------------------------*/
 
 void Renderer::setAmbientRGB(QRgba64 const& rgb)
 {
@@ -450,15 +404,11 @@ void Renderer::setAmbientRGB(QRgba64 const& rgb)
     }
 }
 
-/* ------------------------------------------------------------------------*/
-
 void Renderer::setFov(double fov)
 {
     this->fov = fov * M_PI / 180.;
     calcDistance();
 }
-
-/* ------------------------------------------------------------------------*/
 
 void Renderer::setTime(time_t t)
 {
@@ -466,56 +416,40 @@ void Renderer::setTime(time_t t)
     calcLightVector(); // calc. current sun position
 }
 
-/* ------------------------------------------------------------------------*/
-
 time_t Renderer::getTime()
 {
     return time_to_render;
 }
-
-/* ------------------------------------------------------------------------*/
 
 void Renderer::setNumGridLines(int num)
 {
     d_gridline = M_PI / (2.0 * num);
 }
 
-/* ------------------------------------------------------------------------*/
-
 int Renderer::getNumGridLines()
 {
     return (int)(M_PI / 2 * d_gridline);
 }
-
-/* ------------------------------------------------------------------------*/
 
 void Renderer::setNumGridDots(int num)
 {
     d_griddot = 2.0 * M_PI / num;
 }
 
-/* ------------------------------------------------------------------------*/
-
 int Renderer::getNumGridDots()
 {
     return (int)(2.0 * M_PI / d_griddot);
 }
-
-/* ------------------------------------------------------------------------*/
 
 void Renderer::setGridType(GridType type)
 {
     gridtype = type;
 }
 
-/* ------------------------------------------------------------------------*/
-
 GridType Renderer::getGridType()
 {
     return gridtype;
 }
-
-/* ------------------------------------------------------------------------*/
 
 void Renderer::setTransition(double t)
 {
@@ -526,14 +460,10 @@ void Renderer::setTransition(double t)
         trans = 0.0;
 }
 
-/* ------------------------------------------------------------------------*/
-
 double Renderer::getTransition()
 {
     return trans;
 }
-
-/* ------------------------------------------------------------------------*/
 
 void Renderer::calcDistance()
 {
@@ -548,8 +478,6 @@ void Renderer::calcDistance()
     // distance of camera camera to center of earth ( = coordinate origin)
     center_dist = radius / sin(atan(tan_a));
 }
-
-/* ------------------------------------------------------------------------*/
 
 void Renderer::renderFrame()
 {
@@ -704,8 +632,6 @@ void Renderer::renderFrame()
      ///   drawLabel();
 }
 
-/* ------------------------------------------------------------------------*/
-
 void Renderer::copyBackImage()
 {
     QRgb *p, *bp;
@@ -743,8 +669,6 @@ void Renderer::copyBackImage()
     }
 }
 
-/* ------------------------------------------------------------------------*/
-
 void Renderer::calcLightVector()
 {
     SunPos::GetSunPos(time_to_render, &sun_lat, &sun_long);
@@ -753,8 +677,6 @@ void Renderer::calcLightVector()
     light_y = sin(sun_lat);
     light_z = cos(sun_lat) * cos(sun_long);
 }
-
-/* ------------------------------------------------------------------------*/
 
 unsigned int Renderer::getPixelColor(double longitude, double latitude,
     double angle)
@@ -853,8 +775,6 @@ unsigned int Renderer::getPixelColor(double longitude, double latitude,
     return qRgb(r, g, b);
 }
 
-/* ------------------------------------------------------------------------*/
-
 void Renderer::getMapColorLinear(QImage* m, double longitude, double latitude,
     int* r, int* g, int* b)
 {
@@ -919,8 +839,6 @@ void Renderer::getMapColorLinear(QImage* m, double longitude, double latitude,
     *b = (int)((qBlue(c22) * dx + qBlue(c21) * (1 - dx)) * dy + (qBlue(c12) * dx + qBlue(c11) * (1 - dx)) * (1 - dy));
 }
 
-/* ------------------------------------------------------------------------*/
-
 void Renderer::drawMarkers()
 {
     // Matrix M of renderFrame, but transposed
@@ -929,10 +847,6 @@ void Renderer::drawMarkers()
     markerlist->render(mat, *renderedImage, radius, center_dist, proj_dist,
         shift_x, shift_y);
 }
-
-/* ------------------------------------------------------------------------*/
-
-/* ------------------------------------------------------------------------*/
 
 void Renderer::drawGrid()
 {
@@ -1051,8 +965,6 @@ void Renderer::drawGrid()
     }
 }
 
-/* ------------------------------------------------------------------------*/
-
 QImage* Renderer::getImage()
 {
     QImage* clonedImage = nullptr;
@@ -1061,8 +973,6 @@ QImage* Renderer::getImage()
     assert(clonedImage != nullptr);
     return clonedImage;
 }
-
-/* ------------------------------------------------------------------------*/
 
 void Renderer::drawLabel()
 {
@@ -1167,8 +1077,6 @@ void Renderer::drawLabel()
     }
 }
 
-/* ------------------------------------------------------------------------*/
-
 void Renderer::setStars(double f, bool show)
 {
     if (stars)
@@ -1184,5 +1092,3 @@ void Renderer::drawStars()
     if (stars)
         stars->render(*renderedImage);
 }
-
-/* ------------------------------------------------------------------------*/
