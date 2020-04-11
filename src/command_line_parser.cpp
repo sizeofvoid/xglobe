@@ -284,7 +284,7 @@ CommandLineParser::computeCoordinate()
 
         std::vector<double> vecVals;
         vecVals.reserve(maxValues);
-        for (short i = 0; i < maxValues; i++) {
+        for (size_t i= 0; i < maxValues; i++) {
             if (vals.at(i).string()) {
                 bool ok = false;
                 const double d = vals.at(0).toDouble(&ok);
