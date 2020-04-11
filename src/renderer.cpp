@@ -91,7 +91,7 @@ Renderer::Renderer(const QSize& size, const QString& mapfile)
     track_clouds = nullptr;
 
     renderedImage = new QImage(size, QImage::Format_RGB32);
-    map = loadImage(!mapfile.isEmpty() ? mapfile : "map.bmp");
+    map = loadImage(!mapfile.isEmpty() ? mapfile : default_map);
 
      fprintf(stderr, "Map size: %dx%d\n", map->width(), map->height());
 
@@ -140,7 +140,7 @@ int Renderer::loadNightMap(const QString& nmapfile)
     if (!mapnight) // we already have a night map!
         return 1;
 
-    mapnight = loadImage(!nmapfile.isEmpty() ? nmapfile : "mapnight.bmp");
+    mapnight = loadImage(!nmapfile.isEmpty() ? nmapfile : default_map_night);
 
     return 1;
 }
@@ -255,7 +255,7 @@ int Renderer::loadBackImage(const QString& imagefile, bool tld)
 
     tiled = tld;
 
-    backImage = loadImage(!imagefile.isEmpty() ? imagefile : "back.bmp");
+    backImage = loadImage(!imagefile.isEmpty() ? imagefile : default_map_back);
 
     if (!tiled) {
         QSize smallSize (renderedImage->width(), renderedImage->height());

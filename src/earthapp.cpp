@@ -73,7 +73,6 @@
 #include "command_line_parser.h"
 #include "geo_coordinate.h"
 
-
 #include <QTimer>
 #include <QString>
 #include <QDesktopWidget>
@@ -110,8 +109,6 @@ EarthApplication::~EarthApplication(void)
 
 void EarthApplication::init()
 {
-    QString std_marker_filename("xglobe-markers");
-
     const QSize size = clp->getSize();
 
     if (size.isValid()) {
@@ -152,8 +149,8 @@ void EarthApplication::init()
         r->setFov(fov);
     */
 
-    if (clp->isBuiltinMarkers() && !clp->getMapFileName().isEmpty()) {
-        if (!appendMarkerFile(marker_list, clp->getMapFileName()))
+    if (clp->isBuiltinMarkers()) {
+        if (!appendMarkerFile(marker_list, default_marker_file))
             exit(12);
     }
     marker_list.set_font(clp->getMarkerFont(), clp->getMarkerFontSize());
