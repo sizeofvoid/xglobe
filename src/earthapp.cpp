@@ -260,8 +260,7 @@ void EarthApplication::firstRecalc(time_t start_time)
     r->renderFrame();
 
     if (clp->isDumpToFile()) {
-        QImage* i = r->getImage();
-        i->save(out_file_name, "PNG");
+        r->getImage()->save(out_file_name, "PNG");
         exit(0);
     }
 }
@@ -282,8 +281,7 @@ void EarthApplication::processImage()
     }
     */
     else {
-        QImage* i = r->getImage();
-        i->save(clp->getImageTmpFileName(), "PNG");
+        r->getImage()->save(clp->getImageTmpFileName(), "PNG");
 
         QStringList arguments;
         arguments << "--zoom" << clp->getImageTmpFileName();

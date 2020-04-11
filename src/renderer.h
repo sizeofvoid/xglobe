@@ -72,7 +72,7 @@ public:
     ~Renderer();
     int loadNightMap(const QString& nmapfile = nullptr);
     int loadCloudMap(const QString& cmapfile = nullptr, int cloud_filter = 110);
-    int loadBackImage(const QString& imagefile = nullptr, bool tld = false);
+    void loadBackImage(const QString& imagefile = nullptr, bool tld = false);
     void renderFrame();
     void setViewPos(double lat, double lon);
     double getViewLat();
@@ -101,7 +101,7 @@ public:
     void setGridType(GridType);
     GridType getGridType();
     double getStarFrequency();
-    QImage* getImage();
+    std::shared_ptr<QImage> getImage();
     void setShift(int x, int y);
     int getShiftX();
     int getShiftY();
@@ -109,10 +109,10 @@ public:
     double getTransition();
 
 protected:
-    QImage* loadImage(const QString& name);
+    std::shared_ptr<QImage> loadImage(const QString&);
 
 private:
-    void getMapColorLinear(QImage* m, double longitude, double latitude,
+    void getMapColorLinear(std::shared_ptr<QImage> const&, double longitude, double latitude,
         int* r, int* g, int* b);
     unsigned int getPixelColor(double longitude, double latitude,
         double angle);
@@ -126,11 +126,11 @@ private:
     static int compareLocations(const void* l1, const void* l2);
 
 protected:
-    QImage* map;
-    QImage* mapnight;
-    QImage* mapcloud;
-    QImage* backImage;
-    QImage* renderedImage;
+    std::shared_ptr<QImage> map;
+    std::shared_ptr<QImage> mapnight;
+    std::shared_ptr<QImage> mapcloud;
+    std::shared_ptr<QImage> backImage;
+    std::shared_ptr<QImage> renderedImage;
     TMarkerListPtr markerlist;
     bool show_label;
     int label_x;
@@ -141,7 +141,7 @@ protected:
 private:
     bool tiled;
     bool clouds_ok;
-    FileChange* track_clouds;
+    std::unique_ptr<FileChange> track_clouds;
 
     // stuff used for rendering
     double view_lat;
@@ -167,7 +167,7 @@ private:
     double trans; // specifies the smoothness of the transition
         // from day to night
     Gen gen;
-    Stars* stars;
+    std::unique_ptr<Stars> stars;
     unsigned char v[256]; // values for cloud
 
 #if defined (DEFAULT_MAP)

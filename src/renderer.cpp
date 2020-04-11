@@ -81,7 +81,7 @@
 
 Renderer::Renderer(const QSize& size, const QString& mapfile)
 {
-    renderedImage = new QImage(size, QImage::Format_RGB32);
+    renderedImage = std::make_shared<QImage>(size, QImage::Format_RGB32);
     map = loadImage(!mapfile.isEmpty() ? mapfile : default_map);
 
      fprintf(stderr, "Map size: %dx%d\n", map->width(), map->height());
@@ -107,19 +107,20 @@ Renderer::Renderer(const QSize& size, const QString& mapfile)
     calcDistance();
 }
 
-QImage* Renderer::loadImage(const QString& name)
+std::shared_ptr<QImage> Renderer::loadImage(const QString& name)
 {
     QImage* m = new QImage();
+    auto image = std::make_shared<QImage>();
 
-    if (!m->load(find_xglobefile(name))) {
+    if (!image->load(find_xglobefile(name))) {
         fprintf(stderr, "Error while opening map \"%s\"!\n", name.toLatin1().data());
         ::exit(22);
     }
 
     if (m->depth() < 8)
-        *m = m->convertToFormat(QImage::Format_Indexed8);
+        *image = image->convertToFormat(QImage::Format_Indexed8);
 
-    return m;
+    return image;
 }
 
 int Renderer::loadNightMap(const QString& nmapfile)
@@ -139,7 +140,7 @@ static inline bool bad_color(int r, int g, int b)
 
 int Renderer::loadCloudMap(const QString& cmapfile, int cf)
 {
-    if (track_clouds == nullptr && !cmapfile.isEmpty()) {
+    if (!track_clouds && !cmapfile.isEmpty()) {
         /* create scale array, atan looks fine to sharpen clouds */
         for (int i = 0; i < 255; i++) {
             int j = atan((i - cf) / 20.0) * 290 / M_PI + 125;
@@ -150,13 +151,13 @@ int Renderer::loadCloudMap(const QString& cmapfile, int cf)
             else
                 v[i] = j;
         }
-        track_clouds = new FileChange(find_xglobefile(cmapfile));
+        track_clouds = std::make_unique<FileChange>(find_xglobefile(cmapfile));
     }
 
-    if (track_clouds == nullptr || !track_clouds->reload())
+    if (!track_clouds->reload())
         return 1;
     if (mapcloud)
-        delete mapcloud;
+        mapcloud.reset();
     mapcloud = loadImage(track_clouds->name());
     if (!mapcloud) {
         //fprintf(stderr, "Error loading cloud mapfile \"%s\"\n", cmapfile);
@@ -231,10 +232,10 @@ int Renderer::loadCloudMap(const QString& cmapfile, int cf)
     return 1;
 }
 
-int Renderer::loadBackImage(const QString& imagefile, bool tld)
+void Renderer::loadBackImage(const QString& imagefile, bool tld)
 {
-    if (backImage != nullptr)
-        return 1;
+    if (backImage)
+        return;
 
     tiled = tld;
 
@@ -243,21 +244,13 @@ int Renderer::loadBackImage(const QString& imagefile, bool tld)
     if (!tiled) {
         QSize smallSize (renderedImage->width(), renderedImage->height());
         QImage bi = backImage->scaled(smallSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-        delete backImage;
-        backImage = new QImage(bi);
+        backImage.reset();
+        backImage = std::make_shared<QImage>();
     }
-
-    return 1;
 }
 
 Renderer::~Renderer()
 {
-    delete renderedImage;
-    delete map;
-    delete mapnight;
-    delete mapcloud;
-    delete backImage;
-    delete track_clouds;
 }
 
 void Renderer::setViewPos(double lat, double lon)
@@ -768,7 +761,7 @@ unsigned int Renderer::getPixelColor(double longitude, double latitude,
     return qRgb(r, g, b);
 }
 
-void Renderer::getMapColorLinear(QImage* m, double longitude, double latitude,
+void Renderer::getMapColorLinear(std::shared_ptr<QImage> const& m, double longitude, double latitude,
     int* r, int* g, int* b)
 {
     latitude += M_PI / 2;
@@ -958,13 +951,9 @@ void Renderer::drawGrid()
     }
 }
 
-QImage* Renderer::getImage()
+std::shared_ptr<QImage> Renderer::getImage()
 {
-    QImage* clonedImage = nullptr;
-
-    clonedImage = new QImage(*renderedImage);
-    assert(clonedImage != nullptr);
-    return clonedImage;
+    return std::make_shared<QImage>(*renderedImage);
 }
 
 void Renderer::drawLabel()
@@ -1072,16 +1061,12 @@ void Renderer::drawLabel()
 
 void Renderer::setStars(double f, bool show)
 {
-    if (stars)
-        delete stars;
-    if (show)
-        stars = new Stars(f, *renderedImage);
-    else
-        stars = nullptr;
+    if (show && renderedImage)
+        stars = std::make_unique<Stars>(f, *renderedImage);
 }
 
 void Renderer::drawStars()
 {
-    if (stars)
+    if (stars && renderedImage)
         stars->render(*renderedImage);
 }

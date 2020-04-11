@@ -25,12 +25,14 @@
 #include <QPixmap>
 #include <QWidget>
 
+#include <memory>
+
 class DesktopWidget : public QWidget {
 public:
     DesktopWidget(QWidget* parent = nullptr, const QString& name = QString());
     ~DesktopWidget();
     void paintEvent(QPaintEvent* pe);
-    void updateDisplay(QImage* image);
+    void updateDisplay(std::shared_ptr<QImage> const&);
 
 private:
     QPixmap* currentImage;

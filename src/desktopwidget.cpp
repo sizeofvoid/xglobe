@@ -66,7 +66,7 @@ void DesktopWidget::paintEvent(QPaintEvent* pe)
     }
 }
 
-void DesktopWidget::updateDisplay(QImage* image)
+void DesktopWidget::updateDisplay(std::shared_ptr<QImage> const& image)
 {
     assert(image != nullptr);
     currentImage->convertFromImage(*image);
