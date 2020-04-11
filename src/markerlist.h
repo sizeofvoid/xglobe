@@ -112,10 +112,10 @@ protected:
 private:
     void render_monochrome(QRgb, QImage&, QImage&, int x, int y);
     void solve_conflicts(Location* visible_locations[], int num);
-    QPixmap* markerpixmap;
+    QPixmap* markerpixmap = nullptr;
     QImage markerimage;
-    QFont* renderFont;
-    QFontMetrics* fm;
+    QFont* renderFont = nullptr;
+    QFontMetrics* fm = nullptr;
     Gen gen;
 };
 

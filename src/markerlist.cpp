@@ -220,9 +220,8 @@ bool appendMarkerFile(TMarkerListPtr const& l, const QString& filename)
     return true;
 }
 
-MarkerList::MarkerList()
-    : renderFont(nullptr)
-    , fm(nullptr)
+MarkerList::MarkerList() 
+    :  list()
     , list_it(list)
 {
     qDeleteAll(list);
