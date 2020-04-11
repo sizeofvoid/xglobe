@@ -186,7 +186,7 @@ static bool parse_markerline(QString& line, const QString& filename,
  * A line with a leading '#' is ignored an can be used for comments.
  */
 
-bool appendMarkerFile(MarkerList& l, const QString& filename)
+bool appendMarkerFile(TMarkerListPtr const& l, const QString& filename)
 {
     QFile f(find_xglobefile(filename));
     QTextStream t(&f);
@@ -210,7 +210,7 @@ bool appendMarkerFile(MarkerList& l, const QString& filename)
         double lon, lat;
         QString name;
         if (parse_markerline(line, filename, linenum, lon, lat, name, color))
-            l.append(new Location(lon, lat, name, color));
+            l->append(new Location(lon, lat, name, color));
         else {
             f.close();
             return false;

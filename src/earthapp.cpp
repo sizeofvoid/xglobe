@@ -88,6 +88,7 @@
 EarthApplication::EarthApplication(int &argc, char **argv)
     : QApplication(argc, argv),
       clp(new CommandLineParser(this)),
+      marker_list(new MarkerList()),
       out_file_name(clp->getOutputFileName().isEmpty()
                     ? QString("xglobe-dump.png")
                     : clp->getOutputFileName())
@@ -153,9 +154,9 @@ void EarthApplication::init()
         if (!appendMarkerFile(marker_list, default_marker_file))
             exit(12);
     }
-    marker_list.set_font(clp->getMarkerFont(), clp->getMarkerFontSize());
+    marker_list->set_font(clp->getMarkerFont(), clp->getMarkerFontSize());
     if (clp->isShowMarker())
-        r->setMarkerList(&marker_list);
+        r->setMarkerList(marker_list);
     const auto lables = clp->computeLabelPosition();
     r->setLabelPos(std::get<0>(lables), std::get<1>(lables));
     r->setShadeArea(clp->getShadeArea());

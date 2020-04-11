@@ -81,13 +81,6 @@
 
 Renderer::Renderer(const QSize& size, const QString& mapfile)
 {
-    markerlist = nullptr;
-    map = nullptr;
-    mapnight = nullptr;
-    backImage = nullptr;
-    mapcloud = nullptr;
-    track_clouds = nullptr;
-
     renderedImage = new QImage(size, QImage::Format_RGB32);
     map = loadImage(!mapfile.isEmpty() ? mapfile : default_map);
 
@@ -336,9 +329,9 @@ double Renderer::getZoom()
     return zoom;
 }
 
-void Renderer::setMarkerList(MarkerList* l)
+void Renderer::setMarkerList(TMarkerListPtr const& marker)
 {
-    markerlist = l;
+    markerlist = marker;
 }
 
 void Renderer::showLabel(bool show)

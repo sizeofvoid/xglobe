@@ -109,7 +109,7 @@ protected:
     int cloud_filter = 120;
     time_t start_time;
     time_t current_time;
-    MarkerList marker_list;
+    TMarkerListPtr marker_list;
     double transition = 0.0;
     double shade_area = 1.0;
 

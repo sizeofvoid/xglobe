@@ -48,6 +48,8 @@
 #include <QRect>
 #include <QString>
 
+#include <memory>
+
 
 class Location {
     friend class MarkerList;
@@ -117,4 +119,6 @@ private:
     Gen gen;
 };
 
-bool appendMarkerFile(MarkerList& l, const QString& filename);
+using TMarkerListPtr = std::shared_ptr<MarkerList>;
+
+bool appendMarkerFile(TMarkerListPtr const&, const QString& filename);

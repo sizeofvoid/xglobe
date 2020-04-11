@@ -86,7 +86,7 @@ public:
     double getZoom();
     void setTime(time_t t);
     time_t getTime();
-    void setMarkerList(MarkerList* l);
+    void setMarkerList(TMarkerListPtr const&);
     void showMarkers(bool show);
     void showLabel(bool show);
     void setShadeArea(double area);
@@ -131,7 +131,7 @@ protected:
     QImage* mapcloud;
     QImage* backImage;
     QImage* renderedImage;
-    MarkerList* markerlist;
+    TMarkerListPtr markerlist;
     bool show_label;
     int label_x;
     int label_y;
