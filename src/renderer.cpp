@@ -469,7 +469,7 @@ void Renderer::renderFrame()
 {
     double dir_x, dir_y, dir_z; // direction of cast ray
     double hit_x, hit_y, hit_z; // hit position on earth surface
-    double hit2_x, hit2_y, hit2_z; // mirrored hit position on earth surface
+    double hit2_x = 0, hit2_y = 0, hit2_z = 0; // mirrored hit position on earth surface
     double sp_x, sp_y, sp_z; // intersection point of globe and ray
     double a, b, c; // coeff. of quadratic equation
     double radikand;
