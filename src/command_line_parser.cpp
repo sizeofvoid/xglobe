@@ -556,76 +556,47 @@ CommandLineParser::getStarFreq() const
 QRgba64
 CommandLineParser::computeRgb() const
 {
-    if (isSet(ambientlightOption)) {
-    /*
-    if (i >= argc()) {
-        printUsage();
-        exit(1);
-    }
-    ambient_red = atof(argv()[i]);
-    if (ambient_red > 100.)
-        ambient_red = 100.;
-    else if (ambient_red < 0.)
-        ambient_red = 0.;
+    const auto defaultRgb = QRgba64::fromRgba64(0.15, 0.15, 0.15, 0);
+    auto adjustAmbientlight = [](double& a) {
+        if (a > 100.)
+            a = 100.;
+        else if (a < 0.)
+            a = 0.;
+        a /= 100.;
+    };
 
-    ambient_red /= 100.;
-    ambient_green = ambient_blue = ambient_red;
-    */
+    if (isSet(ambientlightOption))
+    {
+        double ambientlight = getDoubleByValue(-1, ambientlightOption);
+        adjustAmbientlight(ambientlight);
+        return QRgba64::fromRgba64(ambientlight, ambientlight, ambientlight, 0);
     }
     else if (isSet(ambientrgbOption)) {
-    /*
-    int pos;
+        QString val = value(ambientrgbOption);
+        auto vals = val.splitRef(QLatin1String(":"));
+        if (vals.isEmpty() || vals.size() != 3) {
+            return defaultRgb;
+        }
 
-    if (i >= argc()) {
-        printUsage();
-        exit(1);
+        bool ok = false;
+        double r = vals.at(0).toDouble(&ok);
+        if (!ok)
+            throw std::logic_error("QString::toDouble");
+
+        double g = vals.at(1).toDouble(&ok);
+        if (!ok)
+            throw std::logic_error("QString::toDouble");
+
+        double b = vals.at(1).toDouble(&ok);
+        if (!ok)
+            throw std::logic_error("QString::toDouble");
+
+        adjustAmbientlight(r);
+        adjustAmbientlight(g);
+        adjustAmbientlight(b);
+        return QRgba64::fromRgba64(r, g, b, 0);
     }
-
-    QString s(argv()[i]);
-    s.simplified();
-
-    pos = s.find(' ');
-    if (pos == -1)
-        pos = s.find(',');
-    if (pos == -1)
-        pos = s.find('/');
-    if (pos == -1) {
-        printUsage();
-        exit(1);
-    }
-
-    ambient_red = s.left(pos).toDouble();
-    ambient_green = s.right(s.length() - pos - 1).toDouble();
-    s = s.right(s.length() - pos - 1);
-    pos = s.find(' ');
-    if (pos == -1)
-        pos = s.find(',');
-    if (pos == -1)
-        pos = s.find('/');
-    if (pos == -1) {
-        printUsage();
-        exit(1);
-    }
-    ambient_blue = s.right(s.length() - pos - 1).toDouble();
-
-    if (ambient_red > 100.)
-        ambient_red = 100.;
-    else if (ambient_red < 0.)
-        ambient_red = 0.;
-    ambient_red /= 100.;
-    if (ambient_green > 100.)
-        ambient_green = 100.;
-    else if (ambient_green < 0.)
-        ambient_green = 0.;
-    ambient_green /= 100.;
-    if (ambient_blue > 100.)
-        ambient_blue = 100.;
-    else if (ambient_blue < 0.)
-        ambient_blue = 0.;
-    ambient_blue /= 100.;
-    */
-    }
-    return QRgba64::fromRgba64(0.15, 0.15, 0.15, 0);
+    return defaultRgb;
 }
 
 QString
@@ -658,5 +629,13 @@ CommandLineParser::getShadeArea() const
 GridType
 CommandLineParser::getGridType() const
 {
+    if (isSet(nogridOption))
+        return GridType::no;
+
+    if (isSet(gridOption))
+        return GridType::no;
+
+    if (isSet(newgridOption))
+        return GridType::nice;
     return GridType::no;
 }
