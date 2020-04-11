@@ -204,9 +204,11 @@ CommandLineParser::getMag() const
 QString
 CommandLineParser::getMapFileName() const
 {
+    if (!isSet(mapOption))
+        return {};
+
     const QString mapFile = value(mapOption);
-    QFile file(mapFile);
-    bool exists = file.exists();
+    const bool exists = QFile::exists(mapFile);
     if (!exists)
         qWarning() << "Mapfile not exists: " << mapFile;
 
@@ -217,10 +219,9 @@ QString
 CommandLineParser::getBackGFileName() const
 {
     const QString backGFile = value(backgOption);
-    QFile file(backGFile);
-    bool exists = file.exists();
+    const bool exists = QFile::exists(backGFile);
     if (!exists)
-        qWarning() << "Mapfile not exists: " << backGFile;
+        qWarning() << "backGFile not exists: " << backGFile;
 
     return exists ? backGFile : QString();
 }
@@ -229,10 +230,9 @@ QString
 CommandLineParser::getMarkerFileName() const
 {
     const QString markerFileName = value(markerfileOption);
-    QFile file(markerFileName);
-    bool exists = file.exists();
+    const bool exists = QFile::exists(markerFileName);
     if (!exists)
-        qWarning() << "Mapfile not exists: " << markerFileName;
+        qWarning() << "Markerfile not exists: " << markerFileName;
 
     return exists ? markerFileName : QString();
 }
@@ -513,10 +513,9 @@ CommandLineParser::getNightMapfile() const
     if (!isSet(nightmapfileOption))
         return {};
     const QString nightmapfile = value(nightmapfileOption);
-    QFile file(nightmapfile);
-    bool exists = file.exists();
+    const bool exists = QFile::exists(nightmapfile);
     if (!exists)
-        qWarning() << "Mapfile not exists: " << nightmapfile;
+        qWarning() << "nightmapfile not exists: " << nightmapfile;
 
     return exists ? nightmapfile : QString();
 }
@@ -527,10 +526,9 @@ CommandLineParser::getCloudMapFile() const
     if (!isSet(cloudmapfileOption))
         return {};
     const QString cloudmapfile = value(cloudmapfileOption);
-    QFile file(cloudmapfile);
-    bool exists = file.exists();
+    const bool exists = QFile::exists(cloudmapfile);
     if (!exists)
-        qWarning() << "Mapfile not exists: " << cloudmapfile;
+        qWarning() << "cloudmapfile not exists: " << cloudmapfile;
 
     return exists ? cloudmapfile : QString();
 }
