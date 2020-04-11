@@ -109,12 +109,12 @@ protected:
     int cloud_filter = 120;
     time_t start_time;
     time_t current_time;
-    TMarkerListPtr marker_list;
     double transition = 0.0;
     double shade_area = 1.0;
 
 private:
     std::unique_ptr<CommandLineParser> clp;
+    TMarkerListPtr marker_list;
     std::unique_ptr<Renderer> r;
     std::unique_ptr<DesktopWidget> dwidget;
     QTimer* timer = nullptr;

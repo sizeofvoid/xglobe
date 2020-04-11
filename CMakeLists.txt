@@ -80,7 +80,7 @@ set(SOURCE
 
 add_definitions(-DVERSION="${XGLOBE_VERSION}")
 
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions -funroll-loops" CACHE STRING "Set C++ Compiler Flags" FORCE)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexceptions -pipe -Wall -Werror=format-security -O2 -g -fpie" CACHE STRING "Set C++ Compiler Flags" FORCE)
 
 add_executable(xglobe ${SOURCE})
 target_link_libraries(xglobe PRIVATE X11 Threads::Threads Qt5::Core Qt5::Gui Qt5::Widgets Qt5::X11Extras)

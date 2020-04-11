@@ -554,7 +554,7 @@ CommandLineParser::getStarFreq() const
 QRgba64
 CommandLineParser::computeRgb() const
 {
-    const auto defaultRgb = QRgba64::fromRgba64(0.15, 0.15, 0.15, 0);
+    const auto defaultRgb = QRgba64::fromRgba64(15, 15, 15, 0);
     auto adjustAmbientlight = [](double& a) {
         if (a > 100.)
             a = 100.;
