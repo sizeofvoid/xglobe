@@ -35,7 +35,7 @@ else()
 endif()
 
 if (SET_DEFAULT_MAP)
-	message(STATUS "Using default map ${SET_DEFAULT_MAP}")
+    message(STATUS "Using default map ${SET_DEFAULT_MAP}")
     add_compile_definitions(DEFAULT_MAP="${SET_DEFAULT_MAP}")
 endif()
 if (SET_DEFAULT_MAP_NIGHT)
