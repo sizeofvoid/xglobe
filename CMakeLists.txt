@@ -1,6 +1,8 @@
-cmake_minimum_required(VERSION 3.7.0)
+cmake_minimum_required(VERSION 3.16.0)
 
 project(xglobe)
+
+#add_executable(xglobe)
 
 # Version setup
 set(XGLOBE_VERSION_MAJOR "0")
@@ -14,7 +16,6 @@ if(NOT CMAKE_BUILD_TYPE)
             FORCE)
 endif()
 
-
 option(SET_DEFAULT_MAP "Set default map file." "map.png")
 option(SET_DEFAULT_MAP_NIGHT "Set default night map file.")
 option(SET_DEFAULT_MAP_BACK "Set default back map file.")
@@ -24,44 +25,17 @@ set(QT_COMPONENTS Core Gui Widgets X11Extras)
 find_package(Qt5 COMPONENTS ${QT_COMPONENTS} REQUIRED)
 find_package(Threads REQUIRED)
 find_package(X11 REQUIRED)
-link_libraries(${X11_LIBRARIES})
-include_directories(${X11_INCLUDE_DIR})
 
 find_program(XWALLPAPER_BIN xwallpaper)
-if (NOT XWALLPAPER_BIN)
-    message(FATAL_ERROR "Missing xwallpaper, please install xwallpaper")
-else()
-    add_compile_definitions(XWALLPAPER_BIN="${XWALLPAPER_BIN}")
-endif()
-
-if (SET_DEFAULT_MAP)
-    message(STATUS "Using default map ${SET_DEFAULT_MAP}")
-    add_compile_definitions(DEFAULT_MAP="${SET_DEFAULT_MAP}")
-endif()
-if (SET_DEFAULT_MAP_NIGHT)
-    message(STATUS "Using default night map ${SET_DEFAULT_MAP_NIGHT}")
-    add_compile_definitions(DEFAULT_MAP_NIGHT="${SET_DEFAULT_MAP_NIGHT}")
-endif()
-if (SET_DEFAULT_MAP_BACK)
-    message(STATUS "Using default back map ${SET_DEFAULT_MAP_BACK}")
-    add_compile_definitions(DEFAULT_MAP_BACK="${SET_DEFAULT_MAP_BACK}")
-endif()
-if (SET_DEFAULT_MARKER_FILE)
-    message(STATUS "Using default marker file ${SET_DEFAULT_MARKER_FILE}")
-    add_compile_definitions(DEFAULT_MARKER_FILE="${SET_DEFAULT_MARKER_FILE}")
-endif()
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
+# Always use '-fPIC'/'-fPIE' option.
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-set(CMAKE_REQUIRED_FLAGS -std=c++17)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(SOURCE
     src/main.cpp
@@ -78,12 +52,41 @@ set(SOURCE
     src/stars.cpp
     src/sunpos.cpp)
 
-add_compile_definitions(DVERSION="${XGLOBE_VERSION}")
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexceptions -pipe -Wall -Werror=format-security -O2 -g -fpie" CACHE STRING "Set C++ Compiler Flags" FORCE)
-
 add_executable(xglobe ${SOURCE})
-target_link_libraries(xglobe PRIVATE X11 Threads::Threads Qt5::Core Qt5::Gui Qt5::Widgets Qt5::X11Extras)
+
+target_link_libraries(xglobe PUBLIC X11
+                                     Threads::Threads
+                                     Qt5::Core
+                                     Qt5::Gui
+                                     Qt5::Widgets
+                                     Qt5::X11Extras)
+
+target_compile_features(xglobe PRIVATE cxx_std_17)
+target_compile_options(xglobe PRIVATE "-Wall")
+target_compile_options(xglobe PRIVATE "-pipe")
+target_compile_options(xglobe PRIVATE "-fexceptions")
+
+if (NOT XWALLPAPER_BIN)
+    message(FATAL_ERROR "Missing xwallpaper, please install xwallpaper")
+else()
+    target_compile_definitions(xglobe PRIVATE XWALLPAPER_BIN="${XWALLPAPER_BIN}")
+endif()
+if (SET_DEFAULT_MAP)
+    message(STATUS "Using default map ${SET_DEFAULT_MAP}")
+    target_compile_definitions(xglobe PRIVATE DEFAULT_MAP="${SET_DEFAULT_MAP}")
+endif()
+if (SET_DEFAULT_MAP_NIGHT)
+    message(STATUS "Using default night map ${SET_DEFAULT_MAP_NIGHT}")
+    target_compile_definitions(xglobe PRIVATE DEFAULT_MAP_NIGHT="${SET_DEFAULT_MAP_NIGHT}")
+endif()
+if (SET_DEFAULT_MAP_BACK)
+    message(STATUS "Using default back map ${SET_DEFAULT_MAP_BACK}")
+    target_compile_definitions(xglobe PRIVATE DEFAULT_MAP_BACK="${SET_DEFAULT_MAP_BACK}")
+endif()
+if (SET_DEFAULT_MARKER_FILE)
+    message(STATUS "Using default marker file ${SET_DEFAULT_MARKER_FILE}")
+    target_compile_definitions(xglobe PRIVATE DEFAULT_MARKER_FILE="${SET_DEFAULT_MARKER_FILE}")
+endif()
 
 # install
 install(TARGETS xglobe DESTINATION bin)
