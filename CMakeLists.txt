@@ -10,7 +10,7 @@ project(xglobe
         VERSION ${XGLOBE_VERSION}
         DESCRIPTION "XGlobe is the further development of Thorsten Scheuermanns xglobe 0.5 release."
         HOMEPAGE_URL "https://github.com/sizeofvoid/xglobe"
-        LANGUAGES CXX)
+        LANGUAGES C CXX)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING
@@ -23,8 +23,7 @@ option(SET_DEFAULT_MAP_NIGHT "Set default night map file.")
 option(SET_DEFAULT_MAP_BACK "Set default back map file.")
 option(SET_DEFAULT_MARKER_FILE "Set default marker file." "xglobe-markers")
 
-set(QT_COMPONENTS Core Gui Widgets X11Extras)
-find_package(Qt5 COMPONENTS ${QT_COMPONENTS} REQUIRED)
+find_package(Qt5 COMPONENTS Core Gui Widgets X11Extras REQUIRED)
 find_package(Threads REQUIRED)
 find_package(X11 REQUIRED)
 
@@ -62,6 +61,9 @@ target_link_libraries(xglobe PUBLIC X11
                                     Qt5::Gui
                                     Qt5::Widgets
                                     Qt5::X11Extras)
+
+target_link_libraries(xglobe PRIVATE ${X11_LIBRARIES})
+target_include_directories(xglobe PRIVATE ${X11_INCLUDE_DIR})
 
 target_compile_features(xglobe PRIVATE cxx_std_17)
 target_compile_options(xglobe PRIVATE "-Wall")
