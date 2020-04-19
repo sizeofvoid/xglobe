@@ -1,14 +1,16 @@
 cmake_minimum_required(VERSION 3.16.0)
 
-project(xglobe)
-
-#add_executable(xglobe)
-
 # Version setup
 set(XGLOBE_VERSION_MAJOR "0")
 set(XGLOBE_VERSION_MINOR "6")
 set(XGLOBE_VERSION_PATCH "0")
 set(XGLOBE_VERSION "${XGLOBE_VERSION_MAJOR}.${XGLOBE_VERSION_MINOR}.${XGLOBE_VERSION_PATCH}")
+
+project(xglobe
+        VERSION ${XGLOBE_VERSION}
+        DESCRIPTION "XGlobe is the further development of Thorsten Scheuermanns xglobe 0.5 release."
+        HOMEPAGE_URL "https://github.com/sizeofvoid/xglobe"
+        LANGUAGES CXX)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING
@@ -55,11 +57,11 @@ set(SOURCE
 add_executable(xglobe ${SOURCE})
 
 target_link_libraries(xglobe PUBLIC X11
-                                     Threads::Threads
-                                     Qt5::Core
-                                     Qt5::Gui
-                                     Qt5::Widgets
-                                     Qt5::X11Extras)
+                                    Threads::Threads
+                                    Qt5::Core
+                                    Qt5::Gui
+                                    Qt5::Widgets
+                                    Qt5::X11Extras)
 
 target_compile_features(xglobe PRIVATE cxx_std_17)
 target_compile_options(xglobe PRIVATE "-Wall")
