@@ -980,8 +980,8 @@ void Renderer::drawLabel()
     slat = sun_lat * 180. / M_PI;
 
     labelstring.sprintf("%d, %d %d. %d, %d:%02d %s\n"
-                        "View pos %2.2f° %c %2.2f° %c\n"
-                        "Sun pos %2.2f° %c %2.2f° %c",
+                        "View pos %2.2fÂ° %c %2.2fÂ° %c\n"
+                        "Sun pos %2.2fÂ° %c %2.2fÂ° %c",
         dt.date().toString(QLatin1String("dd")).data()->toLatin1(),
         dt.date().toString(QLatin1String("mm")).data()->toLatin1(),
         dt.date().day(), dt.date().year(),
