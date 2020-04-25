@@ -7,7 +7,7 @@
 
 const QString FileChange::default_xglobe_home_dir = QLatin1String("./xglobe");
 
-#if defined (DEFAULT_MARKER_FILE)
+#if defined (XGLOBE_DATA_DIR)
     const QString FileChange::default_xglobe_dir = QLatin1String(XGLOBE_DATA_DIR);
 #else
     const QString FileChange::default_xglobe_dir = QLatin1String("~/xglobe");
@@ -52,7 +52,9 @@ QString FileChange::findXglobeFile(const QString& name)
         return homedir;
     }
 
-    const QString defaultdir = default_xglobe_dir + QDir::separator() + name;
+    const QString defaultdir = default_xglobe_dir
+                               + QDir::separator()
+                               + name;
     if (QFile::exists(defaultdir)) {
         return defaultdir;
     }
