@@ -25,7 +25,6 @@ option(SET_DEFAULT_MAP_NIGHT "Set default night map file.")
 option(SET_DEFAULT_MAP_BACK "Set default back map file.")
 option(SET_DEFAULT_MARKER_FILE "Set default marker file." "xglobe-markers")
 
-option(ENABLE_INSTALL_OPENBSD_MARKERS "Install OpenBSD markers" OFF)
 option(ENABLE_INSTALL_GETCLOUDMAP "Install old xglobe 0.5 getcloudmap script" OFF)
 
 set(INSTALL_XGLOBE_DATA_DIR "${CMAKE_INSTALL_FULL_DATADIR}/xglobe")
@@ -121,9 +120,4 @@ if (ENABLE_INSTALL_GETCLOUDMAP)
             README getcloudmap
             RUNTIME DESTINATION bin
             COMPONENT Runtime)
-endif()
-
-if (ENABLE_INSTALL_OPENBSD_MARKERS)
-    install(FILES OpenBSD-markers
-            DESTINATION "${INSTALL_XGLOBE_DATA_DIR}")
 endif()
