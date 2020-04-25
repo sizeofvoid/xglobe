@@ -109,15 +109,14 @@ Renderer::Renderer(const QSize& size, const QString& mapfile)
 
 std::shared_ptr<QImage> Renderer::loadImage(const QString& name)
 {
-    QImage* m = new QImage();
     auto image = std::make_shared<QImage>();
 
-    if (!image->load(find_xglobefile(name))) {
+    if (!image->load(FileChange::findXglobeFile(name))) {
         fprintf(stderr, "Error while opening map \"%s\"!\n", name.toLatin1().data());
         ::exit(22);
     }
 
-    if (m->depth() < 8)
+    if (image->depth() < 8)
         *image = image->convertToFormat(QImage::Format_Indexed8);
 
     return image;
@@ -151,7 +150,7 @@ int Renderer::loadCloudMap(const QString& cmapfile, int cf)
             else
                 v[i] = j;
         }
-        track_clouds = std::make_unique<FileChange>(find_xglobefile(cmapfile));
+        track_clouds = std::make_unique<FileChange>(FileChange::findXglobeFile(cmapfile));
     }
 
     if (!track_clouds->reload())
