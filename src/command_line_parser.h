@@ -106,5 +106,23 @@ private:
     QCommandLineOption markerFontSizeOption;
 
     TGeoCoordinatePtr coordinate;
+
+#if defined (DEFAULT_MAP)
+    const QString default_map = QLatin1String(DEFAULT_MAP);
+#else
+    const QString default_map = QLatin1String("map.png");
+#endif
+
+#if defined (DEFAULT_MAP_NIGHT)
+    const QString default_map_night = QLatin1String(DEFAULT_MAP_NIGHT);
+#else
+    const QString default_map_night = QLatin1String("mapnight.png");
+#endif
+
+#if defined (DEFAULT_MAP_BACK)
+    const QString default_map_back = QLatin1String(DEFAULT_MAP_BACK);
+#else
+    const QString default_map_back = QLatin1String("back.png");
+#endif
 };
 

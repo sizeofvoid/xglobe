@@ -188,7 +188,7 @@ static bool parse_markerline(QString& line, const QString& filename,
 
 bool appendMarkerFile(TMarkerListPtr const& l, const QString& filename)
 {
-    QFile f(find_xglobefile(filename));
+    QFile f(FileChange::findXglobeFile(filename));
     QTextStream t(&f);
 
     if (!f.open(QIODevice::ReadOnly))

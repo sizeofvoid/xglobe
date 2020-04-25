@@ -1,57 +1,62 @@
 #include "file.h"
+
 #include <QFile>
 #include <QFileInfo>
+#include <QDir>
 #include <QString>
+#include <QDebug>
 
-static QString userdir;
+const QString FileChange::default_xglobe_home_dir = QLatin1String(".xglobe");
 
-QString find_xglobefile(const QString& name)
+#if defined (XGLOBE_DATA_DIR)
+    const QString FileChange::default_xglobe_dir = QLatin1String(XGLOBE_DATA_DIR);
+#else
+    const QString FileChange::default_xglobe_dir = QLatin1String("~/xglobe");
+#endif
+
+FileChange::FileChange(const QString& filename)
+    : observeFile(filename)
 {
-    if (QFile::exists(name))
-        return name;
-
-    if (userdir.isEmpty()) {
-        QString result = userdir;
-        result += "/";
-        result += name;
-        if (QFile::exists(result))
-            return result;
-    }
-    QString result = "/usr/ports/pobj/xglobe-0.5/fake-amd64/usr/local"; //XGLOBE_LIB_DIR;
-    result += "/";
-    result += name;
-    if (!QFile::exists(result)) {
-        fprintf(stderr, "File \"%s\" not found!\n", name.toLatin1().data());
-        ::exit(1);
-    }
-    return result;
-}
-
-void set_userdir(const QString& d)
-{
-    userdir = d;
 }
 
 bool FileChange::reload()
 {
-    QFileInfo info(n);
+    QFileInfo info(observeFile);
     if (!info.exists())
         return false;
+
     QDateTime t = info.lastModified();
     if (!lastCheck.isValid() || t.secsTo(lastCheck) > 0) {
         lastCheck = t;
         return true;
     }
-    else
-        return false;
-}
-
-FileChange::FileChange(const QString& filename)
-    : n(filename)
-{
+    return false;
 }
 
 const QString& FileChange::name() const
 {
-    return n;
+    return observeFile;
+}
+
+QString FileChange::findXglobeFile(const QString& name)
+{
+    if (QFile::exists(name))
+        return name;
+
+    const QString homedir = QDir::homePath()
+                            + QDir::separator()
+                            + default_xglobe_home_dir
+                            + name;
+
+    if (QFile::exists(homedir)) {
+        return homedir;
+    }
+
+    const QString defaultdir = default_xglobe_dir
+                               + QDir::separator()
+                               + name;
+    if (QFile::exists(defaultdir)) {
+        return defaultdir;
+    }
+    return QString();
 }

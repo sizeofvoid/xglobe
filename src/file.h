@@ -3,16 +3,20 @@
 #include <QDateTime>
 #include <QString>
 
-QString find_xglobefile(const QString&);
-void set_userdir(const QString&);
-
 class FileChange {
 public:
     FileChange(const QString&);
+
     bool reload();
+
     const QString& name() const;
 
+    static QString findXglobeFile(const QString&);
+
 private:
-    const QString n;
+    const QString observeFile;
     QDateTime lastCheck;
+
+    static const QString default_xglobe_home_dir;
+    static const QString default_xglobe_dir;
 };
