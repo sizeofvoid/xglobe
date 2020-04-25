@@ -4,8 +4,9 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QString>
+#include <QDebug>
 
-const QString FileChange::default_xglobe_home_dir = QLatin1String("./xglobe");
+const QString FileChange::default_xglobe_home_dir = QLatin1String(".xglobe");
 
 #if defined (XGLOBE_DATA_DIR)
     const QString FileChange::default_xglobe_dir = QLatin1String(XGLOBE_DATA_DIR);
@@ -14,13 +15,13 @@ const QString FileChange::default_xglobe_home_dir = QLatin1String("./xglobe");
 #endif
 
 FileChange::FileChange(const QString& filename)
-    : observefile(filename)
+    : observeFile(filename)
 {
 }
 
 bool FileChange::reload()
 {
-    QFileInfo info(observefile);
+    QFileInfo info(observeFile);
     if (!info.exists())
         return false;
 
@@ -34,7 +35,7 @@ bool FileChange::reload()
 
 const QString& FileChange::name() const
 {
-    return observefile;
+    return observeFile;
 }
 
 QString FileChange::findXglobeFile(const QString& name)
@@ -45,7 +46,6 @@ QString FileChange::findXglobeFile(const QString& name)
     const QString homedir = QDir::homePath()
                             + QDir::separator()
                             + default_xglobe_home_dir
-                            + QDir::separator()
                             + name;
 
     if (QFile::exists(homedir)) {

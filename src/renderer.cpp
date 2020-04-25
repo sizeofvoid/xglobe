@@ -82,7 +82,7 @@
 Renderer::Renderer(const QSize& size, const QString& mapfile)
 {
     renderedImage = std::make_shared<QImage>(size, QImage::Format_RGB32);
-    map = loadImage(!mapfile.isEmpty() ? mapfile : default_map);
+    map = loadImage(mapfile);
 
      fprintf(stderr, "Map size: %dx%d\n", map->width(), map->height());
 
@@ -112,8 +112,7 @@ std::shared_ptr<QImage> Renderer::loadImage(const QString& name)
     auto image = std::make_shared<QImage>();
 
     if (!image->load(FileChange::findXglobeFile(name))) {
-        fprintf(stderr, "Error while opening map \"%s\"!\n", name.toLatin1().data());
-        ::exit(22);
+        return nullptr;
     }
 
     if (image->depth() < 8)
@@ -127,7 +126,7 @@ int Renderer::loadNightMap(const QString& nmapfile)
     if (!mapnight) // we already have a night map!
         return 1;
 
-    mapnight = loadImage(!nmapfile.isEmpty() ? nmapfile : default_map_night);
+    mapnight = loadImage(nmapfile);
 
     return 1;
 }
@@ -139,7 +138,7 @@ static inline bool bad_color(int r, int g, int b)
 
 int Renderer::loadCloudMap(const QString& cmapfile, int cf)
 {
-    if (!track_clouds && !cmapfile.isEmpty()) {
+    if (!track_clouds) {
         /* create scale array, atan looks fine to sharpen clouds */
         for (int i = 0; i < 255; i++) {
             int j = atan((i - cf) / 20.0) * 290 / M_PI + 125;
@@ -236,11 +235,10 @@ void Renderer::loadBackImage(const QString& imagefile, bool tld)
     if (backImage)
         return;
 
+    backImage = loadImage(imagefile);
     tiled = tld;
 
-    backImage = loadImage(!imagefile.isEmpty() ? imagefile : default_map_back);
-
-    if (!tiled) {
+    if (!tiled && backImage) {
         QSize smallSize (renderedImage->width(), renderedImage->height());
         QImage bi = backImage->scaled(smallSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
         backImage.reset();
@@ -497,9 +495,7 @@ void Renderer::renderFrame()
         memset(p, 0, renderedImage->bytesPerLine());
     }
 
-    if (backImage != nullptr)
-        copyBackImage();
-
+    copyBackImage();
     drawStars();
 
     // rotation matrix
@@ -619,6 +615,8 @@ void Renderer::renderFrame()
 
 void Renderer::copyBackImage()
 {
+    if (!backImage)
+        return;
     QRgb *p, *bp;
     unsigned char* c_bp;
     unsigned int y, x, by, bx;

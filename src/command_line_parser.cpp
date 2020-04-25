@@ -63,7 +63,7 @@ CommandLineParser::CommandLineParser(QCoreApplication* parent)
       ambientrgbOption(QStringList() << "ambientrgb", "Works like -ambientlight but takes 3 parameters (red, green and blue value) defining the color of ambient light. This can be useful in conjunction with a night map that is tinted towards blue, for example. Using a blueish ambient light makes the transition from day to night look better. Use either -ambientlevel or -ambientrgb, not both. (example: -ambientrgb \"1 4 20\" - This will make the night side appear blueish.)", "rgblevel", ""),
       niceOption(QStringList() << "nice", " Run the xglobe process with the given priority (see nice(1) and setpriority(2) manual pages).", "priority", ""),
       mapOption(QStringList() << "mapfile" << "map", "Use another than the default world map. Supported image formats depend on qt.", "file"),
-      nightmapfileOption(QStringList() << "nightmapfile" << "nightmap" << "night", "Same as -mapfile, but for the night map.", "file", ""),
+      nightmapfileOption(QStringList() << "nightmapfile" << "night", "Same as -mapfile, but for the night map.", "file", ""),
       cloudmapfileOption(QStringList() << "cloudmapfile" << "cloudmap" << "clouds", "Same as -mapfile, but for the cloud map.", "file", ""),
       cloudfilterOption(QStringList() << "cloudfilter" << "filter", "Used in conjunction with -cloudmapfile, this controls how much cloud is displayed.  n is a value between 0 and 255, where 0 will show all cloud, and 255 will only show the brightest clouds.", "n", "120"),
       dumpcmdOption(QStringList() << "dumpcmd", "Saves the rendered image to \"xglobe.bmp\" in the current directory, then executes \"cmd\", passing the image filename as an argument, eg '-dumpcmd Esetroot'.", "cmd", ""),
@@ -205,25 +205,28 @@ QString
 CommandLineParser::getMapFileName() const
 {
     if (!isSet(mapOption))
-        return {};
+        return default_map;
 
     const QString mapFile = value(mapOption);
     const bool exists = QFile::exists(mapFile);
     if (!exists)
         qWarning() << "Mapfile not exists: " << mapFile;
 
-    return exists ? mapFile : QString();
+    return exists ? mapFile : default_map;
 }
 
 QString
 CommandLineParser::getBackGFileName() const
 {
+    if (!isSet(backgOption))
+        return default_map_back;
+
     const QString backGFile = value(backgOption);
     const bool exists = QFile::exists(backGFile);
     if (!exists)
         qWarning() << "backGFile not exists: " << backGFile;
 
-    return exists ? backGFile : QString();
+    return exists ? backGFile : default_map_back;
 }
 
 QString
@@ -511,13 +514,14 @@ QString
 CommandLineParser::getNightMapfile() const
 {
     if (!isSet(nightmapfileOption))
-        return {};
+        return default_map_night;
+
     const QString nightmapfile = value(nightmapfileOption);
     const bool exists = QFile::exists(nightmapfile);
     if (!exists)
         qWarning() << "nightmapfile not exists: " << nightmapfile;
 
-    return exists ? nightmapfile : QString();
+    return exists ? nightmapfile : default_map_night;
 }
 
 QString

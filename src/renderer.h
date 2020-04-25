@@ -71,7 +71,7 @@ public:
     Renderer(const QSize& size, const QString& mapfile = QString());
     ~Renderer();
     int loadNightMap(const QString& nmapfile = nullptr);
-    int loadCloudMap(const QString& cmapfile = nullptr, int cloud_filter = 110);
+    int loadCloudMap(const QString& cmapfile = QString(), int cloud_filter = 110);
     void loadBackImage(const QString& imagefile = nullptr, bool tld = false);
     void renderFrame();
     void setViewPos(double lat, double lon);
@@ -169,22 +169,4 @@ private:
     Gen gen;
     std::unique_ptr<Stars> stars;
     unsigned char v[256]; // values for cloud
-
-#if defined (DEFAULT_MAP)
-    const QString default_map = QLatin1String(DEFAULT_MAP);
-#else
-    const QString default_map = QLatin1String("map.png");
-#endif
-
-#if defined (DEFAULT_MAP_NIGHT)
-    const QString default_map_night = QLatin1String(DEFAULT_MAP_NIGHT);
-#else
-    const QString default_map_night = QLatin1String("mapnight.png");
-#endif
-
-#if defined (DEFAULT_MAP_BACK)
-    const QString default_map_back = QLatin1String(DEFAULT_MAP_BACK);
-#else
-    const QString default_map_back = QLatin1String("back.png");
-#endif
 };

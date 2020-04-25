@@ -6,7 +6,6 @@
 class FileChange {
 public:
     FileChange(const QString&);
-    ~FileChange() = default;
 
     bool reload();
 
@@ -15,7 +14,7 @@ public:
     static QString findXglobeFile(const QString&);
 
 private:
-    const QString observefile;
+    const QString observeFile;
     QDateTime lastCheck;
 
     static const QString default_xglobe_home_dir;
