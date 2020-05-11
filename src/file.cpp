@@ -11,7 +11,7 @@ const QString FileChange::default_xglobe_home_dir = QLatin1String(".xglobe");
 #if defined (XGLOBE_DATA_DIR)
     const QString FileChange::default_xglobe_dir = QLatin1String(XGLOBE_DATA_DIR);
 #else
-    const QString FileChange::default_xglobe_dir = QLatin1String("~/xglobe");
+    const QString FileChange::default_xglobe_dir = QLatin1String("~/.xglobe");
 #endif
 
 FileChange::FileChange(const QString& filename)
