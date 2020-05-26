@@ -118,7 +118,7 @@ install(FILES xglobe-markers
         DESTINATION "${INSTALL_XGLOBE_DATA_DIR}")
 
 if (ENABLE_INSTALL_MAPS)
-    install(FILES map.png
+    install(FILES earth_2400.png
             RENAME default_map.png
             DESTINATION "${INSTALL_XGLOBE_DATA_DIR}")
 endif()
