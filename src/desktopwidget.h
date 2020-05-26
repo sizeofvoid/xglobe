@@ -29,12 +29,11 @@
 
 class DesktopWidget : public QWidget {
 public:
-    DesktopWidget(QWidget* parent = nullptr, const QString& name = QString());
-    ~DesktopWidget();
-    void paintEvent(QPaintEvent* pe);
-    void updateDisplay(std::shared_ptr<QImage> const&);
-
+    DesktopWidget(QWidget* = nullptr);
+    ~DesktopWidget() = default;
+    void paintEvent(QPaintEvent*) override;
+    void updateDisplay(QImage const&);
 private:
-    QPixmap* currentImage;
-    bool haveImage;
+    std::unique_ptr<QPixmap> currentImage;
+    bool haveImage = false;
 };

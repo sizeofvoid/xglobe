@@ -204,8 +204,10 @@ CommandLineParser::getMag() const
 QString
 CommandLineParser::getMapFileName() const
 {
-    if (!isSet(mapOption))
+    if (!isSet(mapOption)) {
+        qWarning() << "Fallback map: " << default_map;
         return default_map;
+    }
 
     const QString mapFile = value(mapOption);
     const bool exists = QFile::exists(mapFile);
@@ -218,8 +220,9 @@ CommandLineParser::getMapFileName() const
 QString
 CommandLineParser::getBackGFileName() const
 {
-    if (!isSet(backgOption))
-        return default_map_back;
+    if (!isSet(backgOption)) {
+        return QString();
+    }
 
     const QString backGFile = value(backgOption);
     const bool exists = QFile::exists(backGFile);
@@ -514,7 +517,7 @@ QString
 CommandLineParser::getNightMapfile() const
 {
     if (!isSet(nightmapfileOption))
-        return default_map_night;
+        return QString();
 
     const QString nightmapfile = value(nightmapfileOption);
     const bool exists = QFile::exists(nightmapfile);

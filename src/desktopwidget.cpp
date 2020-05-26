@@ -22,35 +22,21 @@
  */
 
 #include "desktopwidget.h"
-#include <stdio.h>
+
 #include <QPaintEvent>
 #include <QPalette>
-#include <QX11Info>
 #include <QBrush>
+#include <QDebug>
 
-#include <X11/Xlib.h>
-
-
-
-DesktopWidget::DesktopWidget(QWidget* parent, const QString& name)
-    : QWidget(parent, Qt::Desktop)
+DesktopWidget::DesktopWidget(QWidget* parent)
+    : QWidget(parent)
 {
-    haveImage = false;
-    currentImage = new QPixmap(width(), height());
-    fprintf(stderr, "Desktop size: %dx%d\n",width(), height());
-}
-
-DesktopWidget::~DesktopWidget()
-{
-    if (currentImage)
-        delete currentImage;
+    currentImage = std::make_unique<QPixmap>(width(), height());
 }
 
 void DesktopWidget::paintEvent(QPaintEvent* pe)
 {
     QPainter p(this);
-    fprintf(stderr, "Desktop size: %dx%d\n",width(), height());
-
     if (!haveImage) {
         p.setFont(QFont("helvetica", 35));
         QRect br = p.fontMetrics().boundingRect("Please wait...");
@@ -66,14 +52,8 @@ void DesktopWidget::paintEvent(QPaintEvent* pe)
     }
 }
 
-void DesktopWidget::updateDisplay(std::shared_ptr<QImage> const& image)
+void DesktopWidget::updateDisplay(QImage const& image)
 {
-    assert(image != nullptr);
-    currentImage->convertFromImage(*image);
+    currentImage->convertFromImage(image);
     haveImage = true;
-    QPalette palette;
-    palette.setBrush((this)->backgroundRole(),  QBrush(*currentImage));
-    (this)->setPalette(palette);
-    XClearWindow(QX11Info::display(), QX11Info::appRootWindow());
-    update();
 }

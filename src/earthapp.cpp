@@ -100,6 +100,7 @@ EarthApplication::EarthApplication(int &argc, char **argv)
     if (clp->isKde()) {
         dwidget = std::make_unique<DesktopWidget>();
         dwidget->update();
+        dwidget->show();
     }
 }
 
@@ -111,27 +112,28 @@ EarthApplication::~EarthApplication(void)
 void EarthApplication::init()
 {
     const QSize size = clp->getSize();
+    const QString mapFilename = clp->getMapFileName();
 
     if (size.isValid()) {
-        r = std::make_unique<Renderer>(size, clp->getMapFileName());
+        r = std::make_unique<Renderer>(size, mapFilename);
     }
     else {
-        r = std::make_unique<Renderer>(clp->isKde() ? dwidget->baseSize() : desktop()->size(),
-                                       clp->getMapFileName());
+        r = std::make_unique<Renderer>(clp->isKde() ? dwidget->size() : desktop()->size(),
+                                       mapFilename);
     }
 
     /* initialize the Renderer */
     const QString nightmapfile = clp->getNightMapfile();
     if (clp->isNightmap() && !nightmapfile.isEmpty())
         r->loadNightMap(nightmapfile);
-    else if (!clp->getMapFileName().isEmpty())
-        r->loadNightMap(clp->getMapFileName());
+    else if (!mapFilename.isEmpty())
+        r->loadNightMap(mapFilename);
 
     const QString cloudmapfile= clp->getCloudMapFile();
     if (!cloudmapfile.isEmpty())
         r->loadCloudMap(cloudmapfile, clp->getCloudMapFilter());
-    else if (!clp->getMapFileName().isEmpty())
-        r->loadCloudMap(clp->getMapFileName(), clp->getCloudMapFilter());
+    else if (!mapFilename.isEmpty())
+        r->loadCloudMap(mapFilename, clp->getCloudMapFilter());
 
 
     if (!clp->getBackGFileName().isEmpty())
@@ -180,9 +182,8 @@ void EarthApplication::recalc()
 {
     start_time = time(nullptr); // first image with current time
 
-    if (firstTime) {
+    if (firstTime)
         firstRecalc(start_time);
-    }
 
     processImage();
 
@@ -268,7 +269,9 @@ void EarthApplication::firstRecalc(time_t start_time)
 void EarthApplication::processImage()
 {
     if (clp->isKde()) {
-        dwidget->updateDisplay(r->getImage());
+        r->getImage()->save(clp->getImageTmpFileName(), "PNG");
+        dwidget->updateDisplay(*r->getImage());
+        dwidget->update();
         processEvents(); // we want the image to be
     } // displayed immediately
     /* NOT yet
