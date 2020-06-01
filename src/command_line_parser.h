@@ -17,7 +17,7 @@ public:
 
     QString getImageTmpFileName() const;
     bool isOnce() const;
-    bool isKde() const;
+    bool isDrawInWIndow() const;
     double getMag() const;
     double getWait() const;
     std::pair<int,int> computeLabelPosition() const;
@@ -71,7 +71,7 @@ private:
     QCommandLineOption nogridOption;
     QCommandLineOption newgridOption;
     QCommandLineOption tiledOption;
-    QCommandLineOption kdeOption;
+    QCommandLineOption windowOption;
     QCommandLineOption starsOption;
     QCommandLineOption nostarsOption;
     QCommandLineOption posFixedOption;

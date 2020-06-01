@@ -97,7 +97,7 @@ EarthApplication::EarthApplication(int &argc, char **argv)
     if (optNice)
         setpriority(PRIO_PROCESS, getpid(), *optNice);
 
-    if (clp->isKde()) {
+    if (clp->isDrawInWIndow()) {
         dwidget = std::make_unique<DesktopWidget>();
         dwidget->update();
         dwidget->show();
@@ -118,7 +118,7 @@ void EarthApplication::init()
         r = std::make_unique<Renderer>(size, mapFilename);
     }
     else {
-        r = std::make_unique<Renderer>(clp->isKde() ? dwidget->size() : desktop()->size(),
+        r = std::make_unique<Renderer>(clp->isDrawInWIndow() ? dwidget->size() : desktop()->size(),
                                        mapFilename);
     }
 
@@ -268,7 +268,7 @@ void EarthApplication::firstRecalc(time_t start_time)
 
 void EarthApplication::processImage()
 {
-    if (clp->isKde()) {
+    if (clp->isDrawInWIndow()) {
         r->getImage()->save(clp->getImageTmpFileName(), "PNG");
         dwidget->updateDisplay(*r->getImage());
         dwidget->update();
