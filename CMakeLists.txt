@@ -30,7 +30,7 @@ option(ENABLE_INSTALL_MAPS "Install default maps" ON)
 
 set(INSTALL_XGLOBE_DATA_DIR "${CMAKE_INSTALL_FULL_DATADIR}/xglobe")
 
-find_package(Qt5 COMPONENTS Core Gui Widgets X11Extras REQUIRED)
+find_package(Qt5 COMPONENTS Core DBus Gui Widgets X11Extras REQUIRED)
 find_package(Threads REQUIRED)
 find_package(X11 REQUIRED)
 
@@ -65,6 +65,7 @@ add_executable(xglobe ${SOURCE})
 target_link_libraries(xglobe PUBLIC X11
                                     Threads::Threads
                                     Qt5::Core
+                                    Qt5::DBus
                                     Qt5::Gui
                                     Qt5::Widgets
                                     Qt5::X11Extras)

@@ -46,7 +46,8 @@ CommandLineParser::CommandLineParser(QCoreApplication* parent)
       nogridOption("nogrid", "Disable displaying of grid on the globe."),
       newgridOption("newgrid", "Enable displaying of a more fancy grid."),
       tiledOption("tiled", "The background image specified using -backg is by default expanded to fill the screen. This option will cause it to be tiled instead."),
-      kdeOption("kde", "Use this option when the globe disappears after switching virtual screens. This is needed when using KDE."),
+      windowOption("window", "The globe is drawn in a window instead of a wallpaper."),
+      plasmaOption("plasma", "Enable xglobe KDE Plasma support."),
       starsOption("stars", "Enable displaying of stars in the background (default)."),
       nostarsOption("nostars", "Disable displaying of stars in the background."),
       posFixedOption(QStringList() << "pos-fixed", "two numerical arguments latitude and longitude  (given in decimal degrees) of a viewing position", "position"),
@@ -98,7 +99,8 @@ CommandLineParser::CommandLineParser(QCoreApplication* parent)
    addOption(nogridOption);
    addOption(newgridOption);
    addOption(tiledOption);
-   addOption(kdeOption);
+   addOption(windowOption);
+   addOption(plasmaOption);
    addOption(starsOption);
    addOption(nostarsOption);
 
@@ -162,9 +164,15 @@ CommandLineParser::isOnce() const
 }
 
 bool
-CommandLineParser::isKde() const
+CommandLineParser::isDrawInWIndow() const
 {
-    return isSet(kdeOption);
+    return isSet(windowOption);
+}
+
+bool
+CommandLineParser::isPlasma() const
+{
+    return isSet(plasmaOption);
 }
 
 double
