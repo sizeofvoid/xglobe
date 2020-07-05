@@ -18,6 +18,7 @@ public:
     QString getImageTmpFileName() const;
     bool isOnce() const;
     bool isDrawInWIndow() const;
+    bool isPlasma() const;
     double getMag() const;
     double getWait() const;
     std::pair<int,int> computeLabelPosition() const;
@@ -72,6 +73,7 @@ private:
     QCommandLineOption newgridOption;
     QCommandLineOption tiledOption;
     QCommandLineOption windowOption;
+    QCommandLineOption plasmaOption;
     QCommandLineOption starsOption;
     QCommandLineOption nostarsOption;
     QCommandLineOption posFixedOption;

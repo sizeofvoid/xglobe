@@ -78,6 +78,7 @@
 #include <QDesktopWidget>
 #include <QDebug>
 #include <QProcess>
+#include <QtDBus/QtDBus>
 
 #include <cmath>
 
@@ -283,6 +284,31 @@ void EarthApplication::processImage()
         }
     }
     */
+    else if (clp->isPlasma()) {
+
+        if (!QDBusConnection::sessionBus().isConnected()) {
+            qInfo() << "Cannot connect to the D-Bus session bus.";
+            return;
+        }
+
+        QDBusInterface iface("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell");
+        if (iface.isValid()) {
+            r->getImage()->save(clp->getImageTmpFileName(), "PNG");
+            // NOTE: KDE 5 API is still changing, it may not work on all KDE versions
+            QString script;
+            script += "var allDesktops=desktops();";
+            script += "for(var i=0;i<allDesktops.length;i++){";
+            script += "  var d=allDesktops[i];";
+            script += "  d.wallpaperPlugin=\"org.kde.image\";";
+            script += "  d.currentConfigGroup=Array(\"Wallpaper\",\"org.kde.image\",\"General\");";
+            script += "  d.writeConfig(\"Image\",\"file://";
+            script += clp->getImageTmpFileName();
+            script += "\");";
+            script += "}";
+            iface.call(QLatin1String("evaluateScript"), script);
+            return;
+        }
+    } // displayed immediately
     else {
         r->getImage()->save(clp->getImageTmpFileName(), "PNG");
 

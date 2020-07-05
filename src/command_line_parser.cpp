@@ -47,6 +47,7 @@ CommandLineParser::CommandLineParser(QCoreApplication* parent)
       newgridOption("newgrid", "Enable displaying of a more fancy grid."),
       tiledOption("tiled", "The background image specified using -backg is by default expanded to fill the screen. This option will cause it to be tiled instead."),
       windowOption("window", "The globe is drawn in a window instead of a wallpaper."),
+      plasmaOption("plasma", "Enable xglobe KDE Plasma support."),
       starsOption("stars", "Enable displaying of stars in the background (default)."),
       nostarsOption("nostars", "Disable displaying of stars in the background."),
       posFixedOption(QStringList() << "pos-fixed", "two numerical arguments latitude and longitude  (given in decimal degrees) of a viewing position", "position"),
@@ -99,6 +100,7 @@ CommandLineParser::CommandLineParser(QCoreApplication* parent)
    addOption(newgridOption);
    addOption(tiledOption);
    addOption(windowOption);
+   addOption(plasmaOption);
    addOption(starsOption);
    addOption(nostarsOption);
 
@@ -165,6 +167,12 @@ bool
 CommandLineParser::isDrawInWIndow() const
 {
     return isSet(windowOption);
+}
+
+bool
+CommandLineParser::isPlasma() const
+{
+    return isSet(plasmaOption);
 }
 
 double
