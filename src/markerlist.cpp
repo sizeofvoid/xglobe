@@ -313,13 +313,11 @@ void MarkerList::render(const RotMatrix& mat, QImage& dest,
     if (list.empty())
         return;
 
-    Location* l;
     double s_x, s_y, s_z;
     double loc_x, loc_y, loc_z;
     int screen_x, screen_y;
     double visible_angle;
 
-    int i, num;
     Location** visible_locations;
 
     visible_locations = new Location*[count()];
@@ -327,7 +325,10 @@ void MarkerList::render(const RotMatrix& mat, QImage& dest,
 
     visible_angle = radius / center_dist;
 
-    for (i = 0, l = first(); l != nullptr; l = next()) {
+    int i = 0;
+    int num = 0;
+    for (Location* l : list)
+    {
         l->getLoc(s_x, s_y, s_z);
 
         mat.transform(s_x, s_y, s_z, loc_x, loc_y, loc_z);
@@ -366,13 +367,13 @@ void MarkerList::render(const RotMatrix& mat, QImage& dest,
     if (fm)
         solve_conflicts(visible_locations, num);
 
-    for (i = 0; i < num; i++)
+    for (int i = 0; i < num; i++)
         paintDot(dest, visible_locations[i]);
 
     if (fm) {
-        for (i = 0; i < num; i++)
+        for (int i = 0; i < num; i++)
             paintArrow(dest, visible_locations[i]);
-        for (i = 0; i < num; i++)
+        for (int i = 0; i < num; i++)
             paintMarker(dest, visible_locations[i]);
     }
 
