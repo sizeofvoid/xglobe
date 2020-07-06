@@ -220,7 +220,7 @@ bool appendMarkerFile(TMarkerListPtr const& l, const QString& filename)
     return true;
 }
 
-MarkerList::MarkerList() 
+MarkerList::MarkerList()
     :  list()
     , list_it(list)
 {
@@ -238,12 +238,11 @@ void MarkerList::set_font(const QString& name, int sz)
         delete fm;
         fm = nullptr;
     }
-    if (name.isEmpty())
-        return;
 
-    renderFont = new QFont(name, sz, QFont::Bold);
-    if (renderFont == nullptr)
-        renderFont = new QFont("helvetica", 12, QFont::Bold);
+    renderFont = new QFont(name.isEmpty() ? "helvetica" : name,
+                           sz < 1 ? 13 : sz,
+                           QFont::Bold);
+
     fm = new QFontMetrics(*renderFont);
 }
 
@@ -364,13 +363,13 @@ void MarkerList::render(const RotMatrix& mat, QImage& dest,
     // sort the markers according to depth
     std::qsort(visible_locations, num, sizeof(Location*), compareLocations);
 
-    if (fm != nullptr)
+    if (fm)
         solve_conflicts(visible_locations, num);
 
     for (i = 0; i < num; i++)
         paintDot(dest, visible_locations[i]);
 
-    if (fm != nullptr) {
+    if (fm) {
         for (i = 0; i < num; i++)
             paintArrow(dest, visible_locations[i]);
         for (i = 0; i < num; i++)
