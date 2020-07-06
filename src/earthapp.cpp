@@ -153,13 +153,11 @@ void EarthApplication::init()
         r->setFov(fov);
     */
 
-    if (clp->isBuiltinMarkers()) {
-        if (!appendMarkerFile(marker_list, default_marker_file))
-            exit(12);
-    }
-    marker_list->set_font(clp->getMarkerFont(), clp->getMarkerFontSize());
-    if (clp->isShowMarker())
+    if (adjustMarker()) {
+        marker_list->set_font(clp->getMarkerFont(), clp->getMarkerFontSize());
         r->setMarkerList(marker_list);
+    }
+
     const auto lables = clp->computeLabelPosition();
     r->setLabelPos(std::get<0>(lables), std::get<1>(lables));
     r->setShadeArea(clp->getShadeArea());
@@ -177,6 +175,19 @@ void EarthApplication::init()
     connect(timer, SIGNAL(timeout()), this, SLOT(recalc()));
     QTimer::singleShot(1, this, SLOT(recalc())); // this will start rendering
     timer->start(clp->getWait() * 1000); // the 1. image immediately
+}
+
+bool EarthApplication::adjustMarker()
+{
+    if (clp->isBuiltinMarkers()) {
+        if (appendMarkerFile(marker_list, default_marker_file))
+            return true;
+    }
+    if (clp->isShowMarker()) {
+        if (appendMarkerFile(marker_list, clp->getMarkerFileName()))
+            return true;
+    }
+    return false;
 }
 
 void EarthApplication::recalc()

@@ -46,6 +46,7 @@ QString FileChange::findXglobeFile(const QString& name)
     const QString homedir = QDir::homePath()
                             + QDir::separator()
                             + default_xglobe_home_dir
+                            + QDir::separator()
                             + name;
 
     if (QFile::exists(homedir)) {

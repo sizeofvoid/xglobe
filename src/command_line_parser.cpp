@@ -462,13 +462,13 @@ CommandLineParser::getRotation() const
 bool
 CommandLineParser::isShowMarker() const
 {
-    return isSet(markersOption) || isSet(markerfileOption);
+    return isSet(markersOption) && isSet(markerfileOption);
 }
 
 bool
 CommandLineParser::isBuiltinMarkers() const
 {
-    return isSet(markersOption) && !isSet(nomarkersOption);
+    return isSet(markersOption) && !isSet(nomarkersOption) && !isSet(markerfileOption);
 }
 
 bool
