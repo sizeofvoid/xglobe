@@ -311,6 +311,9 @@ void MarkerList::render(const RotMatrix& mat, QImage& dest,
     double radius, double center_dist, double proj_dist,
     int shift_x, int shift_y)
 {
+    if (list.empty())
+        return;
+
     Location* l;
     double s_x, s_y, s_z;
     double loc_x, loc_y, loc_z;
