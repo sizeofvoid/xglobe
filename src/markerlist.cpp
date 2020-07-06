@@ -220,7 +220,7 @@ bool appendMarkerFile(TMarkerListPtr const& l, const QString& filename)
     return true;
 }
 
-MarkerList::MarkerList() 
+MarkerList::MarkerList()
     :  list()
     , list_it(list)
 {
@@ -238,12 +238,11 @@ void MarkerList::set_font(const QString& name, int sz)
         delete fm;
         fm = nullptr;
     }
-    if (name.isEmpty())
-        return;
 
-    renderFont = new QFont(name, sz, QFont::Bold);
-    if (renderFont == nullptr)
-        renderFont = new QFont("helvetica", 12, QFont::Bold);
+    renderFont = new QFont(name.isEmpty() ? "helvetica" : name,
+                           sz < 1 ? 13 : sz,
+                           QFont::Bold);
+
     fm = new QFontMetrics(*renderFont);
 }
 
@@ -311,13 +310,14 @@ void MarkerList::render(const RotMatrix& mat, QImage& dest,
     double radius, double center_dist, double proj_dist,
     int shift_x, int shift_y)
 {
-    Location* l;
+    if (list.empty())
+        return;
+
     double s_x, s_y, s_z;
     double loc_x, loc_y, loc_z;
     int screen_x, screen_y;
     double visible_angle;
 
-    int i, num;
     Location** visible_locations;
 
     visible_locations = new Location*[count()];
@@ -325,7 +325,10 @@ void MarkerList::render(const RotMatrix& mat, QImage& dest,
 
     visible_angle = radius / center_dist;
 
-    for (i = 0, l = first(); l != nullptr; l = next()) {
+    int i = 0;
+    int num = 0;
+    for (Location* l : list)
+    {
         l->getLoc(s_x, s_y, s_z);
 
         mat.transform(s_x, s_y, s_z, loc_x, loc_y, loc_z);
@@ -361,16 +364,16 @@ void MarkerList::render(const RotMatrix& mat, QImage& dest,
     // sort the markers according to depth
     std::qsort(visible_locations, num, sizeof(Location*), compareLocations);
 
-    if (fm != nullptr)
+    if (fm)
         solve_conflicts(visible_locations, num);
 
-    for (i = 0; i < num; i++)
+    for (int i = 0; i < num; i++)
         paintDot(dest, visible_locations[i]);
 
-    if (fm != nullptr) {
-        for (i = 0; i < num; i++)
+    if (fm) {
+        for (int i = 0; i < num; i++)
             paintArrow(dest, visible_locations[i]);
-        for (i = 0; i < num; i++)
+        for (int i = 0; i < num; i++)
             paintMarker(dest, visible_locations[i]);
     }
 

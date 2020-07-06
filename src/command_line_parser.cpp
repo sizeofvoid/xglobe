@@ -79,7 +79,7 @@ CommandLineParser::CommandLineParser(QCoreApplication* parent)
       termOption(QStringList() << "term", "Specify the shading discontinuity at the terminator (day/night line). Pct should be between 0 and 100, where 100 is maximum discontinuity and 0 makes a very smooth transition.", "pct", "0"),
       shade_areaOption(QStringList() << "shade_area", "Specify the proportion of the day-side to be progressively shaded prior to a transition with the night-side.  A value of 100 means all the day area will be shaded, whereas 0 will result in no shading at all.  60 would keep 40\% of the day area nearest the sun free from shading.", "pct", "100"),
       markerFontOption(QStringList() << "markerfont", "", "font", "helvetica"),
-      markerFontSizeOption(QStringList() << "markerfontsize", "", "fontsize", "")
+      markerFontSizeOption(QStringList() << "markerfontsize", "", "fontsize", "12")
 {
    tmpImageFile.open();
    setApplicationDescription("XGlobe");
@@ -462,13 +462,13 @@ CommandLineParser::getRotation() const
 bool
 CommandLineParser::isShowMarker() const
 {
-    return isSet(markersOption) || isSet(markerfileOption);
+    return isSet(markersOption) && isSet(markerfileOption);
 }
 
 bool
 CommandLineParser::isBuiltinMarkers() const
 {
-    return isSet(markersOption) && !isSet(nomarkersOption);
+    return isSet(markersOption) && !isSet(nomarkersOption) && !isSet(markerfileOption);
 }
 
 bool

@@ -84,6 +84,7 @@ private:
 
     void firstRecalc(time_t);
     void processImage();
+    bool adjustMarker();
 
 public slots:
     void recalc();
