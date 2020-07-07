@@ -83,8 +83,6 @@ inline int compare(const Location& l1, const Location& l2)
     return 0;
 }
 
-/* ------------------------------------------------------------------------ */
-
 class MarkerList {
 public:
     MarkerList();
