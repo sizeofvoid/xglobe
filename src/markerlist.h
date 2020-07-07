@@ -91,12 +91,6 @@ public:
     void setShift(int x, int y);
     int getShiftX();
     int getShiftY();
-    inline Location* first() { return list.first(); }
-    inline Location* last() { return list.last(); }
-    inline Location* next() { return list_it.hasNext() ? list_it.next() : nullptr; }
-    inline Location* prev() { return list_it.hasPrevious() ? list_it.previous() : nullptr; }
-    inline uint count() { return list.count(); }
-    inline void clear() { list.clear(); }
     void set_font(const QString& name, int sz);
     void render(const RotMatrix&, QImage&, double, double, double, int, int);
 
