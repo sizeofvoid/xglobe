@@ -75,8 +75,6 @@ QRect Location::boundingRect(const QFontMetrics& fm)
     return br;
 }
 
-/* ------------------------------------------------------------------------ */
-
 Location::Location(double lon, double lat, const QString& name,
     const QColor& color)
 {
@@ -94,14 +92,10 @@ Location::Location(double lon, double lat, const QString& name,
     offset_y = default_offset_y;
 }
 
-/* ------------------------------------------------------------------------ */
-
 QString Location::getName() const
 {
     return name;
 }
-
-/* ------------------------------------------------------------------------ */
 
 void Location::getLoc(double& sx, double& sy, double& sz) const
 {
@@ -110,14 +104,10 @@ void Location::getLoc(double& sx, double& sy, double& sz) const
     sz = s_z;
 }
 
-/* ------------------------------------------------------------------------ */
-
 const QColor& Location::getColor() const
 {
     return color;
 }
-
-/* ------------------------------------------------------------------------ */
 
 static bool parse_markerline(QString& line, const QString& filename,
     int linenum, double& lon, double& lat, QString& name, QColor& color)
