@@ -310,7 +310,7 @@ void MarkerList::render(const RotMatrix& mat, QImage& dest,
 
     Location** visible_locations;
 
-    visible_locations = new Location*[count()];
+    visible_locations = new Location*[list.count()];
     assert(visible_locations != nullptr);
 
     visible_angle = radius / center_dist;
