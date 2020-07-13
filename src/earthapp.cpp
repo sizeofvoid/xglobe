@@ -180,11 +180,11 @@ void EarthApplication::init()
 bool EarthApplication::adjustMarker()
 {
     if (clp->isBuiltinMarkers()) {
-        if (appendMarkerFile(marker_list, default_marker_file))
+        if (marker_list->appendMarkerFile(default_marker_file))
             return true;
     }
     if (clp->isShowMarker()) {
-        if (appendMarkerFile(marker_list, clp->getMarkerFileName()))
+        if (marker_list->appendMarkerFile(clp->getMarkerFileName()))
             return true;
     }
     return false;
