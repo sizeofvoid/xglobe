@@ -65,13 +65,21 @@ public:
     QRect br;
 
 private:
-    double s_x, s_y, s_z;
-    double cos_angle;
-    int x, y;
-    int offset_x, offset_y;
+    double s_x = 0;
+    double s_y = 0;
+    double s_z = 0;
+    double cos_angle = 0;
+    int x = 0;
+    int y = 0;
+    int offset_x = 0;
+    int offset_y = 0;
     QString name;
     QColor color;
     Gen gen;
+
+    const int default_offset_x = 4;
+    const int default_offset_y = 0;
+    const int min_arrow = 5;
 };
 
 inline int compare(const Location& l1, const Location& l2)

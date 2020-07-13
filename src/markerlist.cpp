@@ -51,45 +51,24 @@
 #include <QPainter>
 #include <QTextStream>
 
-const int default_offset_x = 4, default_offset_y = 0, min_arrow = 5;
-
-QRect Location::boundingRect(const QFontMetrics& fm)
-{
-    QRect br = fm.boundingRect(getName());
-#if QT_VERSION >= 230
-    static enum { XFT,
-        Unknown,
-        None } mode
-        = Unknown;
-    if (mode == Unknown) {
-        char* v = ::getenv("QT_XFT");
-        if (v != nullptr && strcmp(v, "true") == 0)
-            mode = XFT;
-        else
-            mode = None;
-    }
-    if (mode == XFT)
-        // Kludge dimensions for XRender bug
-        br.setRect(br.x(), br.y() - br.height(), br.width(), 2 * br.height());
-#endif
-    return br;
-}
-
-Location::Location(double lon, double lat, const QString& name,
-    const QColor& color)
+Location::Location(double lon, double lat,
+                   const QString& name,
+                   const QColor& color)
+    : name(name),
+      color(color)
 {
     lon *= M_PI / 180.0;
     lat *= M_PI / 180.0;
-
-    const double cs_lat = cos(lat);
-
-    s_x = cs_lat * sin(lon);
+    s_x = cos(lat) * sin(lon);
     s_y = sin(lat);
     s_z = cos(lat) * cos(lon);
-    this->name = name;
-    this->color = color;
     offset_x = default_offset_x;
     offset_y = default_offset_y;
+}
+
+QRect Location::boundingRect(const QFontMetrics& fm)
+{
+    return fm.boundingRect(getName());
 }
 
 QString Location::getName() const
@@ -152,13 +131,11 @@ static bool parse_markerline(QString& line, const QString& filename,
     if (pos1 != -1) {
         pos2 = line.indexOf('#', 0);
         if ((pos2 == -1) || (pos2 > pos1)) {
-            QString colorname;
             pos2 = line.indexOf(' ', pos1);
             if (pos2 != -1)
-                colorname = line.mid(pos1 + 6, pos2 - pos1 - 6);
+                color.setNamedColor(line.mid(pos1 + 6, pos2 - pos1 - 6));
             else
-                colorname = line.right(line.length() - pos1 - 6);
-            color.setNamedColor(colorname);
+                color.setNamedColor(line.right(line.length() - pos1 - 6));
         }
     }
     return true;
@@ -211,11 +188,10 @@ bool appendMarkerFile(TMarkerListPtr const& l, const QString& filename)
 }
 
 MarkerList::MarkerList()
-    :  list()
+    : list()
     , list_it(list)
+    , markerpixmap(new QPixmap(marker_xpm))
 {
-    qDeleteAll(list);
-    markerpixmap = new QPixmap(marker_xpm);
 }
 
 void MarkerList::set_font(const QString& name, int sz)
@@ -274,19 +250,20 @@ void MarkerList::solve_conflicts(Location* visible_locations[], int num)
             }
         }
     }
+
     // second pass: try to remove offsets.
     for (int i = 0; i < num; i++) {
         Location* l = visible_locations[i];
         QRect check = l->boundingRect(*fm);
-        check.moveTopLeft(QPoint(default_offset_x + l->x,
-            default_offset_y + l->y));
+        check.moveTopLeft(QPoint(l->default_offset_x + l->x,
+            l->default_offset_y + l->y));
         for (int j = 0; j <= num; j++) {
             if (i == j)
                 continue;
             if (j == num) {
                 l->br = check;
-                l->offset_x = default_offset_x;
-                l->offset_y = default_offset_y;
+                l->offset_x = l->default_offset_x;
+                l->offset_y = l->default_offset_y;
                 break;
             }
             QRect in = check.intersected(visible_locations[j]->br);
@@ -456,18 +433,17 @@ void MarkerList::paintMarker(QImage& img, Location* l)
 
 void MarkerList::paintDot(QImage& img, Location* l)
 {
-    QPainter p;
-
     QPixmap pm(markerpixmap->width(), markerpixmap->height());
+    QPainter p;
     p.begin(&pm);
     p.fillRect(0, 0, pm.width(), pm.height(), Qt::black);
     p.setPen(Qt::white);
     p.drawPixmap(0, 0, *markerpixmap);
     p.end();
 
-    QImage markerimage = pm.toImage();
+    QImage labelimage = pm.toImage();
     render_monochrome(l->getColor().rgb(),
-        img, markerimage,
+        img, labelimage,
         l->x - markerpixmap->width() / 2,
         l->y - markerpixmap->height() / 2);
 }
@@ -475,9 +451,12 @@ void MarkerList::paintDot(QImage& img, Location* l)
 void MarkerList::paintArrow(QImage& img, Location* l)
 {
     // Don't paint very short arrows
-    if (l->offset_x < min_arrow && l->offset_x > -min_arrow && l->offset_y < min_arrow && l->offset_y > -min_arrow)
+    if (l->offset_x < l->min_arrow
+        && l->offset_x > -l->min_arrow
+        && l->offset_y < l->min_arrow
+        && l->offset_y > -l->min_arrow) {
         return;
-    QPainter p;
+    }
 
     int wx, wy, dx, dy, x1, x2, y1, y2;
     if (l->offset_x >= 0) {
@@ -493,6 +472,7 @@ void MarkerList::paintArrow(QImage& img, Location* l)
         x1 = wx;
         x2 = 0;
     }
+
     if (l->offset_y >= 0) {
         wy = l->offset_y;
         dy = 0;
@@ -506,14 +486,16 @@ void MarkerList::paintArrow(QImage& img, Location* l)
         y1 = wy;
         y2 = 0;
     }
+
     QPixmap pm(wx, wy);
+    QPainter p;
     p.begin(&pm);
     p.fillRect(0, 0, wx, wy, Qt::black);
     p.setPen(Qt::white);
     p.drawLine(x1, y1, x2, y2);
     p.end();
 
-    QImage markerimage = pm.toImage();
+    QImage labelimage = pm.toImage();
     render_monochrome(l->getColor().rgb(),
-        img, markerimage, l->x + dx, l->y + dy);
+        img, labelimage, l->x + dx, l->y + dy);
 }
