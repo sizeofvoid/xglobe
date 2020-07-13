@@ -88,7 +88,7 @@ const QColor& Location::getColor() const
     return color;
 }
 
-static bool parse_markerline(QString& line, const QString& filename,
+bool MarkerList::parse_markerline(QString& line, const QString& filename,
     int linenum, double& lon, double& lat, QString& name, QColor& color)
 {
     int pos1, pos2;
@@ -153,7 +153,7 @@ static bool parse_markerline(QString& line, const QString& filename,
  * A line with a leading '#' is ignored an can be used for comments.
  */
 
-bool appendMarkerFile(TMarkerListPtr const& l, const QString& filename)
+bool MarkerList::appendMarkerFile(const QString& filename)
 {
     QFile f(FileChange::findXglobeFile(filename));
     QTextStream t(&f);
@@ -177,7 +177,7 @@ bool appendMarkerFile(TMarkerListPtr const& l, const QString& filename)
         double lon, lat;
         QString name;
         if (parse_markerline(line, filename, linenum, lon, lat, name, color))
-            l->append(std::make_shared<Location>(lon, lat, name, color));
+            append(std::make_shared<Location>(lon, lat, name, color));
         else {
             f.close();
             return false;

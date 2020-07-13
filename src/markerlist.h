@@ -64,6 +64,7 @@ public:
     QRect br;
 
 private:
+
     double s_x = 0;
     double s_y = 0;
     double s_z = 0;
@@ -93,6 +94,7 @@ public:
     int getShiftY();
     void set_font(const QString& name, int sz);
     void render(const RotMatrix&, QImage&, double, double, double, int, int);
+    bool appendMarkerFile(const QString&);
 
 protected:
     std::vector<TLocation> locations;
@@ -101,6 +103,7 @@ protected:
     void paintArrow(QImage& img, const TLocation&);
 
 private:
+    bool parse_markerline(QString&, const QString&, int, double&, double&, QString&, QColor&);
     void render_monochrome(QRgb, QImage&, QImage&, int x, int y);
     void solve_conflicts(std::vector<TLocation>&, int num);
     QImage markerimage;
@@ -111,5 +114,3 @@ private:
 };
 
 using TMarkerListPtr = std::shared_ptr<MarkerList>;
-
-bool appendMarkerFile(TMarkerListPtr const&, const QString& filename);
