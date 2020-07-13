@@ -56,12 +56,11 @@ class Location {
 
 public:
     Location(double lon, double lat, const QString& name, const QColor& color);
-    ~Location() {}
+    ~Location() = default;
     QString getName() const;
     void getLoc(double&, double&, double&) const;
     const QColor& getColor() const;
     QRect boundingRect(const QFontMetrics& fm);
-    friend int compare(const Location&, const Location&);
     QRect br;
 
 private:
@@ -81,21 +80,14 @@ private:
     const int default_offset_y = 0;
     const int min_arrow = 5;
 };
+using TLocation = std::shared_ptr<Location>;
 
-inline int compare(const Location& l1, const Location& l2)
-{
-    if (l1.cos_angle > l2.cos_angle)
-        return 1;
-    if (l1.cos_angle < l2.cos_angle)
-        return -1;
-    return 0;
-}
 
 class MarkerList {
 public:
     MarkerList();
-    ~MarkerList();
-    void append(Location* l);
+    ~MarkerList() = default;
+    void append(const TLocation&);
     void setShift(int x, int y);
     int getShiftX();
     int getShiftY();
@@ -103,19 +95,18 @@ public:
     void render(const RotMatrix&, QImage&, double, double, double, int, int);
 
 protected:
-    QList<Location*> list;
-    QListIterator<Location*> list_it;
-    void paintMarker(QImage& img, Location* l);
-    void paintDot(QImage& img, Location* l);
-    void paintArrow(QImage& img, Location* l);
+    std::vector<TLocation> locations;
+    void paintMarker(QImage& img, const TLocation&);
+    void paintDot(QImage& img, const TLocation&);
+    void paintArrow(QImage& img, const TLocation&);
 
 private:
     void render_monochrome(QRgb, QImage&, QImage&, int x, int y);
-    void solve_conflicts(Location* visible_locations[], int num);
-    QPixmap* markerpixmap = nullptr;
+    void solve_conflicts(std::vector<TLocation>&, int num);
     QImage markerimage;
-    QFont* renderFont = nullptr;
-    QFontMetrics* fm = nullptr;
+    std::unique_ptr<QPixmap> markerpixmap;
+    std::unique_ptr<QFont> renderFont;
+    std::unique_ptr<QFontMetrics> fm;
     Gen gen;
 };
 

@@ -177,7 +177,7 @@ bool appendMarkerFile(TMarkerListPtr const& l, const QString& filename)
         double lon, lat;
         QString name;
         if (parse_markerline(line, filename, linenum, lon, lat, name, color))
-            l->append(new Location(lon, lat, name, color));
+            l->append(std::make_shared<Location>(lon, lat, name, color));
         else {
             f.close();
             return false;
@@ -188,54 +188,28 @@ bool appendMarkerFile(TMarkerListPtr const& l, const QString& filename)
 }
 
 MarkerList::MarkerList()
-    : list()
-    , list_it(list)
-    , markerpixmap(new QPixmap(marker_xpm))
+    : markerpixmap(new QPixmap(marker_xpm))
 {
 }
 
 void MarkerList::set_font(const QString& name, int sz)
 {
-    if (renderFont) {
-        delete renderFont;
-        renderFont = nullptr;
-    }
-    if (fm) {
-        delete fm;
-        fm = nullptr;
-    }
-
-    renderFont = new QFont(name.isEmpty() ? "helvetica" : name,
+    renderFont.reset(new QFont(name.isEmpty() ? "helvetica" : name,
                            sz < 1 ? 13 : sz,
-                           QFont::Bold);
+                           QFont::Bold));
 
-    fm = new QFontMetrics(*renderFont);
+    fm.reset(new QFontMetrics(*renderFont));
 }
 
-MarkerList::~MarkerList()
+void MarkerList::append(const TLocation& l)
 {
-    list.clear();
-    delete markerpixmap;
-    delete fm;
-    delete renderFont;
+    locations.push_back(l);
 }
 
-void MarkerList::append(Location* l)
-{
-    list.append(l);
-}
-
-int compareLocations(const void* l1, const void* l2)
-{
-    const Location** a1 = (const Location**)l1;
-    const Location** a2 = (const Location**)l2;
-    return compare(**a1, **a2);
-}
-
-void MarkerList::solve_conflicts(Location* visible_locations[], int num)
+void MarkerList::solve_conflicts(std::vector<TLocation>& visible_locations, int num)
 {
     for (int i = 0; i < num; i++) {
-        Location* l = visible_locations[i];
+        TLocation l = visible_locations[i];
         double jitter = 20;
     retry:
         l->br = l->boundingRect(*fm);
@@ -253,7 +227,7 @@ void MarkerList::solve_conflicts(Location* visible_locations[], int num)
 
     // second pass: try to remove offsets.
     for (int i = 0; i < num; i++) {
-        Location* l = visible_locations[i];
+        TLocation l = visible_locations[i];
         QRect check = l->boundingRect(*fm);
         check.moveTopLeft(QPoint(l->default_offset_x + l->x,
             l->default_offset_y + l->y));
@@ -277,24 +251,19 @@ void MarkerList::render(const RotMatrix& mat, QImage& dest,
     double radius, double center_dist, double proj_dist,
     int shift_x, int shift_y)
 {
-    if (list.empty())
+    if (locations.empty())
         return;
 
     double s_x, s_y, s_z;
     double loc_x, loc_y, loc_z;
     int screen_x, screen_y;
-    double visible_angle;
+    double visible_angle= radius / center_dist;
 
-    Location** visible_locations;
-
-    visible_locations = new Location*[list.count()];
-    assert(visible_locations != nullptr);
-
-    visible_angle = radius / center_dist;
+    std::vector<TLocation> visible_locations;
 
     int i = 0;
     int num = 0;
-    for (Location* l : list)
+    for (const TLocation& l : locations)
     {
         l->getLoc(s_x, s_y, s_z);
 
@@ -322,14 +291,22 @@ void MarkerList::render(const RotMatrix& mat, QImage& dest,
         l->x = screen_x + shift_x;
         l->y = screen_y + shift_y;
 
-        visible_locations[i] = l;
+        visible_locations.push_back(l);
         i++;
     }
 
     num = i;
 
     // sort the markers according to depth
-    std::qsort(visible_locations, num, sizeof(Location*), compareLocations);
+    std::sort(visible_locations.begin(),
+              visible_locations.end(),
+              [](const TLocation& l1, const TLocation& l2) -> bool {
+                if (l1->cos_angle > l2->cos_angle)
+                    return 1;
+                if (l1->cos_angle < l2->cos_angle)
+                    return -1;
+                return 0;
+              });
 
     if (fm)
         solve_conflicts(visible_locations, num);
@@ -343,8 +320,6 @@ void MarkerList::render(const RotMatrix& mat, QImage& dest,
         for (int i = 0; i < num; i++)
             paintMarker(dest, visible_locations[i]);
     }
-
-    delete[] visible_locations;
 }
 
 void MarkerList::render_monochrome(QRgb color,
@@ -399,7 +374,7 @@ void MarkerList::render_monochrome(QRgb color,
     }
 }
 
-void MarkerList::paintMarker(QImage& img, Location* l)
+void MarkerList::paintMarker(QImage& img, const TLocation& l)
 {
     QPainter p;
     int wx, wy;
@@ -431,7 +406,7 @@ void MarkerList::paintMarker(QImage& img, Location* l)
         l->y - markerimage.height() / 2 - pm.height() / 2 + l->offset_y);
 }
 
-void MarkerList::paintDot(QImage& img, Location* l)
+void MarkerList::paintDot(QImage& img, const TLocation& l)
 {
     QPixmap pm(markerpixmap->width(), markerpixmap->height());
     QPainter p;
@@ -448,7 +423,7 @@ void MarkerList::paintDot(QImage& img, Location* l)
         l->y - markerpixmap->height() / 2);
 }
 
-void MarkerList::paintArrow(QImage& img, Location* l)
+void MarkerList::paintArrow(QImage& img, const TLocation& l)
 {
     // Don't paint very short arrows
     if (l->offset_x < l->min_arrow
