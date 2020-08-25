@@ -29,12 +29,18 @@ option(ENABLE_INSTALL_GETCLOUDMAP "Install old xglobe 0.5 getcloudmap script" OF
 option(ENABLE_INSTALL_MAPS "Install default maps" ON)
 
 set(INSTALL_XGLOBE_DATA_DIR "${CMAKE_INSTALL_FULL_DATADIR}/xglobe")
-
-find_package(Qt5 COMPONENTS Core DBus Gui Widgets X11Extras REQUIRED)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+     set(QT5COMPONENTS Core DBus Gui Widgets)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+     set(QT5COMPONENTS Core DBus Gui Widgets X11Extras)
+     set(X11LIBS X11 Qt5::X11Extras)
+     find_program(XWALLPAPER_BIN xwallpaper)
+     find_package(X11 REQUIRED)
+else()
+endif()
+find_package(Qt5 COMPONENTS ${QT5COMPONENTS} REQUIRED)
 find_package(Threads REQUIRED)
-find_package(X11 REQUIRED)
 
-find_program(XWALLPAPER_BIN xwallpaper)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -62,13 +68,12 @@ set(SOURCE
 
 add_executable(xglobe ${SOURCE})
 
-target_link_libraries(xglobe PUBLIC X11
+target_link_libraries(xglobe PUBLIC ${X11_LIBRARIES}
                                     Threads::Threads
                                     Qt5::Core
                                     Qt5::DBus
                                     Qt5::Gui
-                                    Qt5::Widgets
-                                    Qt5::X11Extras)
+                                    Qt5::Widgets)
 
 target_link_libraries(xglobe PRIVATE ${X11_LIBRARIES})
 target_include_directories(xglobe PRIVATE ${X11_INCLUDE_DIR})
@@ -78,7 +83,7 @@ target_compile_options(xglobe PRIVATE "-Wall")
 target_compile_options(xglobe PRIVATE "-pipe")
 target_compile_options(xglobe PRIVATE "-fexceptions")
 
-if (NOT XWALLPAPER_BIN)
+if (NOT XWALLPAPER_BIN AND ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     message(FATAL_ERROR "Missing xwallpaper, please install xwallpaper")
 else()
     target_compile_definitions(xglobe PRIVATE XWALLPAPER_BIN="${XWALLPAPER_BIN}")
