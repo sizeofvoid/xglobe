@@ -46,6 +46,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+
 set(SOURCE
     src/main.cpp
     src/compute.cpp
@@ -82,6 +83,8 @@ set_property(TARGET xglobe PROPERTY AUTOMOC ON)
 
 if (NOT XWALLPAPER_BIN AND ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     message(FATAL_ERROR "Missing xwallpaper, please install xwallpaper")
+elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    target_compile_definitions(xglobe PRIVATE XWALLPAPER_BIN="xglobe_wallpaper_changer")
 else()
     target_compile_definitions(xglobe PRIVATE XWALLPAPER_BIN="${XWALLPAPER_BIN}")
 endif()
