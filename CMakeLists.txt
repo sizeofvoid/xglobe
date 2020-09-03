@@ -10,7 +10,7 @@ project(xglobe
         VERSION ${XGLOBE_VERSION}
         DESCRIPTION "XGlobe is the further development of Thorsten Scheuermanns xglobe 0.5 release."
         HOMEPAGE_URL "https://github.com/sizeofvoid/xglobe"
-        LANGUAGES C CXX)
+        LANGUAGES Swift  C CXX)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING
@@ -40,11 +40,6 @@ else()
 endif()
 find_package(Qt5 COMPONENTS ${QT5COMPONENTS} REQUIRED)
 find_package(Threads REQUIRED)
-
-
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
 
 # Always use '-fPIC'/'-fPIE' option.
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -82,6 +77,8 @@ target_compile_features(xglobe PRIVATE cxx_std_17)
 target_compile_options(xglobe PRIVATE "-Wall")
 target_compile_options(xglobe PRIVATE "-pipe")
 target_compile_options(xglobe PRIVATE "-fexceptions")
+
+set_property(TARGET xglobe PROPERTY AUTOMOC ON)
 
 if (NOT XWALLPAPER_BIN AND ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     message(FATAL_ERROR "Missing xwallpaper, please install xwallpaper")
@@ -127,6 +124,10 @@ if (ENABLE_INSTALL_MAPS)
     install(FILES earth_2400.png
             RENAME default_map.png
             DESTINATION "${INSTALL_XGLOBE_DATA_DIR}")
+endif()
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    add_subdirectory(macOS)
 endif()
 
 if (ENABLE_INSTALL_GETCLOUDMAP)
