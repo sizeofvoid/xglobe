@@ -324,7 +324,11 @@ void EarthApplication::processImage()
         r->getImage()->save(clp->getImageTmpFileName(), "PNG");
 
         QStringList arguments;
+ #if defined(Q_OS_MACOS)
+        arguments << clp->getImageTmpFileName();
+#else
         arguments << "--zoom" << clp->getImageTmpFileName();
+#endif
 
         qInfo() << "QProcess: " << xwallpaper_bin << arguments;
 
