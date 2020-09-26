@@ -9,8 +9,7 @@ set(XGLOBE_VERSION "${XGLOBE_VERSION_MAJOR}.${XGLOBE_VERSION_MINOR}.${XGLOBE_VER
 project(xglobe
         VERSION ${XGLOBE_VERSION}
         DESCRIPTION "XGlobe is the further development of Thorsten Scheuermanns xglobe 0.5 release."
-        HOMEPAGE_URL "https://github.com/sizeofvoid/xglobe"
-        LANGUAGES Swift  C CXX)
+        HOMEPAGE_URL "https://github.com/sizeofvoid/xglobe")
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING
@@ -31,7 +30,7 @@ option(ENABLE_INSTALL_MAPS "Install default maps" ON)
 set(INSTALL_XGLOBE_DATA_DIR "${CMAKE_INSTALL_FULL_DATADIR}/xglobe")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
      set(QT5COMPONENTS Core DBus Gui Widgets)
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "BSD")
      set(QT5COMPONENTS Core DBus Gui Widgets X11Extras)
      set(X11LIBS X11 Qt5::X11Extras)
      find_program(XWALLPAPER_BIN xwallpaper)
@@ -81,7 +80,7 @@ target_compile_options(xglobe PRIVATE "-fexceptions")
 
 set_property(TARGET xglobe PROPERTY AUTOMOC ON)
 
-if (NOT XWALLPAPER_BIN AND ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+if (NOT XWALLPAPER_BIN AND ((${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "BSD")))
     message(FATAL_ERROR "Missing xwallpaper, please install xwallpaper")
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     target_compile_definitions(xglobe PRIVATE XWALLPAPER_BIN="xglobe_wallpaper_changer")
