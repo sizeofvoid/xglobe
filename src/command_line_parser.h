@@ -52,6 +52,7 @@ public:
     double getTransition() const;
     double getShadeArea() const;
     GridType getGridType() const;
+    QStringList getXWallpaperOptions(QString const&) const;
 
 private:
     void computeCoordinate();
@@ -106,6 +107,9 @@ private:
     QCommandLineOption shade_areaOption;
     QCommandLineOption markerFontOption;
     QCommandLineOption markerFontSizeOption;
+
+    const QString xwallpaprer_image_tag = QLatin1String("XIMAGE");
+    QCommandLineOption xwallpaperOption;
 
     TGeoCoordinatePtr coordinate;
 

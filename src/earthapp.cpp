@@ -327,7 +327,7 @@ void EarthApplication::processImage()
  #if defined(Q_OS_MACOS)
         arguments << clp->getImageTmpFileName();
 #else
-        arguments << "--zoom" << clp->getImageTmpFileName();
+        arguments << clp->getXWallpaperOptions(clp->getImageTmpFileName());
 #endif
 
         qInfo() << "QProcess: " << xwallpaper_bin << arguments;

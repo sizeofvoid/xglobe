@@ -79,7 +79,13 @@ CommandLineParser::CommandLineParser(QCoreApplication* parent)
       termOption(QStringList() << "term", "Specify the shading discontinuity at the terminator (day/night line). Pct should be between 0 and 100, where 100 is maximum discontinuity and 0 makes a very smooth transition.", "pct", "0"),
       shade_areaOption(QStringList() << "shade_area", "Specify the proportion of the day-side to be progressively shaded prior to a transition with the night-side.  A value of 100 means all the day area will be shaded, whereas 0 will result in no shading at all.  60 would keep 40\% of the day area nearest the sun free from shading.", "pct", "100"),
       markerFontOption(QStringList() << "markerfont", "", "font", "helvetica"),
-      markerFontSizeOption(QStringList() << "markerfontsize", "", "fontsize", "12")
+      markerFontSizeOption(QStringList() << "markerfontsize", "", "fontsize", "12"),
+      xwallpaperOption(QStringList() << "xwallpaper-opt",
+                       QString::fromLatin1("xwallpaper options. If the argument string contains an ")
+                                           + xwallpaprer_image_tag
+                                           + QString::fromLatin1(" then it will be replaced by the path to the image."),
+                       "xwallpaper-args",
+                       QString::fromLatin1("--zoom ") + xwallpaprer_image_tag)
 {
    tmpImageFile.open();
    setApplicationDescription("XGlobe");
@@ -139,6 +145,7 @@ CommandLineParser::CommandLineParser(QCoreApplication* parent)
    addOption(shade_areaOption);
    addOption(markerFontOption);
    addOption(markerFontSizeOption);
+   addOption(xwallpaperOption);
 
     // Process the actual command line arguments given by the user
     process(*parent);
@@ -651,4 +658,17 @@ CommandLineParser::getGridType() const
     if (isSet(newgridOption))
         return GridType::nice;
     return GridType::no;
+}
+
+/**
+ * @param image which replace XIMAGE (@see xwallpaprer_image_tag)
+ * @return List of all xwallpaper options default (@see xwallpaperOption) or
+ * set by the user.
+ */
+QStringList
+CommandLineParser::getXWallpaperOptions(QString const& image) const
+{
+    QString options = value(xwallpaperOption);
+    options.replace(xwallpaprer_image_tag, image);
+    return options.split(QLatin1Char(' '));;
 }
