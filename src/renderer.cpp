@@ -74,6 +74,7 @@
 #include <QApplication>
 #include <QDateTime>
 #include <QPainter>
+#include <QDebug>
 #include <QRgba64>
 #include <QPixmap>
 #include <stdio.h>
@@ -84,7 +85,7 @@ Renderer::Renderer(const QSize& size, const QString& mapfile)
     renderedImage = std::make_shared<QImage>(size, QImage::Format_RGB32);
     map = loadImage(mapfile);
 
-     fprintf(stderr, "Map size: %dx%d\n", map->width(), map->height());
+     qDebug() << "Map size: " << map->width() << "x" << map->height();
 
     this->radius = 1000.;
     this->view_long = 0.;
@@ -158,7 +159,6 @@ int Renderer::loadCloudMap(const QString& cmapfile, int cf)
         mapcloud.reset();
     mapcloud = loadImage(track_clouds->name());
     if (!mapcloud) {
-        //fprintf(stderr, "Error loading cloud mapfile \"%s\"\n", cmapfile);
         ::exit(21);
     }
     int endy = mapcloud->height();
