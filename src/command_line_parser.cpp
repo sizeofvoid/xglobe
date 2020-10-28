@@ -220,7 +220,7 @@ QString
 CommandLineParser::getMapFileName() const
 {
     if (!isSet(mapOption)) {
-        qWarning() << "Fallback map: " << default_map;
+        qDebug() << "Fallback map: " << default_map;
         return default_map;
     }
 
@@ -397,7 +397,7 @@ CommandLineParser::computeXYPosition(int default_x, int default_y, QString const
     QString val = value(labelposOption);
     auto vals = val.splitRef(QLatin1String(":"));
     if (vals.isEmpty() || vals.size() != 2) {
-        qWarning() <<warn;
+        qWarning() << warn;
         return {default_x, default_y};
     }
 

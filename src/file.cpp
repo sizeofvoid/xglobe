@@ -52,7 +52,7 @@ QString FileChange::findXglobeFile(const QString& name)
     if (QFile::exists(homedir)) {
         return homedir;
     } else {
-        qWarning() << "Can't find: " << homedir;
+        qDebug() << "Can't find: " << homedir;
     }
 
     const QString defaultdir = default_xglobe_dir
@@ -61,9 +61,9 @@ QString FileChange::findXglobeFile(const QString& name)
     if (QFile::exists(defaultdir)) {
         return defaultdir;
     } else {
-        qWarning() << "Can't find: " << defaultdir;
+        qDebug() << "Can't find: " << defaultdir;
     }
 
-    qWarning() << "Can't find map and/or marker file";
+    qCritical() << "Can't find map and/or marker file";
     return QString();
 }

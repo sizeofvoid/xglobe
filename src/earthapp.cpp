@@ -298,7 +298,7 @@ void EarthApplication::processImage()
     else if (clp->isPlasma()) {
 
         if (!QDBusConnection::sessionBus().isConnected()) {
-            qInfo() << "Cannot connect to the D-Bus session bus.";
+            qCritical() << "Cannot connect to the D-Bus session bus.";
             return;
         }
 
@@ -330,13 +330,13 @@ void EarthApplication::processImage()
         arguments << clp->getXWallpaperOptions(clp->getImageTmpFileName());
 #endif
 
-        qInfo() << "QProcess: " << xwallpaper_bin << arguments;
+        qDebug() << "QProcess: " << xwallpaper_bin << arguments;
 
         QProcess runXwallpaper(this);
         runXwallpaper.start(xwallpaper_bin, arguments);
 
         if (!runXwallpaper.waitForFinished())
-            qDebug() << "failed to execute xwallpaper: " << runXwallpaper.errorString();
+            qCritical() << "failed to execute xwallpaper: " << runXwallpaper.errorString();
 
         if (clp->isOnce()) {
             processEvents();
