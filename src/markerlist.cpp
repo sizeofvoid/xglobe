@@ -156,12 +156,14 @@ bool MarkerList::parse_markerline(QString& line, const QString& filename,
 bool MarkerList::appendMarkerFile(const QString& filename)
 {
     QFile f(FileChange::findXglobeFile(filename));
-    QTextStream t(&f);
+    if (f.exists())
+        return false;
 
     if (!f.open(QIODevice::ReadOnly))
         return false;
 
     int linenum = 0;
+    QTextStream t(&f);
 
     while (!t.atEnd()) {
         QString line = t.readLine();
