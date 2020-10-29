@@ -38,16 +38,26 @@ const QString& FileChange::name() const
     return observeFile;
 }
 
+QString FileChange::getHomePath()
+{
+    return QDir::homePath()
+           + QDir::separator()
+           + default_xglobe_home_dir
+           + QDir::separator();
+
+}
+
+QString FileChange::getDefaultPath()
+{
+    return default_xglobe_dir + QDir::separator();
+}
+
 QString FileChange::findXglobeFile(const QString& name)
 {
     if (QFile::exists(name))
         return name;
 
-    const QString homedir = QDir::homePath()
-                            + QDir::separator()
-                            + default_xglobe_home_dir
-                            + QDir::separator()
-                            + name;
+    const QString homedir = getHomePath() + name;
 
     if (QFile::exists(homedir)) {
         return homedir;
