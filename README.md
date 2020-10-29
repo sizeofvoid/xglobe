@@ -15,8 +15,12 @@ about the old xglobe, please read the original readme [here](README.xglobe-0.5)
 - Set default marker file.
   - `-DSET_DEFAULT_MARKER_FILE="/usr/local/share/xglobe/marker.txt"`
 
+## Documentation
+
+Please execute `xglobe --help` to read the full document.
+
 ## Dependencies
  + C++ 17 Compiler
  + CMake 3.7
  + Qt5
- + [xwallpaper](https://github.com/stoeckmann/xwallpaper)
+ + [xwallpaper](https://github.com/stoeckmann/xwallpaper) on Linux/OpenBSD without KDE Plasma.
