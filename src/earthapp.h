@@ -123,16 +123,4 @@ private:
 
     bool firstTime = true;
     bool do_dumpcmd = false;
-
-#if defined (XWALLPAPER_BIN)
-    const QString xwallpaper_bin = QLatin1String(XWALLPAPER_BIN);
-#else
-    const QString xwallpaper_bin = QLatin1String("xxx");
-#endif
-
-#if defined (DEFAULT_MARKER_FILE)
-    const QString default_marker_file = QLatin1String(DEFAULT_MARKER_FILE);
-#else
-    const QString default_marker_file = QLatin1String("xglobe-markers");
-#endif
 };

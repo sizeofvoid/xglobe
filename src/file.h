@@ -12,6 +12,8 @@ public:
     const QString& name() const;
 
     static QString findXglobeFile(const QString&);
+    static QString getHomePath();
+    static QString getDefaultPath();
 
 private:
     const QString observeFile;

@@ -53,6 +53,8 @@ public:
     double getShadeArea() const;
     GridType getGridType() const;
     QStringList getXWallpaperOptions(QString const&) const;
+    QString getXwallpaperExe() const;
+    QString getDefaultMarkerFile() const;
 
 private:
     void computeCoordinate();
@@ -129,6 +131,18 @@ private:
     const QString default_map_back = QLatin1String(DEFAULT_MAP_BACK);
 #else
     const QString default_map_back = QLatin1String("back.png");
+#endif
+
+#if defined (XWALLPAPER_BIN)
+    const QString xwallpaper_exe = QLatin1String(XWALLPAPER_BIN);
+#else
+    const QString xwallpaper_exe = QLatin1String("Not Found");
+#endif
+
+#if defined (DEFAULT_MARKER_FILE)
+    const QString default_marker_file = QLatin1String(DEFAULT_MARKER_FILE);
+#else
+    const QString default_marker_file = QLatin1String("xglobe-markers");
 #endif
 };
 

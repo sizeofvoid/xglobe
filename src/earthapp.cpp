@@ -180,7 +180,7 @@ void EarthApplication::init()
 bool EarthApplication::adjustMarker()
 {
     if (clp->isBuiltinMarkers()) {
-        if (marker_list->appendMarkerFile(default_marker_file))
+        if (marker_list->appendMarkerFile(clp->getDefaultMarkerFile()))
             return true;
     }
     if (clp->isShowMarker()) {
@@ -330,10 +330,10 @@ void EarthApplication::processImage()
         arguments << clp->getXWallpaperOptions(clp->getImageTmpFileName());
 #endif
 
-        qDebug() << "QProcess: " << xwallpaper_bin << arguments;
+        qDebug() << "QProcess: " << clp->getXwallpaperExe() << arguments;
 
         QProcess runXwallpaper(this);
-        runXwallpaper.start(xwallpaper_bin, arguments);
+        runXwallpaper.start(clp->getXwallpaperExe(), arguments);
 
         if (!runXwallpaper.waitForFinished())
             qCritical() << "failed to execute xwallpaper: " << runXwallpaper.errorString();

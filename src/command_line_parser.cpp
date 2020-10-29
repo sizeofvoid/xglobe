@@ -88,7 +88,16 @@ CommandLineParser::CommandLineParser(QCoreApplication* parent)
                        QString::fromLatin1("--zoom ") + xwallpaprer_image_tag)
 {
    tmpImageFile.open();
-   setApplicationDescription("XGlobe");
+   setApplicationDescription(QString::fromLatin1("\nXGlobe displays the earth from your favourite point in space, similar to Xearth.")
+                             + QString::fromLatin1("\n\nWhen starting, XGlobe looks for maps and marker files in the following order:")
+                             + QString::fromLatin1("\n")
+                             + QString::fromLatin1("\n Default map files: ") + default_map + ", " + default_map_back + ", " + default_map_night
+                             + QString::fromLatin1("\n Default marker file: ") + getDefaultMarkerFile()
+                             + QString::fromLatin1("\n")
+                             + QString::fromLatin1("\n\t 1.) ") + FileChange::getHomePath()
+                             + QString::fromLatin1("\n\t 2.) ") + FileChange::getDefaultPath()
+                             + QString::fromLatin1("\n")
+                             + QString::fromLatin1("\n xwallpaper located in ") + getXwallpaperExe());
    addHelpOption();
    addVersionOption();
 
@@ -671,4 +680,14 @@ CommandLineParser::getXWallpaperOptions(QString const& image) const
     QString options = value(xwallpaperOption);
     options.replace(xwallpaprer_image_tag, image);
     return options.split(QLatin1Char(' '));;
+}
+
+QString CommandLineParser::getXwallpaperExe() const
+{
+    return xwallpaper_exe;
+}
+
+QString CommandLineParser::getDefaultMarkerFile() const
+{
+    return default_marker_file;
 }
